@@ -11,13 +11,17 @@ from channels.security.websocket import AllowedHostsOriginValidator
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tareaenminutos_web.settings')
 
+# Cargar las apps de Django ANTES de importar los routing (que a su vez importan
+# modelos como User). Evita AppRegistryNotReady bajo daphne.
+django_asgi_app = get_asgi_application()
+
 # Importar el routing de WebSockets
 import chat_interno.routing
 import notificaciones.routing
 
 application = ProtocolTypeRouter({
     # HTTP requests → Django WSGI app
-    'http': get_asgi_application(),
+    'http': django_asgi_app,
 
     # WebSocket connections → Channels consumers
     'websocket': AllowedHostsOriginValidator(
