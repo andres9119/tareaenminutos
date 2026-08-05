@@ -1,0 +1,330 @@
+/* Estilos compartidos para páginas privadas del sistema TEM */
+.container-tem {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+
+.page-header h1 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.page-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-tem {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.btn-primary-tem {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary-tem:hover {
+    background: #058c3b;
+}
+
+.btn-outline-tem {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-glow);
+}
+
+.btn-outline-tem:hover {
+    background: var(--primary-glow);
+    border-color: var(--primary);
+}
+
+.btn-danger-tem {
+    background: #dc2626;
+    color: #fff;
+}
+
+.btn-danger-tem:hover {
+    background: #b91c1c;
+}
+
+.btn-secondary-tem {
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--text-muted);
+    border: 1px solid var(--border-glow);
+}
+
+.btn-secondary-tem:hover {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-main);
+}
+
+.btn-success-tem {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success-tem:hover {
+    background: #058c3b;
+}
+
+.card-tem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.card-header-tem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+    background: var(--primary-glow);
+}
+
+.card-header-tem h5 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.card-body-tem {
+    padding: 1.5rem;
+}
+
+.alert-tem {
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-glow);
+}
+
+.alert-info-tem {
+    background: var(--primary-glow);
+    border-color: var(--primary);
+    color: var(--text-main);
+}
+
+.alert-warning-tem {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--secondary);
+    color: var(--text-main);
+}
+
+.alert-tem h4 {
+    font-family: var(--font-heading);
+    color: var(--text-main);
+    margin: 0 0 0.5rem 0;
+}
+
+.alert-tem p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.table-tem {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-tem th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-glow);
+}
+
+.table-tem td {
+    padding: 1rem;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-glow);
+}
+
+.table-tem tr:hover {
+    background: var(--primary-glow);
+}
+
+.table-tem tr:last-child td {
+    border-bottom: none;
+}
+
+.badge-tem {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.form-group-tem {
+    margin-bottom: 1.5rem;
+}
+
+.form-label-tem {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-control-tem {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-md);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    transition: var(--transition-smooth);
+}
+
+.form-control-tem:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-control-tem::placeholder {
+    color: var(--text-muted);
+}
+
+.form-select-tem {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-md);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    transition: var(--transition-smooth);
+    cursor: pointer;
+}
+
+.form-select-tem:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.text-muted-tem {
+    color: var(--text-muted);
+}
+
+.field-error {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+/* Styling for checkboxes and multiple select lists in forms */
+.checkbox-multiple {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.checkbox-multiple li {
+    list-style: none;
+}
+.checkbox-multiple input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: translateY(2px);
+}
+
+/* File input styling to match theme */
+.form-control-tem[type="file"] {
+    background: transparent;
+    border: 1px solid var(--border-glow);
+    padding: 0.5rem;
+}
+
+.form-label-tem {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.form-group-tem {
+    margin-bottom: 1rem;
+}
+
+.grid-tem {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .page-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .btn-tem {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Ensure select option readability on light/dark backgrounds */
+.form-select-tem option {
+    background: var(--bg-surface);
+    color: var(--text-main);
+}
+
+.form-select-tem optgroup {
+    background: var(--bg-surface);
+    color: var(--text-main);
+}

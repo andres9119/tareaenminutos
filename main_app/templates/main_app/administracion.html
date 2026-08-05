@@ -1,0 +1,396 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Control - Tarea en Minutos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+    }
+
+    .dashboard-header {
+        margin-bottom: 3rem;
+    }
+
+    .dashboard-welcome-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
+        border: 1px solid var(--border-glow);
+        padding: 3rem;
+        border-radius: var(--border-radius-lg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-welcome-card::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        top: -150px;
+        right: -100px;
+        pointer-events: none;
+    }
+
+    .welcome-text h1 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .welcome-text p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .session-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .session-badge i {
+        font-size: 0.6rem;
+        animation: pulse-green 1.5s infinite;
+    }
+
+    @keyframes pulse-green {
+        0% { transform: scale(0.9); opacity: 0.4; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(0.9); opacity: 0.4; }
+    }
+
+    .user-profile-details {
+        background: rgba(15, 22, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-glow);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .profile-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.95rem;
+    }
+
+    .profile-item:last-child {
+        border-bottom: none;
+    }
+
+    .profile-label {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .profile-value {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    /* Section titles */
+    .dashboard-section-title {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 4rem 0 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .dashboard-section-title i {
+        color: var(--primary);
+    }
+
+    /* Shortcut Grid */
+    .shortcut-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+
+    .shortcut-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        padding: 3rem 2rem;
+        border-radius: var(--border-radius-lg);
+        text-align: center;
+        transition: var(--transition-smooth);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .shortcut-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--border-glow-active);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.15);
+    }
+
+    .shortcut-card i {
+        font-size: 2.8rem;
+        color: var(--primary);
+        margin-bottom: 1.8rem;
+        display: inline-block;
+        transition: var(--transition-smooth);
+    }
+
+    .shortcut-card:hover i {
+        color: var(--secondary);
+        transform: scale(1.1);
+    }
+
+    .shortcut-card h3 {
+        font-family: var(--font-heading);
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+    }
+
+    .shortcut-card p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        min-height: 48px;
+    }
+
+    .btn-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1.6rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        transition: var(--transition-smooth);
+    }
+
+    .btn-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
+    }
+
+    /* Features List */
+    .dashboard-features-list {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        padding: 2.5rem;
+    }
+
+    .dashboard-features-list ul {
+        list-style: none;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .dashboard-features-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid rgba(255, 255, 255, 0.02);
+        border-radius: var(--border-radius-md);
+        font-size: 0.98rem;
+        line-height: 1.5;
+    }
+
+    .dashboard-features-list li i {
+        color: var(--accent);
+        font-size: 1.25rem;
+        margin-top: 0.1rem;
+    }
+
+    .dashboard-features-list li.upcoming i {
+        color: var(--text-muted);
+    }
+
+    .dashboard-features-list li.upcoming span {
+        color: var(--text-muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 968px) {
+        .shortcut-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .dashboard-features-list ul {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-welcome-card {
+            padding: 2rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .user-profile-details {
+            max-width: 100%;
+        }
+        .welcome-text h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <!-- Header Welcome Card -->
+    <div class="dashboard-header">
+        <div class="dashboard-welcome-card animate-fade-in">
+            <div class="welcome-text">
+                <span class="session-badge">
+                    <i class="fas fa-circle"></i>
+                    <span>Sesión Estudiante Activa</span>
+                </span>
+                <h1 style="margin-top: 1rem;">¡Hola de nuevo, {{ user.username }}!</h1>
+                <p>Bienvenido a tu panel de control académico privado. ¿Qué proyecto resolveremos hoy?</p>
+            </div>
+            
+            <div class="user-profile-details">
+                <div class="profile-item">
+                    <span class="profile-label">Usuario</span>
+                    <span class="profile-value">{{ user.username }}</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Email</span>
+                    <span class="profile-value">{{ user.email|default:"No registrado" }}</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Nombre</span>
+                    <span class="profile-value">{{ user.get_full_name|default:"Estudiante Verificado" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h2 class="dashboard-section-title animate-fade-in">
+        <i class="fas fa-cubes"></i>
+        <span>Servicios & Accesos Directos</span>
+    </h2>
+    
+    <div class="shortcut-grid">
+        <div class="shortcut-card animate-fade-in stagger-1">
+            <i class="fas fa-comments"></i>
+            <h3>Soporte Chat Activo</h3>
+            <p>Comunícate directamente con tu tutor académico y resuelve dudas.</p>
+            <a href="/app/chat/" class="btn-card">
+                <span>Abrir Chat</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="shortcut-card animate-fade-in stagger-2">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Blog & Consejos</h3>
+            <p>Consejos rápidos para tus tesis y normas APA explicados paso a paso.</p>
+            <a href="/blog/" class="btn-card">
+                <span>Ver Consejos</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="shortcut-card animate-fade-in stagger-3">
+            <i class="fas fa-home"></i>
+            <h3>Volver a Inicio</h3>
+            <p>Vuelve al portal principal para cotizar nuevos servicios.</p>
+            <a href="/" class="btn-card">
+                <span>Página Principal</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Features & Services Available list -->
+    <h2 class="dashboard-section-title animate-fade-in">
+        <i class="fas fa-tasks"></i>
+        <span>Herramientas del Estudiante</span>
+    </h2>
+    
+    <div class="dashboard-features-list animate-fade-in">
+        <ul>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Chat interactivo y directo en tiempo real con soporte técnico.</span>
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Descarga y visualización de recursos educativos en el Blog.</span>
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Asistencia y tutorías personalizadas en tiempo récord.</span>
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Formularios de cotización inteligente e inmediata.</span>
+            </li>
+            <li class="upcoming">
+                <i class="fas fa-clock"></i>
+                <span>[Próximamente] Panel de archivos para subir tus pautas directas de la U.</span>
+            </li>
+            <li class="upcoming">
+                <i class="fas fa-clock"></i>
+                <span>[Próximamente] Historial de cotizaciones académicas y pagos integrados.</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var animateElements = document.querySelectorAll('.animate-fade-in, .animate-fade-in-left, .animate-fade-in-right');
+        if ('IntersectionObserver' in window) {
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            animateElements.forEach(function(el) { observer.observe(el); });
+        } else {
+            animateElements.forEach(function(el) { el.classList.add('visible'); });
+        }
+    });
+</script>
+{% endblock %}

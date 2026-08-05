@@ -1,0 +1,108 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Solicitudes Disponibles - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+    @media (max-width: 768px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-bullseye"></i> Solicitudes Disponibles para Cotizar</h1>
+        <div class="page-actions">
+            <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-coins"></i> Mis Cotizaciones
+            </a>
+        </div>
+    </div>
+
+    <div class="alert-tem alert-info-tem" style="margin-bottom: 2rem;">
+        <h4><i class="fas fa-info-circle"></i> Instrucciones</h4>
+        <p>Estas son las solicitudes disponibles para cotizar. Revisa los detalles y envía tu propuesta si estás interesado.</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card-tem" style="margin-bottom: 1.5rem;">
+        <div class="card-body-tem">
+            <form method="get" class="filter-grid">
+                <div>{{ form_filtro.estado }}</div>
+                <div>{{ form_filtro.area }}</div>
+                <div>{{ form_filtro.buscar }}</div>
+                <div style="display: flex; gap: 0.5rem; align-items: end;">
+                    <button type="submit" class="btn-tem btn-primary-tem" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if solicitudes %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                    {% for solicitud in solicitudes %}
+                        <div style="background: var(--bg-surface); border: 1px solid var(--border-glow); border-radius: var(--border-radius-lg); padding: 1.5rem; transition: var(--transition-smooth);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin: 0;">{{ solicitud.codigo }}</h3>
+                                <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
+                                    {{ solicitud.estado.etiqueta }}
+                                </span>
+                            </div>
+
+                            <h4 style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500; margin-bottom: 1rem;">{{ solicitud.titulo|truncatechars:60 }}</h4>
+
+                            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">{{ solicitud.descripcion|truncatewords:20 }}</p>
+
+                            <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                                <strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}<br>
+                                <strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}<br>
+                                <strong>Tipo:</strong> {{ solicitud.get_tipo_entrega_display }}<br>
+                                <strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
+                            </div>
+
+                            {% if solicitud.presupuesto_cliente %}
+                                <p style="color: var(--primary); font-weight: 600; margin-bottom: 1rem;">
+                                    Presupuesto: ${{ solicitud.presupuesto_cliente|floatformat:0 }}
+                                </p>
+                            {% endif %}
+
+                            <div style="display: flex; gap: 0.75rem;">
+                                <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                    <i class="fas fa-eye"></i> Ver Detalles
+                                </a>
+                                <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-success-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                    <i class="fas fa-coins"></i> Cotizar
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert-tem alert-warning-tem">
+            <h4><i class="fas fa-inbox"></i> No hay solicitudes disponibles</h4>
+            <p>Actualmente no hay solicitudes nuevas disponibles para cotizar. Vuelve más tarde.</p>
+            <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-outline-tem" style="margin-top: 1rem;">
+                Ver Mis Cotizaciones
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

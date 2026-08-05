@@ -1,0 +1,69 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Crear Usuario - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1>Crear Usuario</h1>
+        <div class="page-actions">
+            <a href="{% url 'usuarios_list' %}" class="btn-tem btn-outline-tem">← Volver</a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid-2">
+            <div>
+                <h5 style="margin-bottom:1rem;">Datos de Usuario</h5>
+                {% for field in form.visible_fields %}
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ field.label }}</label>
+                        <div>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="text-muted-tem">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div>
+                <h5 style="margin-bottom:1rem;">Perfil (opcional, recomendado para Tutores)</h5>
+                {% for field in perfil_form.visible_fields %}
+                    {% if field.name in 'first_name,last_name,email' %}
+                        {# Ya se capturan en "Datos de Usuario"; se omiten para evitar duplicados. #}
+                    {% else %}
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ field.label }}</label>
+                        <div>
+                            {% if field.name == 'especialidades' %}
+                                <div class="checkbox-multiple">
+                                    {{ field }}
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small class="text-muted-tem">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="field-error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+            <button type="submit" class="btn-tem btn-primary-tem">Crear Usuario</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

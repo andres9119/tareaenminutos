@@ -1,0 +1,250 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+
+{% block title %}Blog Universitario de Normas APA y Consejos Académicos | Tarea en Minutos{% endblock %}
+{% block description %}Aprende cómo estructurar tus tesis de grado, redactar ensayos universitarios, aplicar normas APA 7 y aprobar tus materias en Colombia.{% endblock %}
+{% block canonical_path %}/blog/{% endblock %}
+{% block og_url_path %}/blog/{% endblock %}
+
+{% block og_title %}Blog Académico: Normas APA y Consejos Universitarios | Tarea en Minutos{% endblock %}
+{% block og_description %}Guías de normas APA, tesis, ensayos y técnicas de estudio para estudiantes universitarios en Colombia.{% endblock %}
+{% block tw_title %}Blog Académico: Normas APA y Consejos Universitarios | Tarea en Minutos{% endblock %}
+{% block tw_description %}Guías de normas APA, tesis, ensayos y técnicas de estudio para estudiantes universitarios en Colombia.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+
+    .blog-header {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 4rem;
+    }
+
+    .blog-header h1 {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 1rem;
+        color: var(--text-main);
+    }
+
+    .blog-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    /* Grid of posts */
+    .blog-posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .blog-post-card {
+        background: var(--bg-surface);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition-smooth);
+    }
+
+    .blog-post-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--border-glow-active);
+        box-shadow: 0 15px 35px rgba(6, 170, 68, 0.15);
+    }
+
+    /* Header image area */
+    .blog-card-image-area {
+        height: 200px;
+        position: relative;
+        background: linear-gradient(135deg, #111111 0%, #000000 100%);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .blog-card-image-area i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.05);
+        position: absolute;
+    }
+
+    .blog-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 2;
+        transition: var(--transition-smooth);
+    }
+
+    .blog-post-card:hover .blog-card-img {
+        transform: scale(1.06);
+    }
+
+    /* Card Content */
+    .blog-card-details {
+        padding: 2.2rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: space-between;
+    }
+
+    .blog-card-meta {
+        font-size: 0.85rem;
+        color: var(--highlight);
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .blog-card-details h3 {
+        font-family: var(--font-heading);
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+        color: var(--text-main);
+    }
+
+    .blog-card-excerpt {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.8rem;
+    }
+
+    .blog-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .blog-card-author {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .blog-card-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 700;
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .blog-card-link:hover {
+        color: var(--secondary);
+    }
+
+    .blog-card-link:hover i {
+        transform: translateX(4px);
+    }
+
+    .blog-card-link i {
+        transition: var(--transition-smooth);
+    }
+
+    /* Empty state */
+    .blog-empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .blog-empty-state i {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--border-glow);
+    }
+
+    .blog-empty-state h3 {
+        color: var(--text-main);
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .blog-container {
+            padding: 2.5rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-container">
+    
+    <div class="blog-header">
+        <h1>Consejos & Recursos Académicos</h1>
+        <p>Aprende a estructurar tus entregas de grado, dominar las normas APA y optimizar tus métodos de estudio con guías escritas por nuestros tutores experimentados.</p>
+    </div>
+    
+    {% if posts %}
+        <div class="blog-posts-grid">
+            {% for post in posts %}
+                <div class="blog-post-card">
+                    <!-- Image -->
+                    <div class="blog-card-image-area">
+                        <i class="fas fa-file-alt"></i>
+                        {% if post.featured_image %}
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="blog-card-img">
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="blog-card-details">
+                        <div>
+                            <div class="blog-card-meta">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ post.created_at|date:"d M Y" }}</span>
+                            </div>
+                            <h3>{{ post.title }}</h3>
+                            <p class="blog-card-excerpt">{{ post.excerpt|truncatewords:22 }}</p>
+                        </div>
+                        
+                        <div class="blog-card-footer">
+                            <span class="blog-card-author">
+                                <i class="fas fa-user-circle"></i> {{ post.author.get_full_name|default:post.author.username }}
+                            </span>
+                            <a href="{% url 'blog_detail' post.slug %}" class="blog-card-link">
+                                <span>Leer Artículo</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="blog-empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>No hay artículos aún</h3>
+            <p>Estamos redactando guías y recursos metodológicos excelentes para ti. ¡Vuelve pronto!</p>
+        </div>
+    {% endif %}
+    
+</div>
+{% endblock %}

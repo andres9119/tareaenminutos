@@ -1,0 +1,219 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - Tarea en Minutos{% endblock %}
+
+{% block description %}{{ post.excerpt|truncatechars:160 }}{% endblock %}
+{% block canonical_path %}/blog/{{ post.slug }}/{% endblock %}
+{% block og_url_path %}/blog/{{ post.slug }}/{% endblock %}
+
+{% block og_title %}{{ post.title }} - Tarea en Minutos{% endblock %}
+{% block og_description %}{{ post.excerpt|truncatechars:160 }}{% endblock %}
+{% block og_image %}{% if post.featured_image %}{{ request.build_absolute_uri|slice:":-1" }}{{ post.featured_image.url }}{% else %}https://tareaenminutos.com{% static 'main_app/images/logo_negro.png' %}{% endif %}{% endblock %}
+{% block tw_title %}{{ post.title }} - Tarea en Minutos{% endblock %}
+{% block tw_description %}{{ post.excerpt|truncatechars:160 }}{% endblock %}
+{% block tw_image %}{% if post.featured_image %}{{ request.build_absolute_uri|slice:":-1" }}{{ post.featured_image.url }}{% else %}https://tareaenminutos.com{% static 'main_app/images/logo_negro.png' %}{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+
+    .post-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 2.5rem;
+        transition: var(--transition-smooth);
+    }
+
+    .post-back-link:hover {
+        color: var(--secondary);
+        transform: translateX(-5px);
+    }
+
+    /* Article Header */
+    .post-view-header {
+        margin-bottom: 2.5rem;
+    }
+
+    .post-view-title {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.8px;
+        margin-bottom: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .post-view-meta {
+        display: flex;
+        gap: 2rem;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        font-weight: 500;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-glow);
+        padding-bottom: 1.5rem;
+    }
+
+    .post-view-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .post-view-meta i {
+        color: var(--primary);
+    }
+
+    /* Featured Image */
+    .post-view-img {
+        width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-glow);
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Article Content Area */
+    .post-view-content {
+        background: var(--bg-surface);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--border-glow);
+        border-left: 4px solid var(--primary);
+        padding: 3rem;
+        border-radius: var(--border-radius-lg);
+        line-height: 1.85;
+        font-size: 1.05rem;
+        color: rgba(248, 250, 252, 0.9);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    }
+
+    .post-view-content h2 {
+        font-family: var(--font-heading);
+        color: var(--text-main);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 1.2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .post-view-content h3 {
+        font-family: var(--font-heading);
+        color: var(--text-main);
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .post-view-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    .post-view-content ul, .post-view-content ol {
+        margin-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .post-view-content li {
+        margin-bottom: 0.6rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .post-container {
+            padding: 2rem 1rem;
+        }
+        .post-view-title {
+            font-size: 2.1rem;
+        }
+        .post-view-content {
+            padding: 2rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ post.title }}",
+  "description": "{{ post.excerpt|escapejs }}",
+  "datePublished": "{{ post.created_at|date:'Y-m-d\TH:i:sP' }}",
+  "dateModified": "{{ post.updated_at|date:'Y-m-d\TH:i:sP' }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ post.author.get_full_name|default:post.author.username }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Tarea en Minutos",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://tareaenminutos.com/static/main_app/images/seo_banner.jpg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://tareaenminutos.com/blog/{{ post.slug }}/"
+  }
+}
+</script>
+<div class="post-container">
+    
+    <a href="/blog/" class="post-back-link">
+        <i class="fas fa-arrow-left"></i>
+        <span>Volver al Blog</span>
+    </a>
+    
+    <article>
+        <!-- Header -->
+        <div class="post-view-header">
+            <h1 class="post-view-title">{{ post.title }}</h1>
+            <div class="post-view-meta">
+                <span>
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ post.created_at|date:"d de F de Y" }}</span>
+                </span>
+                <span>
+                    <i class="fas fa-user-circle"></i>
+                    <span>Por {{ post.author.get_full_name|default:post.author.username }}</span>
+                </span>
+                {% if post.updated_at|date:"YmdHis" != post.created_at|date:"YmdHis" %}
+                    <span>
+                        <i class="fas fa-history"></i>
+                        <span>Actualizado: {{ post.updated_at|date:"d de F de Y" }}</span>
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Featured Image -->
+        {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-view-img">
+        {% endif %}
+        
+        <!-- Body Content -->
+        <div class="post-view-content">
+            {{ post.content|linebreaks }}
+        </div>
+    </article>
+    
+</div>
+{% endblock %}

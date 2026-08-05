@@ -1,0 +1,256 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Crear Nueva Solicitud - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .other-field {
+        display: none;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-plus-circle"></i> Crear Nueva Solicitud</h1>
+        <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-secondary-tem">
+            <i class="fas fa-arrow-left"></i> Volver a la lista
+        </a>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-body-tem">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_nombre.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_nombre.label }}
+                        </label>
+                        {{ form.cliente_nombre }}
+                        {% if form.cliente_nombre.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.cliente_nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_email.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_email.label }}
+                        </label>
+                        {{ form.cliente_email }}
+                        {% if form.cliente_email.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.cliente_email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_telefono.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_telefono.label }}
+                        </label>
+                        {{ form.cliente_telefono }}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_universidad.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_universidad.label }}
+                        </label>
+                        {{ form.cliente_universidad }}
+                    </div>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.titulo.id_for_label }}" class="form-label-tem">
+                        {{ form.titulo.label }}
+                    </label>
+                    {{ form.titulo }}
+                    {% if form.titulo.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.titulo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label-tem">
+                        {{ form.descripcion.label }}
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group-tem">
+                        <label for="{{ form.area_conocimiento.id_for_label }}" class="form-label-tem">
+                            {{ form.area_conocimiento.label }}
+                        </label>
+                        {{ form.area_conocimiento }}
+                        {{ form.area_conocimiento_otro }}
+                        {% if form.area_conocimiento.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.area_conocimiento.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.nivel_academico.id_for_label }}" class="form-label-tem">
+                            {{ form.nivel_academico.label }}
+                        </label>
+                        {{ form.nivel_academico }}
+                        {{ form.nivel_academico_otro }}
+                        {% if form.nivel_academico.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.nivel_academico.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group-tem">
+                        <label for="{{ form.tipo_entrega.id_for_label }}" class="form-label-tem">
+                            {{ form.tipo_entrega.label }}
+                        </label>
+                        {{ form.tipo_entrega }}
+                        {{ form.tipo_entrega_otro }}
+                        {% if form.tipo_entrega.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.tipo_entrega.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.materia.id_for_label }}" class="form-label-tem">
+                            {{ form.materia.label }}
+                        </label>
+                        {{ form.materia }}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group-tem">
+                        <label for="{{ form.fecha_entrega_cliente.id_for_label }}" class="form-label-tem">
+                            {{ form.fecha_entrega_cliente.label }}
+                        </label>
+                        {{ form.fecha_entrega_cliente }}
+                        {% if form.fecha_entrega_cliente.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.fecha_entrega_cliente.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.materia.id_for_label }}" class="form-label-tem">
+                            {{ form.materia.label }}
+                        </label>
+                        {{ form.materia }}
+                    </div>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.presupuesto_cliente.id_for_label }}" class="form-label-tem">
+                        {{ form.presupuesto_cliente.label }}
+                    </label>
+                    {{ form.presupuesto_cliente }}
+                    {% if form.presupuesto_cliente.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.presupuesto_cliente.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.notas_internas.id_for_label }}" class="form-label-tem">
+                        {{ form.notas_internas.label }}
+                    </label>
+                    {{ form.notas_internas }}
+                    <small class="text-muted-tem">Estas notas solo serán visibles para los administradores.</small>
+                </div>
+
+                <div class="form-group-tem" style="margin-top: 2rem;">
+                    <label class="form-label-tem"><i class="fas fa-paperclip"></i> Documentos adjuntos</label>
+                    <small class="text-muted-tem">Opcional. Adjunta aquí la instrucción, material de referencia u otros archivos. Se pueden añadir varios.</small>
+                    <div id="doc-rows" style="margin-top: 1rem;">
+                        <div class="doc-row" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+                            <select name="tipo" class="form-select-tem" style="flex: 1 1 140px; min-width: 140px;">
+                                {% for value, label in doc_tipos %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name="descripcion" placeholder="Descripción (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />
+                            <input type="file" name="archivo" class="form-control-tem" style="flex: 3 1 200px; min-width: 200px;" />
+                            <button type="button" class="btn-tem btn-danger-tem doc-remove" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="addDocRow" class="btn-tem btn-outline-tem" style="margin-top: 0.25rem;">
+                        <i class="fas fa-plus"></i> Agregar archivo
+                    </button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-secondary-tem">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-tem btn-primary-tem">
+                        <i class="fas fa-check"></i> Crear Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('select.other-enabled').forEach(function (sel) {
+        var input = document.getElementById(sel.getAttribute('data-other'));
+        if (!input) return;
+        function toggle() {
+            input.style.display = (sel.value === '__otro__') ? 'block' : 'none';
+            if (sel.value !== '__otro__') input.value = '';
+        }
+        sel.addEventListener('change', toggle);
+        toggle();
+    });
+
+    var docRows = document.getElementById('doc-rows');
+    var addBtn = document.getElementById('addDocRow');
+    var rowTemplate = docRows.querySelector('.doc-row');
+
+    function rowHTML() {
+        var options = '';
+        document.querySelectorAll('#doc-rows .doc-row:first-child select option').forEach(function (opt) {
+            options += '<option value="' + opt.value + '">' + opt.textContent + '</option>';
+        });
+        return '<div class="doc-row" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">' +
+            '<select name="tipo" class="form-select-tem" style="flex: 1 1 140px; min-width: 140px;">' + options + '</select>' +
+            '<input type="text" name="descripcion" placeholder="Descripcion (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />' +
+            '<input type="file" name="archivo" class="form-control-tem" style="flex: 3 1 200px; min-width: 200px;" />' +
+            '<button type="button" class="btn-tem btn-danger-tem doc-remove" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="fas fa-trash-alt"></i></button>' +
+        '</div>';
+    }
+
+    addBtn.addEventListener('click', function () {
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = rowHTML();
+        docRows.appendChild(wrapper.firstChild);
+    });
+
+    docRows.addEventListener('click', function (e) {
+        var btn = e.target.closest('.doc-remove');
+        if (!btn) return;
+        var row = btn.closest('.doc-row');
+        if (docRows.querySelectorAll('.doc-row').length > 1) {
+            row.remove();
+        } else {
+            row.querySelector('input[name="archivo"]').value = '';
+            row.querySelector('input[name="descripcion"]').value = '';
+        }
+    });
+});
+</script>
+{% endblock %}

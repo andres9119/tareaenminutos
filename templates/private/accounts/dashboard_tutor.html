@@ -1,0 +1,422 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Panel Tutor - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .dashboard-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-tem {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary-tem {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary-tem:hover {
+        background: #058c3b;
+    }
+
+    .btn-outline-tem {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid var(--border-glow);
+    }
+
+    .btn-outline-tem:hover {
+        background: var(--primary-glow);
+        border-color: var(--primary);
+    }
+
+    .welcome-alert {
+        background: var(--primary-glow);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .welcome-alert h4 {
+        font-family: var(--font-heading);
+        color: var(--text-main);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .welcome-alert p {
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+        transition: var(--transition-smooth);
+    }
+
+    .kpi-card:hover {
+        border-color: var(--border-glow-active);
+    }
+
+    .kpi-card h5 {
+        font-family: var(--font-heading);
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-card h2 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .kpi-card .text-warning { color: var(--secondary); }
+    .kpi-card .text-success { color: var(--success); }
+    .kpi-card .text-danger { color: var(--highlight); }
+
+    .section-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-glow);
+        background: var(--primary-glow);
+    }
+
+    .section-header h5 {
+        font-family: var(--font-heading);
+        font-size: 1.1rem;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .section-body {
+        padding: 1.5rem;
+    }
+
+    .table-tem {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-tem th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .table-tem td {
+        padding: 1rem;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .table-tem tr:hover {
+        background: var(--primary-glow);
+    }
+
+    .table-tem tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge-tem {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-warning { background: var(--secondary); color: white; }
+    .badge-success { background: var(--success); color: white; }
+    .badge-danger { background: var(--highlight); color: white; }
+
+    .text-muted-tem {
+        color: var(--text-muted);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .dashboard-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        .btn-tem {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Panel del Tutor</span>
+    </div>
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chalkboard-teacher"></i> Panel del Tutor</h1>
+        <div class="dashboard-actions">
+            <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-list"></i> Solicitudes Disponibles
+            </a>
+            <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-dollar-sign"></i> Mis Cotizaciones
+            </a>
+        </div>
+    </div>
+
+    <!-- Bienvenida -->
+    <div class="welcome-alert">
+        <h4>¡Hola {{ request.user.get_full_name|default:request.user.username }}!</h4>
+        <p>Bienvenido a tu panel de tutor. Aquí puedes ver tus tareas asignadas y las solicitudes disponibles para cotizar.</p>
+    </div>
+
+    <!-- Estadísticas del tutor -->
+    {% if perfil %}
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h5>Calificación</h5>
+                <h2 class="text-warning"><i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }}</h2>
+            </div>
+            <div class="kpi-card">
+                <h5>Trabajos Completados</h5>
+                <h2 class="text-success">{{ perfil.trabajos_completados }}</h2>
+            </div>
+            <div class="kpi-card">
+                <h5>Estado</h5>
+                <h2 class="{% if perfil.disponible %}text-success{% else %}text-danger{% endif %}">
+                    {% if perfil.disponible %}Disponible{% else %}No disponible{% endif %}
+                </h2>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Mis solicitudes asignadas -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5><i class="fas fa-tasks"></i> Mis Tareas Asignadas</h5>
+            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                Ver todas
+            </a>
+        </div>
+        <div class="section-body">
+            {% if mis_solicitudes %}
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Área</th>
+                            <th>Estado</th>
+                            <th>Fecha Límite</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in mis_solicitudes %}
+                            <tr>
+                                <td><strong>{{ solicitud.codigo }}</strong></td>
+                                <td>{{ solicitud.titulo|truncatechars:35 }}</td>
+                                <td>{{ solicitud.area_conocimiento.nombre }}</td>
+                                <td>
+                                    <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
+                                        {{ solicitud.estado.etiqueta }}
+                                    </span>
+                                </td>
+                                <td>{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</td>
+                                <td>
+                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <p>No tienes tareas asignadas actualmente.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Solicitudes disponibles para cotizar -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5><i class="fas fa-bullseye"></i> Solicitudes Disponibles para Cotizar</h5>
+            <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                Ver todas
+            </a>
+        </div>
+        <div class="section-body">
+            {% if solicitudes_disponibles %}
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Área</th>
+                            <th>Nivel</th>
+                            <th>Presupuesto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes_disponibles %}
+                            <tr>
+                                <td><strong>{{ solicitud.codigo }}</strong></td>
+                                <td>{{ solicitud.titulo|truncatechars:35 }}</td>
+                                <td>{{ solicitud.area_conocimiento.nombre }}</td>
+                                <td>{{ solicitud.get_nivel_academico_display }}</td>
+                                <td>
+                                    {% if solicitud.presupuesto_cliente %}
+                                        ${{ solicitud.presupuesto_cliente|floatformat:0 }}
+                                    {% else %}
+                                        <span class="text-muted-tem">No especificado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-primary-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Cotizar
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <p>No hay solicitudes disponibles para cotizar en este momento.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mis cotizaciones recientes -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5><i class="fas fa-coins"></i> Mis Cotizaciones Recientes</h5>
+            <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                Ver todas
+            </a>
+        </div>
+        <div class="section-body">
+            {% if mis_cotizaciones %}
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Solicitud</th>
+                            <th>Monto</th>
+                            <th>Tiempo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cotizacion in mis_cotizaciones %}
+                            <tr>
+                                <td><strong>{{ cotizacion.solicitud.codigo }}</strong></td>
+                                <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                                <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
+                                <td>
+                                    {% if cotizacion.estado == 'pendiente' %}
+                                        <span class="badge-tem badge-warning">Pendiente</span>
+                                    {% elif cotizacion.estado == 'aceptada' %}
+                                        <span class="badge-tem badge-success">Aceptada</span>
+                                    {% elif cotizacion.estado == 'rechazada' %}
+                                        <span class="badge-tem badge-danger">Rechazada</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <p>No has enviado cotizaciones aún.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

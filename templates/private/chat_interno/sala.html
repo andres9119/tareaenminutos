@@ -1,0 +1,512 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}{{ sala.nombre }} - Chat TEM{% endblock %}
+{% block content %}
+<div class="wa-chat">
+    <div class="wa-header">
+        <a href="{% url 'mis_chats' %}" class="wa-back" title="Volver a chats"><i class="fas fa-arrow-left"></i></a>
+        <div class="wa-avatar wa-avatar-header">
+            <span>{{ sala.nombre|slice:":1"|upper }}</span>
+        </div>
+        <div class="wa-header-info">
+            <h2>{{ sala.nombre|truncatechars:30 }}</h2>
+            <span class="wa-sub">
+                {% if sala.solicitud %}
+                    {{ sala.solicitud.codigo }} — {{ sala.solicitud.titulo|truncatechars:40 }}
+                {% else %}
+                    Chat general
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="wa-messages" id="wa-messages">
+        {% for e in entradas %}
+            {% if e.etiqueta_fecha %}
+            <div class="wa-date"><span>{{ e.etiqueta_fecha }}</span></div>
+            {% endif %}
+            <div class="wa-row {% if e.propio %}wa-row-own{% endif %}">
+                <div class="wa-bubble {% if e.propio %}wa-bubble-own{% endif %}">
+                    {% if e.mostrar_autor %}
+                    <span class="wa-author">{{ e.mensaje.autor.get_full_name|default:e.mensaje.autor.username }}</span>
+                    {% endif %}
+                    <span class="wa-text">{{ e.mensaje.contenido|linebreaksbr }}</span>
+                    <span class="wa-meta">
+                        {{ e.hora }}
+                        {% if e.propio %}<i class="fas fa-check-double wa-tick"></i>{% endif %}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="wa-empty">
+                <i class="fas fa-comments"></i>
+                <p>No hay mensajes aún. ¡Sé el primero en escribir!</p>
+            </div>
+        {% endfor %}
+        <div class="wa-typing" id="wa-typing"></div>
+    </div>
+
+    <div class="wa-input-area">
+        <textarea id="wa-input" placeholder="Escribe un mensaje..." rows="1"></textarea>
+        <button id="wa-send" class="wa-send"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+{{ sala.id|json_script:"sala-id" }}
+{{ user_id|json_script:"user-id" }}
+
+<style>
+.wa-chat {
+    display: flex;
+    flex-direction: column;
+    height: 68vh;
+    max-height: 640px;
+    min-height: 380px;
+    max-width: 920px;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    background: var(--bg-surface-opaque);
+}
+
+/* Header */
+.wa-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: linear-gradient(135deg, var(--primary) 0%, #048a38 100%);
+    color: #fff;
+}
+.wa-back {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+.wa-back:hover { background: rgba(255,255,255,0.18); }
+.wa-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255,255,255,0.22);
+    flex-shrink: 0;
+}
+.wa-avatar-header span { font-size: 1rem; }
+.wa-header-info { flex: 1; min-width: 0; }
+.wa-header-info h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.wa-sub {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.9);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Zona de mensajes con patrón sutil */
+.wa-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    background-color: var(--bg-base);
+    background-image:
+        radial-gradient(rgba(6,170,68,0.05) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(0,0,0,0.02) 1.5px, transparent 1.5px);
+    background-size: 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.wa-date {
+    text-align: center;
+    margin: 0.6rem 0;
+}
+.wa-date span {
+    display: inline-block;
+    padding: 0.25rem 0.85rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: 12px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.wa-row {
+    display: flex;
+    justify-content: flex-start;
+}
+.wa-row-own { justify-content: flex-end; }
+
+.wa-bubble {
+    position: relative;
+    max-width: 75%;
+    padding: 0.45rem 0.6rem 0.35rem 0.75rem;
+    border-radius: 10px 10px 10px 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    color: var(--text-main);
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+.wa-bubble-own {
+    background: var(--primary-glow);
+    border-color: var(--border-glow-active);
+    border-radius: 10px 10px 2px 10px;
+}
+.wa-author {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.1rem;
+}
+.wa-text {
+    display: block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding-right: 0.4rem;
+}
+.wa-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    float: right;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin: 0.45rem 0 0.1rem 0.5rem;
+    line-height: 1;
+    opacity: 0.9;
+}
+.wa-tick { color: var(--secondary); font-size: 0.72rem; }
+
+.wa-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    margin: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+}
+.wa-empty i { font-size: 3rem; opacity: 0.4; margin-bottom: 1rem; }
+
+/* Indicador de escritura */
+.wa-typing {
+    display: none;
+    align-self: flex-start;
+    padding: 0.55rem 0.9rem;
+    margin-top: 0.15rem;
+    border-radius: 10px 10px 10px 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.wa-typing .wa-typing-dots span {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-right: 3px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: wa-bounce 1.2s infinite;
+}
+.wa-typing .wa-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.wa-typing .wa-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes wa-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+.wa-typing-text { color: var(--text-muted); font-size: 0.78rem; margin-top: 0.25rem; }
+
+/* Input */
+.wa-input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--bg-footer);
+    border-top: 1px solid var(--border-glow);
+}
+.wa-input-area textarea {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border-radius: 22px;
+    border: 1px solid var(--border-glow);
+    background: var(--bg-surface);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+    max-height: 120px;
+    transition: border-color 0.2s;
+}
+.wa-input-area textarea:focus { border-color: var(--primary); }
+.wa-send {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.wa-send:hover { background: var(--primary-hover); }
+
+@media (max-width: 768px) {
+    .wa-chat { height: calc(100vh - 56px); border-radius: 0; border-left: none; border-right: none; }
+    .wa-bubble { max-width: 85%; }
+}</style>
+
+<script>
+(function() {
+    const salaId = JSON.parse(document.getElementById('sala-id').textContent);
+    const userId = JSON.parse(document.getElementById('user-id').textContent);
+
+    const messagesDiv = document.getElementById('wa-messages');
+    const input = document.getElementById('wa-input');
+    const submitBtn = document.getElementById('wa-send');
+    const typingEl = document.getElementById('wa-typing');
+
+    let chatSocket = null;
+    let reconnectAttempts = 0;
+    let reconnectTimer = null;
+    let pingTimer = null;
+    let typingSendTimer = null;
+    let typingHideTimer = null;
+    let lastAutor = null;
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s == null ? '' : String(s);
+        return d.innerHTML;
+    }
+    function fechaLabel(isoFull) {
+        if (!isoFull) return null;
+        const d = new Date(isoFull);
+        if (isNaN(d)) return null;
+        const ahora = new Date();
+        const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+        const ayer = new Date(hoy); ayer.setDate(hoy.getDate() - 1);
+        const dDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (dDay.getTime() === hoy.getTime()) return 'Hoy';
+        if (dDay.getTime() === ayer.getTime()) return 'Ayer';
+        return d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    function scrollBottom() {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addDateSeparator(label) {
+        const d = document.createElement('div');
+        d.className = 'wa-date';
+        d.innerHTML = '<span>' + esc(label) + '</span>';
+        insertBeforeTyping(d);
+    }
+
+    function insertBeforeTyping(node) {
+        if (typingEl && typingEl.parentNode === messagesDiv) {
+            messagesDiv.insertBefore(node, typingEl);
+        } else {
+            messagesDiv.appendChild(node);
+        }
+    }
+
+    function bubbleHTML(propio, showAutor, autorNombre, contenido, hora) {
+        const author = (propio || !showAutor) ? '' : '<span class="wa-author">' + esc(autorNombre) + '</span>';
+        const tick = propio ? ' <i class="fas fa-check-double wa-tick"></i>' : '';
+        return `
+            <div class="wa-bubble ${propio ? 'wa-bubble-own' : ''}">
+                ${author}
+                <span class="wa-text">${esc(contenido).replace(/\n/g, '<br>')}</span>
+                <span class="wa-meta">${esc(hora || 'ahora')}${tick}</span>
+            </div>`;
+    }
+
+    function appendMensaje(data) {
+        const emptyEl = messagesDiv.querySelector('.wa-empty');
+        if (emptyEl) emptyEl.remove();
+        hideTyping();
+
+        const propio = (data.autor_id !== undefined) ? (data.autor_id === userId) : false;
+
+        if (data.created_at_full) {
+            const lbl = fechaLabel(data.created_at_full);
+            if (lbl) {
+                const lastDate = messagesDiv.querySelector('.wa-date:last-of-type');
+                if (!lastDate || lastDate.textContent.trim() !== lbl) addDateSeparator(lbl);
+            }
+        }
+
+        let showAutor = false;
+        if (!propio && data.autor_id !== lastAutor) {
+            showAutor = true;
+            lastAutor = data.autor_id;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'wa-row' + (propio ? ' wa-row-own' : '');
+        row.innerHTML = bubbleHTML(propio, showAutor, data.username, data.message, data.created_at);
+        insertBeforeTyping(row);
+        scrollBottom();
+    }
+
+    function renderHistorial(msgs, usernameActual) {
+        messagesDiv.innerHTML = '';
+        lastAutor = null;
+        if (!msgs || msgs.length === 0) {
+            const e = document.createElement('div');
+            e.className = 'wa-empty';
+            e.innerHTML = '<i class="fas fa-comments"></i><p>No hay mensajes aún. ¡Sé el primero en escribir!</p>';
+            messagesDiv.appendChild(e);
+            messagesDiv.appendChild(typingEl);
+            scrollBottom();
+            return;
+        }
+        let prevFecha = null;
+        msgs.forEach(function(m) {
+            const lbl = fechaLabel(m.created_at_full);
+            if (lbl && lbl !== prevFecha) { addDateSeparator(lbl); prevFecha = lbl; }
+            const propio = m.autor_id === userId;
+            let showAutor = false;
+            if (!propio && m.autor_id !== lastAutor) { showAutor = true; lastAutor = m.autor_id; }
+            const row = document.createElement('div');
+            row.className = 'wa-row' + (propio ? ' wa-row-own' : '');
+            row.innerHTML = bubbleHTML(propio, showAutor, m.autor_nombre, m.contenido, m.created_at);
+            messagesDiv.appendChild(row);
+        });
+        messagesDiv.appendChild(typingEl);
+        scrollBottom();
+    }
+
+    function showTyping(usuario) {
+        if (!typingEl) return;
+        typingEl.style.display = 'flex';
+        typingEl.innerHTML =
+            '<span class="wa-typing-dots"><span></span><span></span><span></span></span>' +
+            '<span class="wa-typing-text">' + esc(usuario) + ' está escribiendo…</span>';
+        scrollBottom();
+        if (typingHideTimer) clearTimeout(typingHideTimer);
+        typingHideTimer = setTimeout(hideTyping, 4000);
+    }
+    function hideTyping() {
+        if (typingEl) typingEl.style.display = 'none';
+        if (typingHideTimer) { clearTimeout(typingHideTimer); typingHideTimer = null; }
+    }
+
+    function sendTyping() {
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN && input.value.trim() !== '') {
+            chatSocket.send(JSON.stringify({ 'type': 'typing' }));
+        }
+    }
+
+    function connect() {
+        const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${salaId}/`;
+        chatSocket = new WebSocket(wsUrl);
+
+        chatSocket.onopen = function() {
+            reconnectAttempts = 0;
+            if (pingTimer) clearInterval(pingTimer);
+            pingTimer = setInterval(function() {
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({ 'type': 'ping' }));
+                }
+            }, 25000);
+        };
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+
+            if (data.type === 'historial') {
+                // Sincronizar: reconstruir con el historial (recupera mensajes perdidos tras reconexión)
+                renderHistorial(data.mensajes, data.username_actual);
+                return;
+            }
+            if (data.type === 'typing') {
+                showTyping(data.usuario);
+                return;
+            }
+            if (data.type === 'mensaje') {
+                appendMensaje(data);
+                return;
+            }
+        };
+
+        chatSocket.onclose = function(e) {
+            if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+            // Reintentar con espera progresiva (evita bucle agresivo)
+            const delay = Math.min(30000, 500 * Math.pow(2, reconnectAttempts));
+            reconnectAttempts++;
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(connect, delay);
+        };
+    }
+
+    function sendMessage() {
+        const message = input.value.trim();
+        if (message === '') return;
+        if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+            connect(); // intenta reconectar antes de mandar
+            return;
+        }
+        chatSocket.send(JSON.stringify({ 'message': message }));
+        input.value = '';
+        input.style.height = 'auto';
+    }
+
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    input.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        // Enviar indicador de escritura (máx. 1 vez cada 2s)
+        if (!typingSendTimer) {
+            typingSendTimer = setTimeout(function() {
+                typingSendTimer = null;
+                sendTyping();
+            }, 400);
+        }
+    });
+    submitBtn.addEventListener('click', sendMessage);
+
+    connect();
+    scrollBottom();
+})();
+</script>
+{% endblock %}

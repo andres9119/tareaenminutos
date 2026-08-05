@@ -1,0 +1,31 @@
+# systemd — Daphne (ASGI server) para Tarea en Minutos
+# Copia a /etc/systemd/system/tareaenminutos.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now tareaenminutos
+
+[Unit]
+Description=Daphne ASGI server for Tarea en Minutos
+After=network.target
+# Si usas PostgreSQL/Redis en el mismo VPS, espera a que estén arriba:
+# Requires=postgresql.service redis-server.service
+# After=postgresql.service redis-server.service
+
+[Service]
+Type=simple
+# Ruta del proyecto. Ajusta User/Group (normalmente el usuario que despliega).
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/tareaenminutos/tareaenminutos_web
+Environment="DJANGO_SETTINGS_MODULE=tareaenminutos_web.settings"
+# Las variables se leen desde el .env ubicado en WorkingDirectory (python-decouple),
+# que ya existe al copiar el proyecto (`.env`). Asegura permisos de lectura.
+
+ExecStart=/var/www/tareaenminutos/venv/bin/daphne \
+    -b 127.0.0.1 -p 8000 \
+    tareaenminutos_web.asgi:application
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

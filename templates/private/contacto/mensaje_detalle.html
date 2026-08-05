@@ -1,0 +1,65 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Mensaje de {{ m.name }} - TEM{% endblock %}
+{% block content %}
+<div class="container-tem" style="max-width:800px;">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'contact_mensajes_list' %}">Mensajes</a>
+        <span>›</span>
+        <span>{{ m.name }}</span>
+    </div>
+
+    <div class="page-header">
+        <h1><i class="fas fa-envelope"></i> Mensaje de {{ m.name }}</h1>
+        <div class="page-actions">
+            <a href="{% url 'contact_mensajes_list' %}" class="btn-tem btn-secondary-tem">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-tem-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+                <div>
+                    <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Nombre</strong>
+                    <p style="margin:0.25rem 0;font-size:1.1rem;">{{ m.name }}</p>
+                </div>
+                <div>
+                    <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Email</strong>
+                    <p style="margin:0.25rem 0;"><a href="mailto:{{ m.email }}" style="color:var(--primary);">{{ m.email }}</a></p>
+                </div>
+                <div>
+                    <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Teléfono</strong>
+                    <p style="margin:0.25rem 0;">{{ m.phone|default:'—' }}</p>
+                </div>
+                <div>
+                    <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Fecha</strong>
+                    <p style="margin:0.25rem 0;">{{ m.created_at|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border-glow);padding-top:1.5rem;margin-bottom:1.5rem;">
+                <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Asunto</strong>
+                <p style="margin:0.25rem 0 1rem;font-size:1.1rem;font-weight:600;">{{ m.subject }}</p>
+
+                <strong style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;">Mensaje</strong>
+                <div style="margin-top:0.5rem;padding:1.5rem;background:var(--bg-base);border:1px solid var(--border-glow);border-radius:var(--border-radius-md);line-height:1.8;white-space:pre-wrap;">{{ m.message }}</div>
+            </div>
+
+            <div style="display:flex;gap:0.75rem;border-top:1px solid var(--border-glow);padding-top:1.5rem;">
+                <a href="mailto:{{ m.email }}" class="btn-tem btn-primary-tem">
+                    <i class="fas fa-reply"></i> Responder por Email
+                </a>
+                {% if m.phone %}
+                <a href="https://wa.me/57{{ m.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="btn-tem btn-success-tem">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Cotizar {{ solicitud.codigo }} - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-coins"></i> Enviar Cotización</h1>
+        <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="card-tem" style="margin-bottom: 1.5rem;">
+        <div class="card-body-tem">
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin: 0 0 0.5rem;">{{ solicitud.codigo }} — {{ solicitud.titulo }}</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">{{ solicitud.descripcion|truncatewords:30 }}</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+                <div>
+                    <p><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}</p>
+                    <p><strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}</p>
+                </div>
+                <div>
+                    <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
+                    {% if solicitud.presupuesto_cliente %}
+                        <p><strong>Presupuesto:</strong> ${{ solicitud.presupuesto_cliente|floatformat:0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-body-tem">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="{{ form.monto.id_for_label }}" class="form-label-tem">
+                            {{ form.monto.label }}
+                        </label>
+                        {{ form.monto }}
+                        {% if form.monto.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.monto.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.tiempo_estimado_dias.id_for_label }}" class="form-label-tem">
+                            {{ form.tiempo_estimado_dias.label }}
+                        </label>
+                        {{ form.tiempo_estimado_dias }}
+                        {% if form.tiempo_estimado_dias.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.tiempo_estimado_dias.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.fecha_entrega_propuesta.id_for_label }}" class="form-label-tem">
+                        {{ form.fecha_entrega_propuesta.label }}
+                    </label>
+                    {{ form.fecha_entrega_propuesta }}
+                    {% if form.fecha_entrega_propuesta.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.fecha_entrega_propuesta.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.descripcion_propuesta.id_for_label }}" class="form-label-tem">
+                        {{ form.descripcion_propuesta.label }}
+                    </label>
+                    {{ form.descripcion_propuesta }}
+                    {% if form.descripcion_propuesta.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.descripcion_propuesta.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-tem btn-success-tem">
+                        <i class="fas fa-paper-plane"></i> Enviar Cotización
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

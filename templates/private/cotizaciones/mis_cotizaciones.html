@@ -1,0 +1,68 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Mis Cotizaciones - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-file-invoice"></i> Mis Cotizaciones</h1>
+        <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem">
+            <i class="fas fa-list"></i> Ver Solicitudes Disponibles
+        </a>
+    </div>
+
+    {% if cotizaciones %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Solicitud</th>
+                            <th>Monto</th>
+                            <th>Tiempo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cotizacion in cotizaciones %}
+                            <tr>
+                                <td>
+                                    <strong>{{ cotizacion.solicitud.codigo }}</strong><br>
+                                    <small class="text-muted-tem">{{ cotizacion.solicitud.titulo|truncatechars:50 }}</small>
+                                </td>
+                                <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                                <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
+                                <td>
+                                    {% if cotizacion.estado == 'pendiente' %}
+                                        <span class="badge-tem" style="background: var(--secondary); color: white;">Pendiente</span>
+                                    {% elif cotizacion.estado == 'aceptada' %}
+                                        <span class="badge-tem" style="background: var(--success); color: white;">Aceptada</span>
+                                    {% elif cotizacion.estado == 'rechazada' %}
+                                        <span class="badge-tem" style="background: var(--highlight); color: white;">Rechazada</span>
+                                    {% elif cotizacion.estado == 'vencida' %}
+                                        <span class="badge-tem" style="background: var(--text-muted); color: white;">Vencida</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cotizacion.created_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}" 
+                                       class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert-tem alert-info-tem">
+            <h4><i class="fas fa-inbox"></i> No has enviado cotizaciones aún</h4>
+            <p>Revisa las <a href="{% url 'solicitudes_disponibles' %}" style="color: var(--primary);">solicitudes disponibles</a> y envía tu primera propuesta.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Mi Perfil - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-user"></i> Mi Perfil</h1>
+        <a href="{% url 'dashboard_redirect' %}" class="btn-tem btn-secondary-tem">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem;">
+        <div>
+            <div class="card-tem" style="text-align: center;">
+                <div class="card-body-tem">
+                    {% if perfil.foto %}
+                        <img src="{{ perfil.get_foto_url }}" alt="Foto de perfil" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+                    {% else %}
+                        <div style="width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 1rem; background: var(--primary-glow); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--primary);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <h4 style="font-family: var(--font-heading); color: var(--text-main);">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                    <p style="color: var(--text-muted);">{{ request.user.email }}</p>
+                    {% if perfil.es_admin %}
+                        <span class="badge-tem" style="background: var(--primary);">Administrador</span>
+                    {% elif perfil.es_tutor %}
+                        <span class="badge-tem" style="background: var(--success);">Tutor</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if perfil.es_tutor %}
+                <div class="card-tem" style="margin-top: 1rem;">
+                    <div class="card-body-tem">
+                        <h5 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 1rem;">Estadísticas</h5>
+                        <p style="color: var(--text-muted);"><strong>Calificación:</strong> <i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }}</p>
+                        <p style="color: var(--text-muted);"><strong>Trabajos:</strong> {{ perfil.trabajos_completados }}</p>
+                        <p style="color: var(--text-muted);"><strong>Estado:</strong> 
+                            {% if perfil.disponible %}
+                                <span style="color: var(--success);">Disponible</span>
+                            {% else %}
+                                <span style="color: var(--text-muted);">No disponible</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <div class="card-tem">
+                <div class="card-body-tem">
+                    <h5 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 1.5rem;">Editar Perfil</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="grid-tem grid-2">
+                            <div class="form-group-tem">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label-tem">
+                                    {{ form.first_name.label }}
+                                </label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="form-group-tem">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label-tem">
+                                    {{ form.last_name.label }}
+                                </label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="form-group-tem">
+                            <label for="{{ form.email.id_for_label }}" class="form-label-tem">
+                                {{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                        </div>
+
+                        <div class="form-group-tem">
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label-tem">
+                                {{ form.telefono.label }}
+                            </label>
+                            {{ form.telefono }}
+                        </div>
+
+                        <div class="form-group-tem">
+                            <label for="{{ form.foto.id_for_label }}" class="form-label-tem">
+                                {{ form.foto.label }}
+                            </label>
+                            {{ form.foto }}
+                        </div>
+
+                        <div class="form-group-tem">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label-tem">
+                                {{ form.bio.label }}
+                            </label>
+                            {{ form.bio }}
+                        </div>
+
+                        {% if perfil.es_tutor %}
+                            <div class="form-group-tem">
+                                <label for="{{ form.especialidades.id_for_label }}" class="form-label-tem">
+                                    {{ form.especialidades.label }}
+                                </label>
+                                {{ form.especialidades }}
+                            </div>
+
+                            <div class="form-group-tem" style="display: flex; align-items: center; gap: 0.5rem;">
+                                {{ form.disponible }}
+                                <label for="{{ form.disponible.id_for_label }}" style="color: var(--text-muted);">
+                                    {{ form.disponible.label }}
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        <button type="submit" class="btn-tem btn-primary-tem" style="margin-top: 1rem;">
+                            <i class="fas fa-check"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

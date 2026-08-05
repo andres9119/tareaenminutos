@@ -1,0 +1,17 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /login/
+Disallow: /logout/
+Disallow: /chat/
+Disallow: /administracion/
+Disallow: /bienvenidos/
+
+# Plataforma privada TEM
+Disallow: /app/
+Disallow: /solicitudes/
+Disallow: /cotizaciones/
+Disallow: /documentos/
+Disallow: /notificaciones/
+Disallow: /reportes/
+
+Sitemap: {{ SITE_BASE_URL }}/sitemap.xml

@@ -1,0 +1,223 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Notificaciones - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Notificaciones</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-bell"></i> Notificaciones</h1>
+        <div class="page-actions">
+            <form id="formMarcarTodas" method="post" action="{% url 'notif_todas_leidas' %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-tem btn-primary-tem">
+                    <i class="fas fa-check-double"></i> Marcar todas leídas
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-tem">
+        {% if notificaciones %}
+            {% for notif in notificaciones %}
+            <div class="notif-item {% if not notif.leida %}notif-unread{% endif %}" data-id="{{ notif.pk }}">
+                <div class="notif-icon">
+                    {% if notif.tipo == 'nueva_solicitud' %}
+                        <i class="fas fa-file-alt"></i>
+                    {% elif notif.tipo == 'cotizacion_aceptada' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif notif.tipo == 'cotizacion_rechazada' %}
+                        <i class="fas fa-times-circle"></i>
+                    {% elif notif.tipo == 'cambio_estado' %}
+                        <i class="fas fa-exchange-alt"></i>
+                    {% elif notif.tipo == 'solicitud_asignada' %}
+                        <i class="fas fa-user-check"></i>
+                    {% elif notif.tipo == 'mensaje_chat' %}
+                        <i class="fas fa-comment-dots"></i>
+                    {% else %}
+                        <i class="fas fa-bell"></i>
+                    {% endif %}
+                </div>
+                <div class="notif-content">
+                    <div class="notif-header">
+                        <strong>{{ notif.titulo }}</strong>
+                        <small class="notif-time">{{ notif.created_at|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    <p>{{ notif.mensaje }}</p>
+                </div>
+                <div class="notif-actions">
+                    <a href="{{ notif.url_accion }}" class="btn-tem btn-sm-tem">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if not notif.leida %}
+                    <button type="button" class="btn-tem btn-sm-tem notif-mark-read" data-id="{{ notif.pk }}" title="Marcar como leída">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p>No tienes notificaciones.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border-glow);
+    transition: var(--transition-smooth);
+}
+.notif-item:hover {
+    background: var(--primary-glow);
+}
+.notif-unread {
+    background: rgba(6, 170, 68, 0.08);
+    border-left: 3px solid var(--primary);
+}
+.notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.notif-content {
+    flex: 1;
+    min-width: 0;
+}
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+.notif-header strong {
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+.notif-time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+.notif-content p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+.notif-actions {
+    flex-shrink: 0;
+}
+.btn-sm-tem {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+.btn-sm-tem:hover {
+    background: var(--primary);
+    color: white;
+}
+.card-tem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    var badge = document.getElementById('notifBadge');
+    function setBadge(n) {
+        if (!badge) return;
+        badge.textContent = n;
+        if (n <= 0) badge.classList.add('hidden');
+        else badge.classList.remove('hidden');
+    }
+    function decBadge() {
+        if (!badge) return;
+        var n = parseInt(badge.textContent) || 0;
+        setBadge(Math.max(0, n - 1));
+    }
+    document.getElementById('formMarcarTodas').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = this.querySelector('button[type="submit"]');
+        var original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marcando...';
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            if (res.ok) {
+                setBadge(0);
+                document.querySelectorAll('.notif-item').forEach(function(item) {
+                    item.classList.remove('notif-unread');
+                });
+                document.querySelectorAll('.notif-mark-read').forEach(function(b) { b.remove(); });
+            }
+        }).finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = original;
+        });
+    });
+    document.querySelectorAll('.notif-mark-read').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = btn.getAttribute('data-id');
+            fetch('{% url "notif_marcar_leida" 0 %}'.replace('0', id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                if (res.ok) {
+                    var item = btn.closest('.notif-item');
+                    item.classList.remove('notif-unread');
+                    btn.remove();
+                    decBadge();
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Mensajes de Contacto - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Mensajes de Contacto</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-inbox"></i> Mensajes de Contacto</h1>
+        <div class="page-actions">
+            <a href="/app/dashboard/" class="btn-tem btn-secondary-tem"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
+        </div>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-tem-body" style="padding:0;">
+            {% if mensajes %}
+            <div class="table-responsive">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Asunto</th>
+                            <th>Mensaje</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in mensajes %}
+                        <tr onclick="window.location='{% url 'contact_mensaje_detalle' m.pk %}'" style="cursor:pointer;{% if not m.read %}font-weight:600;{% endif %}">
+                            <td style="white-space:nowrap;">{{ m.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>{{ m.name }}</td>
+                            <td><a href="mailto:{{ m.email }}" style="color:var(--primary);" onclick="event.stopPropagation();">{{ m.email }}</a></td>
+                            <td>{% if m.phone %}{{ m.phone }}{% else %}—{% endif %}</td>
+                            <td>{{ m.subject }}</td>
+                            <td style="max-width:250px;white-space:normal;word-wrap:break-word;">{{ m.message|truncatechars:120 }}</td>
+                            <td>{% if m.read %}<span class="badge-tem" style="background:var(--success);">Leído</span>{% else %}<span class="badge-tem" style="background:var(--highlight);">Nuevo</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox" style="font-size:3rem;opacity:0.3;margin-bottom:1rem;display:block;"></i>
+                <p>No hay mensajes de contacto todavía.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-tem tbody tr:hover { background: var(--primary-glow); }
+</style>
+{% endblock %}

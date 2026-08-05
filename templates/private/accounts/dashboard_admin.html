@@ -1,0 +1,429 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Panel Administrador - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .dashboard-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-tem {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary-tem {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary-tem:hover {
+        background: #058c3b;
+    }
+
+    .btn-outline-tem {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid var(--border-glow);
+    }
+
+    .btn-outline-tem:hover {
+        background: var(--primary-glow);
+        border-color: var(--primary);
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+        transition: var(--transition-smooth);
+    }
+
+    .kpi-card:hover {
+        border-color: var(--border-glow-active);
+    }
+
+    .kpi-card h5 {
+        font-family: var(--font-heading);
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-card h2 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .kpi-card .text-primary { color: var(--primary); }
+
+    .estados-resumen {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem 2rem;
+    }
+
+    .estado-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border-glow);
+        font-size: 0.9rem;
+    }
+
+    .estado-item .estado-nombre {
+        color: var(--text-muted);
+    }
+
+    .estado-item .estado-cantidad {
+        color: var(--text-main);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        transition: var(--transition-smooth);
+    }
+
+    .action-card:hover {
+        border-color: var(--border-glow-active);
+    }
+
+    .action-card h5 {
+        font-family: var(--font-heading);
+        font-size: 1.1rem;
+        color: var(--text-main);
+        margin: 0 0 0.75rem 0;
+    }
+
+    .action-card p {
+        color: var(--text-muted);
+        margin: 0 0 1rem 0;
+        font-size: 0.95rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .section-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-glow);
+        background: var(--primary-glow);
+    }
+
+    .section-header h5 {
+        font-family: var(--font-heading);
+        font-size: 1.1rem;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .section-body {
+        padding: 1.5rem;
+    }
+
+    .table-tem {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-tem th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .table-tem td {
+        padding: 1rem;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-glow);
+    }
+
+    .table-tem tr:hover {
+        background: var(--primary-glow);
+    }
+
+    .table-tem tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge-tem {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .text-muted-tem {
+        color: var(--text-muted);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .estados-resumen {
+            grid-template-columns: 1fr;
+        }
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .dashboard-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        .btn-tem {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+    </div>
+    <div class="dashboard-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Panel de Administrador</h1>
+        <div class="dashboard-actions">
+            <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-plus"></i> Nueva Solicitud
+            </a>
+            <a href="{% url 'usuarios_list' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-users"></i> Gestionar Usuarios
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h5>Total Solicitudes</h5>
+            <h2 class="text-primary">{{ total_solicitudes }}</h2>
+        </div>
+        <div class="kpi-card">
+            <h5>Tutores Activos</h5>
+            <h2>{{ tutores_activos }}</h2>
+        </div>
+        <div class="kpi-card">
+            <h5>Cotizaciones Pendientes</h5>
+            <h2>{{ cotizaciones_pendientes }}</h2>
+        </div>
+    </div>
+
+    <!-- Solicitudes por estado -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5>Solicitudes por estado</h5>
+        </div>
+        <div class="section-body">
+            <div class="estados-resumen">
+                {% for est in estados %}
+                <div class="estado-item">
+                    <span class="estado-nombre">{{ est.etiqueta }}</span>
+                    <span class="estado-cantidad">{{ est.cantidad }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="action-grid">
+        <div class="action-card">
+            <h5><i class="fas fa-file-alt"></i> Gestión de Solicitudes</h5>
+            <p>Administra todas las solicitudes académicas del sistema.</p>
+            <div class="action-buttons">
+                <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem">
+                    Ver Todas
+                </a>
+                <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
+                    + Crear Nueva
+                </a>
+            </div>
+        </div>
+        <div class="action-card">
+            <h5><i class="fas fa-coins"></i> Cotizaciones</h5>
+            <p>{{ cotizaciones_pendientes }} cotizaciones pendientes de revisión</p>
+            <div class="action-buttons">
+                <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem">
+                    Ver Todas
+                </a>
+                <a href="{% url 'solicitud_lista' %}?estado=en_cotizacion" class="btn-tem btn-primary-tem">
+                    Revisar Pendientes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solicitudes recientes -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5><i class="fas fa-file-alt"></i> Solicitudes Recientes</h5>
+            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                Ver todas
+            </a>
+        </div>
+        <div class="section-body">
+            {% if solicitudes_recientes %}
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Tutor</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes_recientes %}
+                            <tr>
+                                <td><strong>{{ solicitud.codigo }}</strong></td>
+                                <td>{{ solicitud.titulo|truncatechars:40 }}</td>
+                                <td>{{ solicitud.cliente_nombre }}</td>
+                                <td>
+                                    <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
+                                        {{ solicitud.estado.etiqueta }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if solicitud.tutor_asignado %}
+                                        {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
+                                    {% else %}
+                                        <span class="text-muted-tem">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <p>No hay solicitudes recientes.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información del sistema -->
+    <div class="action-grid">
+        <div class="action-card">
+            <h5><i class="fas fa-users"></i> Tutores Activos</h5>
+            <p>{{ tutores_activos }} tutores disponibles en el sistema</p>
+            <a href="{% url 'usuarios_list' %}?rol=Tutor" class="btn-tem btn-outline-tem">
+                Gestionar Tutores
+            </a>
+        </div>
+        <div class="action-card">
+            <h5><i class="fas fa-chart-bar"></i> Reportes</h5>
+            <p>Accede a estadísticas y reportes detallados</p>
+            <a href="{% url 'perfil' %}" class="btn-tem btn-outline-tem">
+                Mi Perfil
+            </a>
+        </div>
+        <div class="action-card">
+            <h5><i class="fas fa-envelope"></i> Mensajes de Contacto</h5>
+            <p>{{ total_mensajes_contacto }} mensajes recibidos ({{ mensajes_no_leidos }} sin leer)</p>
+            <a href="{% url 'contact_mensajes_list' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-inbox"></i> Ver Mensajes
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,599 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ayuda en Tareas Universitarias y Tesis en Colombia | Tarea en Minutos{% endblock %}</title>
+    <meta name="description" content="{% block description %}¿Buscas ayuda con tus tareas universitarias, talleres, exámenes o tesis en Colombia? Asesoría experta 24/7 en pregrado y posgrado. ¡Cotiza ya!{% endblock %}">
+    <meta name="keywords" content="ayuda tareas universitarias colombia, hacer trabajos universitarios colombia, asesoría de tesis bogota, resolucion de parciales examenes, normas APA tesis colombia, hacer mi tarea colombia, tutores pregrado posgrado">
+    <meta name="author" content="Tarea en Minutos">
+    <meta name="robots" content="index, follow">
+    {% if GOOGLE_SITE_VERIFICATION %}
+    {% if GOOGLE_SITE_VERIFICATION %}
+    <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">
+    {% endif %}
+    {% endif %}
+    <link rel="canonical" href="https://tareaenminutos.com{% block canonical_path %}/{% endblock %}">
+    <link rel="alternate" hreflang="es-CO" href="https://tareaenminutos.com">
+    
+    <!-- Open Graph (OG) Metatags -->
+    <meta property="og:title" content="{% block og_title %}Ayuda con Tareas, Exámenes y Tesis Universitarias en Colombia{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Red de tutores y profesores expertos para resolver exámenes, talleres, ensayos y tesis a nivel de pregrado y posgrado en toda Colombia. Privacidad 100% garantizada.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://tareaenminutos.com{% static 'main_app/images/logo_negro.png' %}{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_CO">
+    <meta property="og:site_name" content="Tarea en Minutos">
+    <meta property="og:url" content="https://tareaenminutos.com{% block og_url_path %}/{% endblock %}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@tareaenminutos">
+    <meta name="twitter:title" content="{% block tw_title %}Ayuda con Tareas Universitarias en Colombia | Tarea en Minutos{% endblock %}">
+    <meta name="twitter:description" content="{% block tw_description %}¿Buscas ayuda con tus tareas, exámenes o tesis? Tutores expertos 24/7 en Colombia. Cotiza ahora.{% endblock %}">
+    <meta name="twitter:image" content="{% block tw_image %}https://tareaenminutos.com{% static 'main_app/images/logo_negro.png' %}{% endblock %}">
+    
+    <!-- Marcado de Datos Estructurados JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Tarea en Minutos",
+      "description": "Asesoría académica profesional para estudiantes universitarios de pregrado y posgrado en Colombia. Tareas, talleres, tesis, exámenes y proyectos con tutores calificados.",
+      "image": "https://tareaenminutos.com/static/main_app/images/logo_negro.png",
+      "@id": "https://tareaenminutos.com/#organization",
+      "url": "https://tareaenminutos.com",
+      "telephone": "+573217039617",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Bogotá",
+        "addressRegion": "Cundinamarca",
+        "addressCountry": "CO"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 4.60971,
+        "longitude": -74.08175
+      },
+      "areaServed": [
+        {"@type": "Country", "name": "Colombia"},
+        {"@type": "City", "name": "Bogotá"},
+        {"@type": "City", "name": "Medellín"},
+        {"@type": "City", "name": "Cali"},
+        {"@type": "City", "name": "Barranquilla"},
+        {"@type": "City", "name": "Cúcuta"},
+        {"@type": "City", "name": "Bucaramanga"},
+        {"@type": "City", "name": "Pereira"},
+        {"@type": "City", "name": "Cartagena"}
+      ],
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "1048",
+        "bestRating": "5"
+      },
+      "sameAs": [
+        "https://www.instagram.com/tareaenminutos_",
+        "https://www.facebook.com/TareaEnMinutos",
+        "https://www.tiktok.com/@tareaenminutos"
+      ]
+    }
+    </script>
+    
+    <!-- BreadcrumbList Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Inicio",
+          "item": "https://tareaenminutos.com"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Google Fonts: Montserrat & DM Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@700;800&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- FontAwesome Iconos -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'main_app/images/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'main_app/images/favicon/favicon-16x16.png' %}">
+    <link rel="shortcut icon" href="{% static 'main_app/images/favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'main_app/images/favicon/apple-touch-icon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'main_app/images/favicon/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'base_styles.css' %}">
+    <link rel="stylesheet" href="{% static 'private_styles.css' %}">
+    <style>
+        .notif-container { position: relative; }
+        .notif-bell { position: relative; color: var(--text-muted); font-size: 1.2rem; padding: 0.3rem 0.6rem; text-decoration: none; transition: var(--transition-smooth); background: none; border: none; cursor: pointer; font-family: var(--font-body); }
+        .notif-bell:hover { color: var(--primary); }
+        .notif-badge { position: absolute; top: -2px; right: 0; background: var(--highlight); color: #fff; font-size: 0.6rem; font-weight: 700; min-width: 16px; height: 16px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-shadow: 0 2px 6px rgba(239,68,68,0.4); }
+        .notif-badge.hidden { display: none; }
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 340px; max-height: 400px; overflow-y: auto; background: var(--bg-surface-opaque); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md); box-shadow: 0 10px 40px rgba(0,0,0,0.4); display: none; z-index: 9999; backdrop-filter: blur(16px); }
+        .notif-container.open .notif-dropdown { display: block; }
+        .notif-dropdown-item { display: flex; gap: 0.8rem; padding: 0.8rem 1rem; text-decoration: none; color: var(--text-main); transition: var(--transition-smooth); border-bottom: 1px solid var(--border-glow); }
+        .notif-dropdown-item:hover { background: var(--primary-glow); }
+        .notif-item-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-glow); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); font-size: 0.9rem; }
+        .notif-item-content { flex: 1; min-width: 0; }
+        .notif-item-content strong { font-size: 0.8rem; display: block; margin-bottom: 0.15rem; }
+        .notif-item-content p { font-size: 0.75rem; color: var(--text-muted); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-item-content small { font-size: 0.65rem; color: var(--text-muted); opacity: 0.6; }
+        .notif-dropdown-footer { text-align: center; padding: 0.6rem; }
+        .notif-dropdown-footer a { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+        .notif-dropdown-footer a:hover { text-decoration: underline; }
+        .notif-dropdown-empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); }
+        .notif-dropdown-empty i { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; display: block; }
+        .notif-dropdown-empty p { font-size: 0.85rem; }
+        .notif-badge.pulse { animation: notif-pulse 0.3s ease-out; }
+        @keyframes notif-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    </style>
+    {% block extra_css %}{% endblock %}
+
+    {% if GOOGLE_ANALYTICS_ID %}
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ GOOGLE_ANALYTICS_ID }}');
+    </script>
+    {% endif %}
+
+    <script>
+        (function() {
+            var saved = localStorage.getItem('tem_theme');
+            if (saved === 'light') {
+                document.documentElement.classList.add('light-mode');
+                document.documentElement.classList.remove('dark-mode');
+            } else if (!saved && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.classList.add('light-mode');
+                document.documentElement.classList.remove('dark-mode');
+            } else {
+                document.documentElement.classList.remove('light-mode');
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo" aria-label="Tarea en Minutos - Inicio">
+                <img src="{% static 'main_app/images/logo_negro.png' %}" alt="Tarea en Minutos - Logo" class="logo-img logo-dark" loading="eager" width="260" height="130">
+                <img src="{% static 'main_app/images/logo_blanco.png' %}" alt="Tarea en Minutos - Logo" class="logo-img logo-light" loading="eager" width="260" height="130">
+            </a>
+            
+            <nav class="nav-links" id="navLinks">
+                <a href="/#servicios">Servicios</a>
+                <a href="/blog/">Blog</a>
+                <a href="/contacto/">Contacto</a>
+                {% if user.is_authenticated %}
+                    <div class="notif-container" id="notifContainer">
+                        <button type="button" class="notif-bell" id="notifBell" title="Notificaciones" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            {% if notificaciones_count > 0 %}
+                                <span class="notif-badge" id="notifBadge">{{ notificaciones_count }}</span>
+                            {% else %}
+                                <span class="notif-badge hidden" id="notifBadge">0</span>
+                            {% endif %}
+                        </button>
+                        <div class="notif-dropdown" id="notifDropdown">
+                            {% if notificaciones_recientes %}
+                                {% for n in notificaciones_recientes %}
+                                <a href="{{ n.url_accion }}" class="notif-dropdown-item notif-item-link" data-id="{{ n.pk }}">
+                                    <div class="notif-item-icon {{ n.tipo }}">
+                                        {% if n.tipo == 'nueva_solicitud' %}<i class="fas fa-file-alt"></i>
+                                        {% elif n.tipo == 'solicitud_asignada' %}<i class="fas fa-user-check"></i>
+                                        {% elif n.tipo == 'cambio_estado' %}<i class="fas fa-exchange-alt"></i>
+                                        {% elif n.tipo == 'mensaje_chat' %}<i class="fas fa-comment-dots"></i>
+                                        {% elif n.tipo == 'cotizacion_recibida' %}<i class="fas fa-coins"></i>
+                                        {% else %}<i class="fas fa-bell"></i>{% endif %}
+                                    </div>
+                                    <div class="notif-item-content">
+                                        <strong>{{ n.titulo }}</strong>
+                                        <p>{{ n.mensaje|truncatechars:60 }}</p>
+                                        <small>{{ n.created_at|timesince }}</small>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                                <div class="notif-dropdown-footer">
+                                    <a href="{% url 'notificaciones_list' %}">Ver todas</a>
+                                </div>
+                            {% else %}
+                                <div class="notif-dropdown-empty">
+                                    <i class="fas fa-check-circle"></i>
+                                    <p>No hay notificaciones</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="/app/dashboard/" class="nav-panel-btn"><i class="fas fa-chart-line"></i> Mi Panel</a>
+                    <a href="/logout/" class="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                {% else %}
+                    <a href="/login/" class="nav-login-btn"><i class="fas fa-sign-in-alt"></i> Acceso tutores</a>
+                {% endif %}
+                <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </nav>
+
+            <button class="mobile-menu-toggle" id="menuToggle" aria-label="Abrir Menú">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Django Message system integrated beautifully as sliding toasts -->
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert-toast {% if message.tags %}{{ message.tags }}{% endif %}">
+                {% if 'success' in message.tags %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif 'error' in message.tags or 'danger' in message.tags %}
+                    <i class="fas fa-exclamation-circle"></i>
+                {% else %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Block -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                
+                <div class="footer-section">
+                    <h4>Servicios</h4>
+                    <ul>
+                        <li><a href="/#servicios">Tareas y Trabajos Universitarios</a></li>
+                        <li><a href="/#servicios">Trabajos de Grado / Tesis</a></li>
+                        <li><a href="/#servicios">Corrección de Estilo y APA 7</a></li>
+                        <li><a href="/#servicios">Reducción de Similitud e IA</a></li>
+                        <li><a href="/#servicios">Transcripción y Asesorías</a></li>
+                        <li><a href="/#servicios">Análisis Cualitativo ATLAS.TI</a></li>
+                        <li><a href="/#servicios">Acompañamiento Académico</a></li>
+                        <li><a href="/#servicios">Tutorías Personalizadas</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Nuestra Empresa</h4>
+                    <ul>
+                        <li><a href="/#servicios">¿Por qué nosotros?</a></li>
+                        <li><a href="/blog/">Blog & Consejos</a></li>
+                        <li><a href="/contacto/">Formulario de Cotización</a></li>
+                        <li><a href="/login/">Acceso Clientes</a></li>
+                        <li><a href="https://www.instagram.com/tareaenminutos_" target="_blank"><i class="fab fa-instagram"></i> Instagram</a></li>
+                        <li><a href="https://www.facebook.com/TareaEnMinutos" target="_blank"><i class="fab fa-facebook"></i> Facebook</a></li>
+                        <li><a href="https://www.tiktok.com/@tareaenminutos" target="_blank"><i class="fab fa-tiktok"></i> TikTok</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <ul class="footer-contact-info">
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <span>soporte@tareaenminutos.com</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+                            <span>+57 321 703 9617</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            <span>Atención en toda Colombia y el resto del continente, 24 horas al día, 7 días a la semana.</span>
+                        </li>
+                    </ul>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem;">Conectamos estudiantes universitarios con tutores calificados para entregar trabajos excelentes en tiempo récord. Tu salvavidas académico disponible 24/7.</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Tarea en Minutos. Hecho con <i class="fa-solid fa-heart" aria-hidden="true"></i> para universitarios. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp button -->
+    <a href="https://wa.me/573217039617?text=Hola,%20necesito%20ayuda%20con%20una%20tarea%20universitaria." target="_blank" aria-label="Contactar por WhatsApp" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    {% if user_chats %}
+    <!-- Messenger flotante de chat (usuarios internos) -->
+    <button id="messengerBtn" class="messenger-float" aria-label="Abrir chats" aria-expanded="false">
+        <i class="fas fa-comment-dots"></i>
+        <span id="messengerBadge" class="messenger-badge {% if not total_chats_unread %}hidden{% endif %}">{{ total_chats_unread }}</span>
+    </button>
+
+    <div id="messengerPanel" class="messenger-panel">
+        <div class="messenger-head">
+            <h3><i class="fas fa-comments"></i> Chats</h3>
+            <div class="messenger-head-actions">
+                <a href="{% url 'mis_chats' %}" class="messenger-ver-todos"><i class="fas fa-th-large"></i></a>
+                <button id="messengerClose" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="messengerList" class="messenger-list">
+            {% for chat in user_chats %}
+            <a href="{% url 'sala_chat' chat.id %}" class="messenger-item {% if chat.no_leidos %}messenger-item-unread{% endif %}">
+                <div class="messenger-item-icon">
+                    {% if chat.tipo == 'general' %}<i class="fas fa-bullhorn"></i>
+                    {% else %}<i class="fas fa-file-alt"></i>{% endif %}
+                </div>
+                <div class="messenger-item-info">
+                    <div class="messenger-item-top">
+                        <span class="messenger-item-nombre">{{ chat.nombre }}</span>
+                        {% if chat.ultimo_tiempo %}<span class="messenger-item-hora">{{ chat.ultimo_tiempo|date:"H:i" }}</span>{% endif %}
+                    </div>
+                    <div class="messenger-item-prev">
+                        {% if chat.ultimo_mensaje %}
+                            <span class="{% if chat.es_propio_ultimo %}msg-propio{% else %}msg-ajeno{% endif %}">
+                                {% if chat.es_propio_ultimo %}Tú:{% else %}{{ chat.ultimo_autor }}:{% endif %}
+                            </span>
+                            {{ chat.ultimo_mensaje|truncatechars:40 }}
+                        {% else %}
+                            <span class="msg-vacio">Sin mensajes</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if chat.no_leidos %}<span class="messenger-item-badge">{{ chat.no_leidos }}</span>{% endif %}
+            </a>
+            {% empty %}
+            <div class="messenger-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún.</p></div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'mis_chats' %}" class="messenger-footer">Ver todos los chats</a>
+    </div>
+    {% endif %}
+
+    <!-- Theme Toggle + Mobile Menu + Auto-hide Alerts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
+            const menuIcon = menuToggle.querySelector('i');
+
+            menuToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+                if (navLinks.classList.contains('active')) {
+                    menuIcon.classList.remove('fa-bars');
+                    menuIcon.classList.add('fa-times');
+                } else {
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                }
+            });
+
+            // Auto-hide alert toasts after 5 seconds
+            const alerts = document.querySelectorAll('.alert-toast');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 5000);
+            });
+
+            // ── Dark / Light Theme Toggle ──
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const html = document.documentElement;
+
+            function setTheme(mode) {
+                if (mode === 'light') {
+                    html.classList.add('light-mode');
+                    html.classList.remove('dark-mode');
+                    themeIcon.className = 'fas fa-sun';
+                    localStorage.setItem('tem_theme', 'light');
+                } else {
+                    html.classList.remove('light-mode');
+                    html.classList.add('dark-mode');
+                    themeIcon.className = 'fas fa-moon';
+                    localStorage.setItem('tem_theme', 'dark');
+                }
+            }
+
+            // Restore saved preference; fall back to system preference
+            const saved = localStorage.getItem('tem_theme');
+            if (saved) {
+                setTheme(saved);
+            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                setTheme('light');
+            }
+
+            themeToggle.addEventListener('click', function() {
+                const isLight = html.classList.contains('light-mode');
+                setTheme(isLight ? 'dark' : 'light');
+            });
+        });
+    </script>
+
+    {% if user.is_authenticated %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifBadge = document.getElementById('notifBadge');
+            const bell = document.getElementById('notifBell');
+            const container = document.getElementById('notifContainer');
+
+            // ── Dropdown toggle (clic) ──
+            function getCookie(name) {
+                var value = '; ' + document.cookie;
+                var parts = value.split('; ' + name + '=');
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            function markRead(id) {
+                return fetch('/notificaciones/' + id + '/leida/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    keepalive: true
+                }).then(function(r) { return r.json(); }).then(function(res) {
+                    if (res.ok && notifBadge) {
+                        var n = parseInt(notifBadge.textContent) || 0;
+                        n = Math.max(0, n - 1);
+                        notifBadge.textContent = n;
+                        if (n === 0) notifBadge.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (bell && container) {
+                bell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const open = container.classList.toggle('open');
+                    bell.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!container.contains(e.target)) {
+                        container.classList.remove('open');
+                        bell.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                // Marcar como leída al hacer clic en una notificación del dropdown
+                container.querySelectorAll('.notif-item-link').forEach(function(item) {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var url = item.getAttribute('href');
+                        markRead(item.getAttribute('data-id')).then(function() {
+                            window.location.href = url;
+                        });
+                    });
+                });
+            }
+
+            const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const notifSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
+
+            notifSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === 'notificacion') {
+                    const count = parseInt(notifBadge.textContent) || 0;
+                    const newCount = count + 1;
+                    notifBadge.textContent = newCount;
+                    notifBadge.classList.remove('hidden');
+                    notifBadge.classList.add('pulse');
+                    setTimeout(function() { notifBadge.classList.remove('pulse'); }, 300);
+                }
+            };
+
+            notifSocket.onclose = function(e) {
+                if (e.code !== 1000) {
+                    setTimeout(function() {
+                        new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
+                    }, 5000);
+                }
+            };
+        });
+    </script>
+    {% endif %}
+
+    {% if user_chats %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messengerBtn = document.getElementById('messengerBtn');
+            const messengerPanel = document.getElementById('messengerPanel');
+            const messengerClose = document.getElementById('messengerClose');
+            const messengerBadge = document.getElementById('messengerBadge');
+
+            function togglePanel(force) {
+                const willOpen = typeof force === 'boolean' ? force : !messengerPanel.classList.contains('open');
+                messengerPanel.classList.toggle('open', willOpen);
+                messengerBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            }
+
+            messengerBtn.addEventListener('click', function() { togglePanel(); });
+            messengerClose.addEventListener('click', function() { togglePanel(false); });
+            document.addEventListener('click', function(e) {
+                if (!messengerPanel.classList.contains('open')) return;
+                if (!messengerPanel.contains(e.target) && !messengerBtn.contains(e.target)) {
+                    togglePanel(false);
+                }
+            });
+
+            function actualizarChats() {
+                fetch('/app/chat/datos/')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        const total = data.total_no_leidos;
+                        if (total > 0) {
+                            messengerBadge.textContent = total > 99 ? '99+' : total;
+                            messengerBadge.classList.remove('hidden');
+                        } else {
+                            messengerBadge.classList.add('hidden');
+                        }
+                        const list = document.getElementById('messengerList');
+                        if (!list) return;
+                        if (data.chats.length === 0) {
+                            list.innerHTML = '<div class="messenger-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aun.</p></div>';
+                            return;
+                        }
+                        const base = '/app/chat/';
+                        list.innerHTML = data.chats.map(function(c) {
+                            const icon = c.tipo === 'general' ? 'fa-bullhorn' : 'fa-file-alt';
+                            const prev = c.ultimo_mensaje
+                                ? '<span class="' + (c.es_propio_ultimo ? 'msg-propio' : 'msg-ajeno') + '">' +
+                                    (c.es_propio_ultimo ? 'Tu:' : (c.ultimo_autor || '') + ':') + '</span> ' +
+                                    c.ultimo_mensaje
+                                : '<span class="msg-vacio">Sin mensajes</span>';
+                            const hora = c.ultimo_tiempo
+                                ? '<span class="messenger-item-hora">' + new Date(c.ultimo_tiempo).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'}) + '</span>'
+                                : '';
+                            const badge = c.no_leidos
+                                ? '<span class="messenger-item-badge">' + c.no_leidos + '</span>'
+                                : '';
+                            return '<a href="' + base + c.id + '/" class="messenger-item' + (c.no_leidos ? ' messenger-item-unread' : '') + '">' +
+                                '<div class="messenger-item-icon"><i class="fas ' + icon + '"></i></div>' +
+                                '<div class="messenger-item-info">' +
+                                    '<div class="messenger-item-top"><span class="messenger-item-nombre">' + c.nombre + '</span>' + hora + '</div>' +
+                                    '<div class="messenger-item-prev">' + prev + '</div>' +
+                                '</div>' + badge + '</a>';
+                        }).join('');
+                    })
+                    .catch(function() { /* silencioso */ });
+            }
+
+            setInterval(actualizarChats, 20000);
+        });
+    </script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

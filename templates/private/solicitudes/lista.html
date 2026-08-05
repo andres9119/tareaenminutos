@@ -1,0 +1,256 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Solicitudes - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+    .filter-actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        margin-top: 1rem;
+    }
+    .filter-actions .btn-sm-tem {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    @media (max-width: 768px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius-sm);
+        background: var(--primary-glow);
+        border: 1px solid var(--border-glow);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-main);
+        white-space: nowrap;
+    }
+    .estado-dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .estado-leyenda {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        padding: 0.9rem 1.25rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 1.25rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    .leyenda-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Solicitudes</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-file-alt"></i> Solicitudes Académicas</h1>
+        {% if es_admin %}
+            <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-plus"></i> Nueva Solicitud
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtros -->
+    <div class="card-tem">
+        <div class="card-body-tem">
+            <form method="get" class="filter-grid" id="filtro-form">
+                <div>
+                    {{ form_filtro.estado }}
+                </div>
+                <div>
+                    {{ form_filtro.area }}
+                </div>
+                <div>
+                    {{ form_filtro.buscar }}
+                </div>
+                <div>
+                    <label class="form-label-tem">Desde</label>
+                    {{ form_filtro.fecha_desde }}
+                </div>
+                <div>
+                    <label class="form-label-tem">Hasta</label>
+                    {{ form_filtro.fecha_hasta }}
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn-tem btn-primary-tem btn-sm-tem">
+                        <i class="fas fa-filter"></i> Aplicar
+                    </button>
+                    <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem btn-sm-tem">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if estados_leyenda %}
+    <div class="estado-leyenda">
+        {% for est in estados_leyenda %}
+        <span class="leyenda-item">
+            <span class="estado-dot" style="background: {{ est.color_hex }};"></span>
+            {{ est.etiqueta }}
+        </span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Lista de solicitudes -->
+    {% if solicitudes %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Cliente</th>
+                            <th>Área</th>
+                            <th>Estado</th>
+                            <th>Tutor</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes %}
+                            <tr>
+                                <td><strong>{{ solicitud.codigo }}</strong></td>
+                                <td>{{ solicitud.titulo|truncatechars:40 }}</td>
+                                <td>{{ solicitud.cliente_nombre }}</td>
+                                <td>{{ solicitud.area_conocimiento.nombre }}</td>
+                                <td>
+                                    <span class="estado-badge">
+                                        <span class="estado-dot" style="background: {{ solicitud.estado.color_hex }};"></span>
+                                        {{ solicitud.estado.etiqueta }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if solicitud.tutor_asignado %}
+                                        {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
+                                    {% else %}
+                                        <span class="text-muted-tem">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" 
+                                       class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Ver
+                                    </a>
+                                    {% if es_admin %}
+                                        <a href="{% url 'solicitud_editar' solicitud.pk %}" 
+                                           class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                            Editar
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination-tem">
+            <span class="page-info">Página {{ solicitudes.number }} de {{ solicitudes.paginator.num_pages }}</span>
+            <div class="page-buttons">
+                {% if solicitudes.has_previous %}
+                    <a href="?page=1{% if form_filtro %}&{{ request.GET.urlencode|cut:page }}{% endif %}" class="btn-tem btn-sm-tem">&laquo;</a>
+                    <a href="?page={{ solicitudes.previous_page_number }}" class="btn-tem btn-sm-tem">&lsaquo;</a>
+                {% endif %}
+                {% for num in solicitudes.paginator.page_range %}
+                    {% if num == solicitudes.number %}
+                        <span class="btn-tem btn-sm-tem btn-active">{{ num }}</span>
+                    {% elif num > solicitudes.number|add:'-3' and num < solicitudes.number|add:'3' %}
+                        <a href="?page={{ num }}" class="btn-tem btn-sm-tem">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if solicitudes.has_next %}
+                    <a href="?page={{ solicitudes.next_page_number }}" class="btn-tem btn-sm-tem">&rsaquo;</a>
+                    <a href="?page={{ solicitudes.paginator.num_pages }}" class="btn-tem btn-sm-tem">&raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="alert-tem alert-info-tem">
+            <h4><i class="fas fa-inbox"></i> No hay solicitudes</h4>
+            <p>No se encontraron solicitudes con los filtros seleccionados.</p>
+            {% if es_admin %}
+                <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
+                    <i class="fas fa-plus"></i> Crear Primera Solicitud
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.pagination-tem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+.page-info {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+.page-buttons {
+    display: flex;
+    gap: 0.4rem;
+}
+.btn-active {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('filtro-form');
+    if (!form) return;
+    form.querySelectorAll('select').forEach(function (sel) {
+        sel.addEventListener('change', function () { form.submit(); });
+    });
+    form.querySelectorAll('input[type="date"]').forEach(function (inp) {
+        inp.addEventListener('change', function () { form.submit(); });
+    });
+});
+</script>
+{% endblock %}

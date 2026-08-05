@@ -1,0 +1,105 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Todas las Cotizaciones - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-coins"></i> Todas las Cotizaciones</h1>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem {% if not estado %}active{% endif %}">
+                Todas
+            </a>
+            <a href="?estado=pendiente" class="btn-tem btn-outline-tem {% if estado == 'pendiente' %}active{% endif %}">
+                Pendientes
+            </a>
+            <a href="?estado=aceptada" class="btn-tem btn-outline-tem {% if estado == 'aceptada' %}active{% endif %}">
+                Aceptadas
+            </a>
+            <a href="?estado=rechazada" class="btn-tem btn-outline-tem {% if estado == 'rechazada' %}active{% endif %}">
+                Rechazadas
+            </a>
+        </div>
+    </div>
+
+    <form method="GET" style="display: flex; gap: 0.8rem; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control-tem" style="width: 170px;">
+        </div>
+        <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control-tem" style="width: 170px;">
+        </div>
+        <button type="submit" class="btn-tem btn-primary-tem" style="padding: 0.6rem 1.2rem;">Filtrar</button>
+        {% if estado or fecha_desde or fecha_hasta %}
+            <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.6rem 1.2rem;">Limpiar</a>
+        {% endif %}
+    </form>
+
+    {% if cotizaciones %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Solicitud</th>
+                            <th>Tutor</th>
+                            <th>Monto</th>
+                            <th>Tiempo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cotizacion in cotizaciones %}
+                            <tr>
+                                <td>
+                                    <strong>{{ cotizacion.solicitud.codigo }}</strong><br>
+                                    <small class="text-muted-tem">{{ cotizacion.solicitud.titulo|truncatechars:40 }}</small>
+                                </td>
+                                <td>
+                                    {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}
+                                </td>
+                                <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                                <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
+                                <td>
+                                    {% if cotizacion.estado == 'pendiente' %}
+                                        <span class="badge-tem" style="background: var(--secondary); color: white;">Pendiente</span>
+                                    {% elif cotizacion.estado == 'aceptada' %}
+                                        <span class="badge-tem" style="background: var(--success); color: white;">Aceptada</span>
+                                    {% elif cotizacion.estado == 'rechazada' %}
+                                        <span class="badge-tem" style="background: var(--highlight); color: white;">Rechazada</span>
+                                    {% elif cotizacion.estado == 'vencida' %}
+                                        <span class="badge-tem" style="background: var(--text-muted); color: white;">Vencida</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cotizacion.created_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}" 
+                                       class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        Ver Solicitud
+                                    </a>
+                                    {% if cotizacion.estado == 'pendiente' %}
+                                        <a href="{% url 'cotizacion_aceptar' cotizacion.pk %}" 
+                                           class="btn-tem btn-success-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                           onclick="return confirm('¿Aceptar esta cotización y asignar el tutor?')">
+                                            Aceptar
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert-tem alert-info-tem">
+            <h4><i class="fas fa-inbox"></i> No hay cotizaciones</h4>
+            <p>No se encontraron cotizaciones con los filtros seleccionados.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

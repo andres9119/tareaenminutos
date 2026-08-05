@@ -1,0 +1,180 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Mis Chats - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Chats</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-comments"></i> Mis Chats</h1>
+        <div class="page-actions">
+            {% if es_admin %}
+            <a href="{% url 'sala_general' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-plus"></i> Canal General
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if salas %}
+    <div class="salas-grid">
+        {% for sala in salas %}
+        {% with ultimo=sala.last_message no_leidos=sala.unread_count %}
+        <a href="{% url 'sala_chat' sala.pk %}" class="sala-card">
+            <div class="sala-icon">
+                {% if sala.tipo == 'general' %}
+                    <i class="fas fa-bullhorn"></i>
+                {% else %}
+                    <i class="fas fa-file-alt"></i>
+                {% endif %}
+            </div>
+            <div class="sala-info">
+                <div class="sala-titulo">
+                    <h3>{{ sala.nombre }}</h3>
+                    {% if no_leidos %}<span class="badge-no-leidos">{{ no_leidos }}</span>{% endif %}
+                </div>
+                {% if sala.solicitud %}
+                <p class="sala-codigo">{{ sala.solicitud.codigo }} — {{ sala.solicitud.titulo|truncatechars:50 }}</p>
+                {% endif %}
+                <p class="sala-ultimo">
+                    {% if ultimo %}
+                        <span class="ultimo-autor {% if ultimo.autor_id == request.user.pk %}ultimo-propio{% endif %}">
+                            {{ ultimo.autor.get_full_name|default:ultimo.autor.username }}{% if ultimo.autor_id != request.user.pk %}:{% endif %}
+                        </span>
+                        {{ ultimo.contenido|truncatechars:60 }}
+                    {% else %}
+                        <span class="sala-vacio">Sin mensajes todavía</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="sala-meta">
+                {% if ultimo %}<small>{{ ultimo.created_at|date:"d/m H:i" }}</small>{% endif %}
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-comment-slash"></i>
+        <p>No tienes chats activos.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.salas-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+.sala-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+.sala-card:hover {
+    border-color: var(--border-glow-active);
+    transform: translateX(4px);
+}
+.sala-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-md);
+    background: var(--primary-glow);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+.sala-info {
+    flex: 1;
+    min-width: 0;
+}
+.sala-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sala-info h3 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: var(--text-main);
+    margin: 0;
+}
+.badge-no-leidos {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    flex-shrink: 0;
+}
+.sala-info p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+.sala-codigo {
+    margin-top: 0.25rem;
+}
+.sala-ultimo {
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ultimo-autor {
+    font-weight: 600;
+    color: var(--primary);
+}
+.ultimo-propio {
+    color: var(--text-muted);
+}
+.sala-vacio {
+    font-style: italic;
+    opacity: 0.6;
+}
+.sala-info small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+.sala-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.sala-meta small {
+    font-size: 0.72rem;
+    opacity: 0.7;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+</style>
+{% endblock %}

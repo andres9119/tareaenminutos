@@ -1,0 +1,232 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}{{ tutor.get_full_name|default:tutor.username }} - Tutor{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-user-graduate"></i> {{ tutor.get_full_name|default:tutor.username }}</h1>
+        <div class="page-actions">
+            <a href="{% url 'usuarios_list' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="profile-grid">
+        <!-- Perfil -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-id-card"></i> Perfil</h3>
+            </div>
+            <div class="card-tem-body profile-info">
+                {% if perfil and perfil.foto %}
+                <img src="{{ perfil.foto.url }}" alt="Foto" class="profile-photo">
+                {% endif %}
+                <div class="profile-details">
+                    <p><strong>Usuario:</strong> @{{ tutor.username }}</p>
+                    <p><strong>Nombre:</strong> {{ tutor.get_full_name|default:"No registrado" }}</p>
+                    <p><strong>Email:</strong> {{ tutor.email|default:"No registrado" }}</p>
+                    <p><strong>Teléfono:</strong> {{ perfil.telefono|default:"No registrado" }}</p>
+                    <p><strong>Disponible:</strong>
+                        {% if perfil.disponible %}
+                        <span class="badge-tem badge-success">Sí</span>
+                        {% else %}
+                        <span class="badge-tem badge-danger">No</span>
+                        {% endif %}
+                    </p>
+                    {% if perfil.bio %}
+                    <p><strong>Bio:</strong> {{ perfil.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-chart-simple"></i> Estadísticas</h3>
+            </div>
+            <div class="card-tem-body stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">{{ solicitudes.count }}</span>
+                    <span class="stat-desc">Solicitudes asignadas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ solicitudes.completadas.count }}</span>
+                    <span class="stat-desc">Completadas</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solicitudes asignadas -->
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-tasks"></i> Solicitudes Asignadas</h3>
+        </div>
+        <div class="card-tem-body">
+            {% if solicitudes %}
+            <div class="table-responsive">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Estado</th>
+                            <th>Área</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in solicitudes %}
+                        <tr>
+                            <td><strong>{{ s.codigo }}</strong></td>
+                            <td>{{ s.titulo|truncatechars:40 }}</td>
+                            <td><span class="badge-tem" style="background: {{ s.estado.color_hex }}">{{ s.estado.etiqueta }}</span></td>
+                            <td>{{ s.area_conocimiento.nombre|default:"—" }}</td>
+                            <td><a href="{% url 'solicitud_detalle' s.pk %}" class="btn-tem btn-sm-tem">Ver</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No tiene solicitudes asignadas.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.card-tem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+.card-tem-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+.card-tem-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.card-tem-body {
+    padding: 1.5rem;
+}
+.profile-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+.profile-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-glow);
+    flex-shrink: 0;
+}
+.profile-details p {
+    margin: 0.4rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+.profile-details strong {
+    color: var(--text-main);
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-base);
+    border-radius: var(--border-radius-md);
+}
+.stat-number {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.stat-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.badge-tem {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+.badge-success {
+    background: var(--success);
+}
+.badge-danger {
+    background: var(--highlight);
+}
+.table-tem {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-tem th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-glow);
+}
+.table-tem td {
+    padding: 0.75rem 1rem;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.table-tem tr:last-child td {
+    border-bottom: none;
+}
+.table-responsive {
+    overflow-x: auto;
+}
+.btn-sm-tem {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+.btn-sm-tem:hover {
+    background: var(--primary-hover);
+}
+.text-muted {
+    color: var(--text-muted);
+}
+</style>
+{% endblock %}

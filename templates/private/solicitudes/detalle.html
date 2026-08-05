@@ -1,0 +1,791 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}{{ solicitud.codigo }} - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'solicitud_lista' %}">Solicitudes</a>
+        <span>›</span>
+        <span>{{ solicitud.codigo }}</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-file-alt"></i> {{ solicitud.codigo }}</h1>
+        <div class="page-actions">
+            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-secondary-tem">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            {% if es_admin %}
+                <a href="{% url 'solicitud_editar' solicitud.pk %}" class="btn-tem btn-primary-tem">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-main">
+            <div class="card-tem">
+                <div class="card-tem-body">
+                    <h2 class="detail-title">{{ solicitud.titulo }}</h2>
+                    <p class="detail-desc">{{ solicitud.descripcion }}</p>
+                    <div class="detail-divider"></div>
+                    <div class="detail-fields">
+                        <div class="field-group">
+                            <div class="field"><strong>Cliente:</strong> {{ solicitud.cliente_nombre }}</div>
+                            <div class="field"><strong>Email:</strong> {{ solicitud.cliente_email }}</div>
+                            <div class="field"><strong>Teléfono:</strong> {{ solicitud.cliente_telefono|default:'No especificado' }}</div>
+                            <div class="field"><strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:'No especificada' }}</div>
+                        </div>
+                        <div class="field-group">
+                            <div class="field"><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}</div>
+                            <div class="field"><strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}</div>
+                            <div class="field"><strong>Tipo:</strong> {{ solicitud.get_tipo_entrega_display }}</div>
+                            <div class="field"><strong>Materia:</strong> {{ solicitud.materia|default:'No especificada' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-sidebar">
+            <div class="card-tem">
+                <div class="card-tem-body">
+                    <div class="sidebar-section">
+                        <h5>Estado</h5>
+                        <span class="badge-tem" style="background: {{ solicitud.estado.color_hex }}">
+                            {{ solicitud.estado.etiqueta }}
+                        </span>
+                    </div>
+                    <div class="sidebar-divider"></div>
+                    <div class="sidebar-section">
+                        <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
+                        <p><strong>Presupuesto:</strong>
+                            {% if solicitud.presupuesto_cliente %}
+                                ${{ solicitud.presupuesto_cliente|floatformat:0 }}
+                            {% else %}No especificado{% endif %}
+                        </p>
+                        <p><strong>Precio Final:</strong>
+                            {% if solicitud.precio_final %}
+                                ${{ solicitud.precio_final|floatformat:0 }}
+                            {% else %}No definido{% endif %}
+                        </p>
+                    </div>
+                    <div class="sidebar-divider"></div>
+                    <div class="sidebar-section">
+                        <p><strong>Tutor Asignado:</strong>
+                            {% if solicitud.tutor_asignado %}
+                                {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
+                            {% else %}<span class="text-muted">Sin asignar</span>{% endif %}
+                        </p>
+                    </div>
+                    {% if es_admin and solicitud.notas_internas %}
+                    <div class="sidebar-divider"></div>
+                    <div class="sidebar-section">
+                        <p><strong>Notas Internas:</strong></p>
+                        <p class="text-muted">{{ solicitud.notas_internas }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if es_admin %}
+            <div class="card-tem" style="margin-top: 1rem;">
+                <div class="card-tem-body">
+                    <h5><i class="fas fa-cog"></i> Acciones</h5>
+                    <div class="action-buttons">
+                        <a href="{% url 'solicitud_editar' solicitud.pk %}" class="btn-tem btn-primary-tem" style="width:100%;justify-content:center;">
+                            <i class="fas fa-edit"></i> Editar Solicitud
+                        </a>
+                        {% if solicitud.tutor_asignado and solicitud.estado.nombre != 'completada' %}
+                        <form method="post" action="{% url 'solicitud_marcar_completada' solicitud.pk %}" style="width:100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" onclick="return confirm('¿Marcar {{ solicitud.codigo }} como completada?')">
+                                <i class="fas fa-check-circle"></i> Marcar Completada
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if solicitud.estado.nombre == 'completada' %}
+                        <button type="button" class="btn-tem btn-warning-tem" style="width:100%;justify-content:center;" onclick="document.getElementById('reactivarModal').style.display='flex'">
+                            <i class="fas fa-undo"></i> Reactivar para Correcciones
+                        </button>
+                        {% elif solicitud.estado.nombre not in 'cancelada,en_disputa' %}
+                        <button type="button" class="btn-tem btn-warning-tem" style="width:100%;justify-content:center;" onclick="document.getElementById('reasignarModal').style.display='flex'">
+                            <i class="fas fa-user-switch"></i>
+                            {% if solicitud.tutor_asignado %}Reasignar Tutor{% else %}Asignar Tutor{% endif %}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if solicitud.estado.nombre == 'completada' %}
+            <div class="card-tem" style="margin-top: 1rem;">
+                <div class="card-tem-body">
+                    <h5><i class="fas fa-star"></i> Calificar Tutor</h5>
+                    {% if solicitud.calificacion_tutor is not None %}
+                    <div style="text-align:center;padding:0.5rem 0;">
+                        <div style="font-size:2rem;font-weight:800;color:var(--primary);">{{ solicitud.calificacion_tutor }}/100</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);">
+                            Nota obtenida: {{ solicitud.nota_obtenida }}/5
+                        </div>
+                        {% if solicitud.fecha_calificacion %}
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">
+                            {{ solicitud.fecha_calificacion|date:"d/m/Y H:i" }}
+                        </div>
+                        {% endif %}
+                        <button type="button" class="btn-tem btn-outline-tem" style="margin-top:0.75rem;width:100%;justify-content:center;" onclick="this.closest('.card-tem').querySelector('.calificar-form').style.display='block';this.style.display='none'">
+                            <i class="fas fa-edit"></i> Modificar
+                        </button>
+                    </div>
+                    {% endif %}
+                    <form method="post" action="{% url 'solicitud_calificar' solicitud.pk %}" class="calificar-form" style="{% if solicitud.calificacion_tutor is not None %}display:none;{% endif %}">
+                        {% csrf_token %}
+                        <div class="form-group-tem">
+                            <label>Nota obtenida por el estudiante (0.0 - 5.0)</label>
+                            <input type="number" name="nota_obtenida" min="0" max="5" step="0.1" value="{{ solicitud.nota_obtenida|default:'' }}" class="form-control-tem" required>
+                        </div>
+                        <div class="form-group-tem">
+                            <label>Puntuación del tutor (0-100)</label>
+                            <input type="text" class="form-control-tem" value="Se calcula automáticamente (nota × 20)" disabled>
+                        </div>
+                        <button type="submit" class="btn-tem btn-primary-tem" style="width:100%;justify-content:center;">
+                            <i class="fas fa-save"></i> Guardar Calificación
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+
+            {% if sala_chat %}
+            <div class="card-tem" style="margin-top: 1rem;">
+                <div class="card-tem-body">
+                    <a href="{% url 'sala_chat' sala_chat.pk %}" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;">
+                        <i class="fas fa-comments"></i> Ir al Chat de la Solicitud
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-paperclip"></i> Documentos ({{ documentos|length }})</h3>
+        </div>
+        <div class="card-tem-body">
+            {% if documentos %}
+            <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
+                {% for doc in documentos %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fa-solid {{ doc.icono_extension }}" style="font-size: 1.4rem; color: var(--primary);"></i>
+                        <div>
+                            <strong style="color: var(--text-main); font-size: 0.9rem;">{{ doc.nombre_original }}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                {{ doc.get_tipo_display }} · {{ doc.tamaño_display }}
+                                {% if doc.descripcion %} · {{ doc.descripcion|truncatechars:40 }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'documento_descargar' doc.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        {% if es_admin %}
+                        <form method="post" action="{% url 'documento_eliminar' doc.pk %}" style="display:inline;" onsubmit="return confirm('¿Eliminar este documento?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tem" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; background: rgba(244,63,94,0.15); color: var(--highlight);">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin-bottom: 1.5rem;">No hay documentos adjuntos todavía.</p>
+            {% endif %}
+
+            <details style="cursor: pointer;">
+                <summary style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    <i class="fas fa-upload"></i> Subir documento
+                </summary>
+                <form method="post" action="{% url 'documento_subir' solicitud.pk %}" enctype="multipart/form-data" style="margin-top: 1rem; padding: 1rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
+                    {% csrf_token %}
+                    <div class="grid-tem grid-2">
+                        <div class="form-group-tem">
+                            <label for="{{ doc_form.tipo.id_for_label }}" class="form-label-tem">{{ doc_form.tipo.label }}</label>
+                            {{ doc_form.tipo }}
+                        </div>
+                        <div class="form-group-tem">
+                            <label for="{{ doc_form.archivo.id_for_label }}" class="form-label-tem">{{ doc_form.archivo.label }}</label>
+                            {{ doc_form.archivo }}
+                        </div>
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ doc_form.descripcion.id_for_label }}" class="form-label-tem">{{ doc_form.descripcion.label }}</label>
+                        {{ doc_form.descripcion }}
+                    </div>
+                    <button type="submit" class="btn-tem btn-primary-tem">
+                        <i class="fas fa-upload"></i> Subir
+                    </button>
+                </form>
+            </details>
+        </div>
+    </div>
+
+    <!-- Entrega de tarea (Tutor) -->
+    {% if not es_admin and solicitud.tutor_asignado == request.user and solicitud.estado.nombre not in 'completada,cancelada,en_disputa' %}
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-upload"></i> Entregar Tarea</h3>
+        </div>
+        <div class="card-tem-body">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                Sube el archivo final de la tarea. Al entregar, el estado cambiará automáticamente a <strong>En Revisión</strong> para que el administrador lo verifique.
+            </p>
+            <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" class="tem-form">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="entrega">
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">Archivo de entrega</label>
+                        <input type="file" name="archivo" class="form-control-tem" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip,.rar,.7z,.txt,.csv">
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">Descripción (opcional)</label>
+                        <textarea name="descripcion" class="form-control-tem" rows="2" placeholder="Comentario sobre la entrega..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-tem btn-success-tem">
+                    <i class="fas fa-paper-plane"></i> Entregar Tarea
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cambio de estado (Tutor) -->
+    {% if not es_admin and solicitud.tutor_asignado == request.user %}
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-exchange-alt"></i> Actualizar Estado de mi Trabajo</h3>
+        </div>
+        <div class="card-tem-body">
+            <form method="post" action="{% url 'solicitud_actualizar_estado_tutor' solicitud.pk %}" class="tem-form">
+                {% csrf_token %}
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="id_estado_tutor" class="form-label-tem">Nuevo Estado</label>
+                        <select name="estado" id="id_estado_tutor" class="form-select-tem" required>
+                            <option value="">-- Seleccionar --</option>
+                            {% for estado in estados_tutor %}
+                            <option value="{{ estado.pk }}">{{ estado.etiqueta }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="id_comentario_tutor" class="form-label-tem">Comentario</label>
+                        <textarea name="comentario" id="id_comentario_tutor" class="form-control-tem" rows="3" placeholder="Comentario opcional sobre el avance..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-tem btn-success-tem">
+                    <i class="fas fa-check"></i> Actualizar Estado
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cotización (Tutor) -->
+    {% if not es_admin and not solicitud.tutor_asignado %}
+        {% if solicitud.estado.nombre == 'nueva' or solicitud.estado.nombre == 'en_cotizacion' %}
+        <div class="card-tem" style="margin-top: 1.5rem;">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-coins"></i> Enviar Cotización</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if cotizacion_propia %}
+                    <p>Ya enviaste una cotización para esta solicitud.</p>
+                    <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-primary-tem">Ver Mis Cotizaciones</a>
+                {% elif cotizacion_form %}
+                    <form method="post" action="{% url 'cotizacion_crear' solicitud.pk %}" class="tem-form" novalidate>
+                        {% csrf_token %}
+                        <div class="grid-tem grid-2">
+                            <div class="form-group-tem">
+                                <label for="{{ cotizacion_form.monto.id_for_label }}">{{ cotizacion_form.monto.label }}</label>
+                                {{ cotizacion_form.monto }}
+                            </div>
+                            <div class="form-group-tem">
+                                <label for="{{ cotizacion_form.tiempo_estimado_dias.id_for_label }}">{{ cotizacion_form.tiempo_estimado_dias.label }}</label>
+                                {{ cotizacion_form.tiempo_estimado_dias }}
+                            </div>
+                        </div>
+                        <div class="form-group-tem">
+                            <label for="{{ cotizacion_form.fecha_entrega_propuesta.id_for_label }}">{{ cotizacion_form.fecha_entrega_propuesta.label }}</label>
+                            {{ cotizacion_form.fecha_entrega_propuesta }}
+                        </div>
+                        <div class="form-group-tem">
+                            <label for="{{ cotizacion_form.descripcion_propuesta.id_for_label }}">{{ cotizacion_form.descripcion_propuesta.label }}</label>
+                            {{ cotizacion_form.descripcion_propuesta }}
+                        </div>
+                        <button type="submit" class="btn-tem btn-success-tem">Enviar Cotización</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Cotizaciones recibidas -->
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-coins"></i> {% if not es_admin %}Mis {% endif %}Cotizaciones{% if es_admin %} Recibidas{% endif %} ({{ cotizaciones|length }})</h3>
+        </div>
+        <div class="card-tem-body">
+            {% if cotizaciones %}
+            <div class="table-responsive">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Tutor</th>
+                            <th>Monto</th>
+                            <th>Tiempo</th>
+                            <th>Fecha Propuesta</th>
+                            <th>Estado</th>
+                            {% if es_admin %}<th>Acciones</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cotizacion in cotizaciones %}
+                        <tr>
+                            <td>{{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}</td>
+                            <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                            <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
+                            <td>{{ cotizacion.fecha_entrega_propuesta|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if cotizacion.estado == 'pendiente' %}
+                                    <span class="badge-tem badge-warning">Pendiente</span>
+                                {% elif cotizacion.estado == 'aceptada' %}
+                                    <span class="badge-tem badge-success">Aceptada</span>
+                                {% elif cotizacion.estado == 'rechazada' %}
+                                    <span class="badge-tem badge-danger">Rechazada</span>
+                                {% endif %}
+                            </td>
+                            {% if es_admin %}
+                            <td>
+                                {% if cotizacion.estado == 'pendiente' %}
+                                <a href="{% url 'cotizacion_aceptar' cotizacion.pk %}"
+                                   class="btn-tem btn-sm-tem"
+                                   onclick="return confirm('¿Aceptar esta cotización y asignar el tutor?')">
+                                    Aceptar
+                                </a>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No hay cotizaciones aún.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Historial de estados -->
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-history"></i> Historial de Estados</h3>
+        </div>
+        <div class="card-tem-body">
+            {% if historial %}
+            <div class="timeline">
+                {% for item in historial %}
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: {{ item.estado_nuevo.color_hex }}"></div>
+                    <div class="timeline-content">
+                        <strong>{{ item.estado_nuevo.etiqueta }}</strong>
+                        <small>{{ item.created_at|date:"d/m/Y H:i" }}</small>
+                        <p>Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</p>
+                        {% if item.comentario %}
+                        <p class="text-muted">{{ item.comentario }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No hay historial de cambios.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if es_admin %}
+<!-- Modal reasignar tutor -->
+<div class="modal-overlay" id="reasignarModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-switch"></i> Reasignar Tutor</h3>
+            <button class="modal-close" onclick="document.getElementById('reasignarModal').style.display='none'">&times;</button>
+        </div>
+        <form method="post" action="{% url 'solicitud_reasignar_tutor' solicitud.pk %}">
+            {% csrf_token %}
+            <div class="form-group-tem">
+                <label for="tutor_id">Seleccionar Nuevo Tutor</label>
+                <select name="tutor_id" id="tutor_id" class="form-select-tem" required>
+                    <option value="">-- Seleccionar tutor --</option>
+                    {% for tutor in tutores_disponibles %}
+                    <option value="{{ tutor.id }}">{{ tutor.get_full_name|default:tutor.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+                <button type="submit" class="btn-tem btn-primary-tem">Reasignar</button>
+                <button type="button" class="btn-tem btn-secondary-tem" onclick="document.getElementById('reasignarModal').style.display='none'">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if es_admin %}
+<!-- Modal reactivar para correcciones -->
+<div class="modal-overlay" id="reactivarModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-undo"></i> Reactivar para Correcciones</h3>
+            <button class="modal-close" onclick="document.getElementById('reactivarModal').style.display='none'">&times;</button>
+        </div>
+        <form method="post" action="{% url 'solicitud_reactivar' solicitud.pk %}">
+            {% csrf_token %}
+            <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem;">
+                La solicitud {{ solicitud.codigo }} volverá al estado <strong>En Corrección</strong> para atender correcciones del cliente. La calificación previa se limpiará para recalificar al terminar.
+            </p>
+            <div class="form-group-tem">
+                <label for="reactivar_tutor_id">Asignar a Tutor</label>
+                <select name="tutor_id" id="reactivar_tutor_id" class="form-select-tem">
+                    <option value="">-- Mantener tutor actual ({% if solicitud.tutor_asignado %}{{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}{% else %}sin asignar{% endif %}) --</option>
+                    {% for tutor in tutores_disponibles %}
+                    <option value="{{ tutor.id }}">{{ tutor.get_full_name|default:tutor.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group-tem">
+                <label for="reactivar_comentario">Motivo de la corrección</label>
+                <textarea name="comentario" id="reactivar_comentario" class="form-control-tem" rows="3" placeholder="Describe la corrección solicitada por el cliente..."></textarea>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+                <button type="submit" class="btn-tem btn-warning-tem" onclick="return confirm('¿Reactivar {{ solicitud.codigo }} para correcciones?')">Reactivar</button>
+                <button type="button" class="btn-tem btn-secondary-tem" onclick="document.getElementById('reactivarModal').style.display='none'">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+}
+@media (max-width: 900px) {
+    .detail-grid { grid-template-columns: 1fr; }
+}
+.card-tem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+}
+.card-tem-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+.card-tem-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.card-tem-body {
+    padding: 1.5rem;
+}
+.detail-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    color: var(--text-main);
+    margin: 0 0 0.75rem;
+}
+.detail-desc {
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+.detail-divider {
+    height: 1px;
+    background: var(--border-glow);
+    margin: 1.25rem 0;
+}
+.detail-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 600px) {
+    .detail-fields { grid-template-columns: 1fr; }
+}
+.field {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+.field strong {
+    color: var(--text-main);
+}
+.sidebar-section {
+    margin-bottom: 0.5rem;
+}
+.sidebar-section h5 {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+.sidebar-section p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0.35rem 0;
+}
+.sidebar-section p strong {
+    color: var(--text-main);
+}
+.sidebar-divider {
+    height: 1px;
+    background: var(--border-glow);
+    margin: 0.75rem 0;
+}
+.badge-tem {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+.badge-warning { background: #f59e0b; color: #1a1a2e; }
+.badge-success { background: var(--success); }
+.badge-danger { background: var(--highlight); }
+.text-muted { color: var(--text-muted); }
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.btn-secondary-tem {
+    background: var(--bg-base);
+    color: var(--text-muted);
+    border: 1px solid var(--border-glow);
+}
+.btn-secondary-tem:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.btn-warning-tem {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+.btn-warning-tem:hover {
+    background: rgba(245, 158, 11, 0.25);
+}
+.btn-success-tem {
+    background: var(--success);
+    color: white;
+}
+.btn-success-tem:hover {
+    opacity: 0.9;
+}
+.btn-sm-tem {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+.btn-sm-tem:hover { background: var(--primary-hover); }
+.tem-form {
+    max-width: 600px;
+}
+.form-group-tem {
+    margin-bottom: 1rem;
+}
+.form-group-tem label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+    font-weight: 500;
+}
+.form-group-tem input,
+.form-group-tem textarea,
+.form-group-tem select,
+.form-select-tem {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--border-radius-md);
+    background: var(--bg-base);
+    border: 1px solid var(--border-glow);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+.form-group-tem input:focus,
+.form-group-tem textarea:focus,
+.form-group-tem select:focus,
+.form-select-tem:focus {
+    border-color: var(--primary);
+}
+.table-tem {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-tem th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-glow);
+}
+.table-tem td {
+    padding: 0.75rem 1rem;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.table-tem tr:last-child td { border-bottom: none; }
+.table-tem tbody tr:hover {
+    background: var(--primary-glow);
+}
+.table-responsive { overflow-x: auto; }
+.timeline { display: flex; flex-direction: column; gap: 0.25rem; }
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-left: 2px solid var(--border-glow);
+    padding-left: 1.25rem;
+    position: relative;
+}
+.timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    left: -6px;
+    top: 1.1rem;
+}
+.timeline-content strong { color: var(--text-main); font-size: 0.9rem; }
+.timeline-content small { color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem; }
+.timeline-content p { color: var(--text-muted); font-size: 0.85rem; margin: 0.15rem 0; }
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modal-fade-in 0.2s ease-out;
+}
+@keyframes modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.modal-box {
+    background: var(--bg-surface-opaque);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    padding: 0;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modal-scale-in 0.25s ease-out;
+}
+@keyframes modal-scale-in {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+.modal-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
+}
+.modal-close:hover {
+    color: var(--text-main);
+    background: var(--bg-base);
+}
+.modal-box form { padding: 1.5rem; }
+.modal-box .form-group-tem label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+details summary { list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+</style>
+{% endblock %}

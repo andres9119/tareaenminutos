@@ -1,0 +1,182 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Editar {{ solicitud.codigo }} - TEM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .other-field {
+        display: none;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-edit"></i> Editar Solicitud {{ solicitud.codigo }}</h1>
+        <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">
+            <i class="fas fa-arrow-left"></i> Volver al detalle
+        </a>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-body-tem">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_nombre.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_nombre.label }}
+                        </label>
+                        {{ form.cliente_nombre }}
+                        {% if form.cliente_nombre.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.cliente_nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_email.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_email.label }}
+                        </label>
+                        {{ form.cliente_email }}
+                        {% if form.cliente_email.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.cliente_email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_telefono.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_telefono.label }}
+                        </label>
+                        {{ form.cliente_telefono }}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.cliente_universidad.id_for_label }}" class="form-label-tem">
+                            {{ form.cliente_universidad.label }}
+                        </label>
+                        {{ form.cliente_universidad }}
+                    </div>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.titulo.id_for_label }}" class="form-label-tem">
+                        {{ form.titulo.label }}
+                    </label>
+                    {{ form.titulo }}
+                    {% if form.titulo.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.titulo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label-tem">
+                        {{ form.descripcion.label }}
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="grid-tem grid-3">
+                    <div class="form-group-tem">
+                        <label for="{{ form.area_conocimiento.id_for_label }}" class="form-label-tem">
+                            {{ form.area_conocimiento.label }}
+                        </label>
+                        {{ form.area_conocimiento }}
+                        {{ form.area_conocimiento_otro }}
+                        {% if form.area_conocimiento.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.area_conocimiento.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.nivel_academico.id_for_label }}" class="form-label-tem">
+                            {{ form.nivel_academico.label }}
+                        </label>
+                        {{ form.nivel_academico }}
+                        {{ form.nivel_academico_otro }}
+                        {% if form.nivel_academico.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.nivel_academico.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.tipo_entrega.id_for_label }}" class="form-label-tem">
+                            {{ form.tipo_entrega.label }}
+                        </label>
+                        {{ form.tipo_entrega }}
+                        {{ form.tipo_entrega_otro }}
+                        {% if form.tipo_entrega.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.tipo_entrega.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="{{ form.materia.id_for_label }}" class="form-label-tem">
+                            {{ form.materia.label }}
+                        </label>
+                        {{ form.materia }}
+                    </div>
+                </div>
+
+                <div class="grid-tem grid-2">
+                    <div class="form-group-tem">
+                        <label for="{{ form.fecha_entrega_cliente.id_for_label }}" class="form-label-tem">
+                            {{ form.fecha_entrega_cliente.label }}
+                        </label>
+                        {{ form.fecha_entrega_cliente }}
+                        {% if form.fecha_entrega_cliente.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.fecha_entrega_cliente.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label for="{{ form.presupuesto_cliente.id_for_label }}" class="form-label-tem">
+                            {{ form.presupuesto_cliente.label }}
+                        </label>
+                        {{ form.presupuesto_cliente }}
+                        {% if form.presupuesto_cliente.errors %}
+                            <div class="field-error" style="margin-top: 0.5rem;">{{ form.presupuesto_cliente.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="{{ form.notas_internas.id_for_label }}" class="form-label-tem">
+                        {{ form.notas_internas.label }}
+                    </label>
+                    {{ form.notas_internas }}
+                    <small class="text-muted-tem">Estas notas solo serán visibles para los administradores.</small>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-tem btn-primary-tem">
+                        <i class="fas fa-check"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('select.other-enabled').forEach(function (sel) {
+        var input = document.getElementById(sel.getAttribute('data-other'));
+        if (!input) return;
+        function toggle() {
+            input.style.display = (sel.value === '__otro__') ? 'block' : 'none';
+            if (sel.value !== '__otro__') input.value = '';
+        }
+        sel.addEventListener('change', toggle);
+        toggle();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Reportes - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-chart-bar"></i> Reportes y Métricas</h1>
+        <div class="page-actions">
+            <a href="{% url 'exportar_solicitudes_csv' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-download"></i> Exportar CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-value">{{ solicitudes_mes }}</span>
+                <span class="kpi-label">Solicitudes (30 días)</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-value">${{ ingresos_mes|floatformat:0 }}</span>
+                <span class="kpi-label">Ingresos (30 días)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-grid">
+        <!-- Solicitudes por estado -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-circle"></i> Solicitudes por Estado</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if por_estado %}
+                    {% for item in por_estado %}
+                    <div class="stat-row">
+                        <span class="stat-dot" style="background: {{ item.color_hex }}"></span>
+                        <span class="stat-label">{{ item.etiqueta }}</span>
+                        <span class="stat-value">{{ item.total }}</span>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {% widthratio item.total solicitudes_mes 100 %}%; background: {{ item.color_hex }}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Solicitudes por área -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-book"></i> Top Áreas de Conocimiento</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if por_area %}
+                    {% for item in por_area %}
+                    <div class="stat-row">
+                        <span class="stat-label"><i class="fa-solid {{ item.icono }}"></i> {{ item.nombre }}</span>
+                        <span class="stat-value">{{ item.total }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top tutores -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-trophy"></i> Top Tutores</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if top_tutores %}
+                    {% for tutor in top_tutores %}
+                    <div class="stat-row">
+                        <span class="stat-rank">#{{ forloop.counter }}</span>
+                        <span class="stat-label">{{ tutor.get_full_name|default:tutor.username }}</span>
+                        <span class="stat-value">{{ tutor.completadas }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tendencia últimos 7 días -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-chart-line"></i> Tendencia (7 días)</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if tendencia_dias %}
+                    {% for item in tendencia_dias %}
+                    <div class="stat-row">
+                        <span class="stat-label">{{ item.dia }}</span>
+                        <span class="stat-value">{{ item.count }}</span>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {% widthratio item.count 10 100 %}%; background: var(--secondary);"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Nivel académico -->
+        <div class="card-tem">
+            <div class="card-tem-header">
+                <h3><i class="fas fa-graduation-cap"></i> Por Nivel Académico</h3>
+            </div>
+            <div class="card-tem-body">
+                {% if por_nivel %}
+                    {% for item in por_nivel %}
+                    <div class="stat-row">
+                        <span class="stat-label">{{ item.nivel_academico|default:"No especificado"|title }}</span>
+                        <span class="stat-value">{{ item.total }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition-smooth);
+}
+.kpi-card:hover {
+    border-color: var(--border-glow-active);
+}
+.kpi-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+.kpi-info {
+    display: flex;
+    flex-direction: column;
+}
+.kpi-value {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.kpi-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+.card-tem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+.card-tem-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+.card-tem-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.card-tem-body {
+    padding: 1rem 1.5rem;
+}
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.stat-row:last-child {
+    border-bottom: none;
+}
+.stat-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.stat-rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-glow);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.stat-label {
+    flex: 1;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+.stat-value {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+.stat-bar {
+    flex: 0 0 100px;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.stat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.text-muted {
+    color: var(--text-muted);
+}
+</style>
+{% endblock %}

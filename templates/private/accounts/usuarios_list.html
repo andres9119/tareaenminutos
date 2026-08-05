@@ -1,0 +1,91 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Usuarios - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> Usuarios</h1>
+        <div class="page-actions">
+            <a href="{% url 'usuario_crear' %}" class="btn-tem btn-primary-tem">
+                <i class="fas fa-plus"></i> Crear Usuario
+            </a>
+        </div>
+    </div>
+
+    <div class="card-tem" style="margin-bottom: 1.5rem;">
+        <div class="card-body-tem">
+            <form method="get" style="display: flex; gap: 1rem; align-items: end;">
+                <div class="form-group-tem" style="margin: 0;">
+                    <label class="form-label-tem">Buscar</label>
+                    <input type="text" name="q" value="{{ q }}" placeholder="Buscar..." class="form-control-tem" />
+                </div>
+                <div class="form-group-tem" style="margin: 0;">
+                    <label class="form-label-tem">Rol</label>
+                    <select name="rol" class="form-select-tem">
+                        <option value="">Todos los roles</option>
+                        <option value="Administrador" {% if rol == 'Administrador' %}selected{% endif %}>Administrador</option>
+                        <option value="Tutor" {% if rol == 'Tutor' %}selected{% endif %}>Tutor</option>
+                    </select>
+                </div>
+                <button class="btn-tem btn-outline-tem" type="submit">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    {% if usuarios %}
+    <div class="card-tem">
+        <div class="card-body-tem" style="padding: 0;">
+            <table class="table-tem">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in usuarios %}
+                    <tr>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.get_full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% for g in user.groups.all %}
+                                <span class="badge-tem" style="background: var(--primary-glow); color: var(--primary);">{{ g.name }}</span>
+                            {% empty %}
+                                <span class="text-muted-tem">—</span>
+                            {% endfor %}
+                        </td>
+                        <td>{% if user.is_active %}<span style="color: var(--success);">Sí</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
+                        <td>
+                            {% if 'Tutor' in user.groups.all|join:"," %}
+                            <form method="post" action="{% url 'usuario_eliminar' user.pk %}" class="form-eliminar" onsubmit="return confirm('¿Estás seguro de que quieres eliminar definitivamente al tutor @{{ user.username }}? Se borrará su usuario y ya no podrá volver a ingresar al sistema.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-tem btn-danger-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                    <i class="fas fa-trash-alt"></i> Eliminar
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'usuario_toggle_activo' user.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                {% if user.is_active %}<i class="fas fa-ban"></i> Desactivar{% else %}<i class="fas fa-check"></i> Activar{% endif %}
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert-tem alert-info-tem">
+        <h4><i class="fas fa-users-slash"></i> No hay usuarios</h4>
+        <p>No se encontraron usuarios con los filtros seleccionados.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
