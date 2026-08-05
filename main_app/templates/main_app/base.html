@@ -162,17 +162,13 @@
 
     <script>
         (function() {
-            var saved = localStorage.getItem('tem_theme');
-            if (saved === 'light') {
-                document.documentElement.classList.add('light-mode');
-                document.documentElement.classList.remove('dark-mode');
-            } else if (!saved && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.documentElement.classList.add('light-mode');
-                document.documentElement.classList.remove('dark-mode');
-            } else {
-                document.documentElement.classList.remove('light-mode');
-                document.documentElement.classList.add('dark-mode');
-            }
+            var root = document.documentElement;
+            var t = 'auto';
+            try { t = localStorage.getItem('tem_theme') || 'auto'; } catch (e) {}
+            var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var isDark = (t === 'dark') || (t === 'auto' && dark);
+            root.classList.toggle('dark-mode', isDark);
+            root.classList.toggle('light-mode', !isDark);
         })();
     </script>
 </head>
@@ -411,37 +407,63 @@
                 }, 5000);
             });
 
-            // ── Dark / Light Theme Toggle ──
+            // ── Theme Toggle (auto / light / dark) ──
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const html = document.documentElement;
+            const mqDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-            function setTheme(mode) {
-                if (mode === 'light') {
-                    html.classList.add('light-mode');
-                    html.classList.remove('dark-mode');
-                    themeIcon.className = 'fas fa-sun';
-                    localStorage.setItem('tem_theme', 'light');
-                } else {
-                    html.classList.remove('light-mode');
-                    html.classList.add('dark-mode');
-                    themeIcon.className = 'fas fa-moon';
-                    localStorage.setItem('tem_theme', 'dark');
-                }
+            function getTheme() {
+                var t = 'auto';
+                try { t = localStorage.getItem('tem_theme') || 'auto'; } catch (e) {}
+                return t;
             }
 
-            // Restore saved preference; fall back to system preference
-            const saved = localStorage.getItem('tem_theme');
-            if (saved) {
-                setTheme(saved);
-            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                setTheme('light');
+            function setTheme(mode) {
+                try { localStorage.setItem('tem_theme', mode); } catch (e) {}
+                applyTheme(mode);
+                updateThemeIcon(mode);
+            }
+
+            function applyTheme(mode) {
+                var dark = (mode === 'dark') || (mode === 'auto' && mqDark.matches);
+                html.classList.toggle('dark-mode', dark);
+                html.classList.toggle('light-mode', !dark);
+            }
+
+            function updateThemeIcon(mode) {
+                if (mode === 'dark') {
+                    themeIcon.className = 'fas fa-moon';
+                    themeToggle.title = 'Modo oscuro. Haz clic para cambiar.';
+                } else if (mode === 'light') {
+                    themeIcon.className = 'fas fa-sun';
+                    themeToggle.title = 'Modo claro. Haz clic para cambiar.';
+                } else {
+                    themeIcon.className = 'fas fa-circle-half-stroke';
+                    themeToggle.title = 'Automático (sigue el dispositivo). Haz clic para cambiar.';
+                }
+                themeToggle.setAttribute('aria-label', themeToggle.title);
+            }
+
+            function refreshTheme() {
+                var mode = getTheme();
+                applyTheme(mode);
+                updateThemeIcon(mode);
+            }
+
+            // Follow the OS live while in "auto" mode
+            if (mqDark.addEventListener) {
+                mqDark.addEventListener('change', refreshTheme);
             }
 
             themeToggle.addEventListener('click', function() {
-                const isLight = html.classList.contains('light-mode');
-                setTheme(isLight ? 'dark' : 'light');
+                var order = ['auto', 'light', 'dark'];
+                var cur = getTheme();
+                var next = order[(order.indexOf(cur) + 1) % order.length];
+                setTheme(next);
             });
+
+            refreshTheme();
         });
     </script>
 

@@ -123,6 +123,37 @@
     --border-footer: rgba(0, 0, 0, 0.06) !important;
 }
 
+/* Force dark mode via class (beats prefers-color-scheme media query) */
+.dark-mode {
+    --bg-base: #000000 !important;
+    --bg-grid: #050505 !important;
+    --bg-surface: rgba(15, 15, 15, 0.75) !important;
+    --bg-surface-opaque: #0a0a0a !important;
+    --border-glow: rgba(255, 255, 255, 0.07) !important;
+    --border-glow-active: rgba(6, 170, 68, 0.35) !important;
+
+    --primary: #06aa44 !important;
+    --primary-hover: #05913a !important;
+    --primary-glow: rgba(6, 170, 68, 0.25) !important;
+
+    --secondary: #0891b2 !important;
+    --secondary-hover: #067a9a !important;
+
+    --accent: #f59e0b !important;
+    --accent-hover: #d97706 !important;
+
+    --text-main: #fefefe !important;
+    --text-muted: #94a3b8 !important;
+    --text-dark: #fefefe !important;
+
+    --success: #06aa44 !important;
+    --success-glow: rgba(6, 170, 68, 0.2) !important;
+
+    --bg-header: rgba(0, 0, 0, 0.85) !important;
+    --bg-footer: #000000 !important;
+    --border-footer: rgba(255, 255, 255, 0.05) !important;
+}
+
 body {
     font-family: var(--font-body);
     color: var(--text-main);
