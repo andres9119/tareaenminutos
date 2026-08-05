@@ -102,8 +102,9 @@ nginx -t && sudo systemctl reload nginx
 cd /var/www/tareaenminutos
 # copia/extrae el código (el proyecto completo, incluye requirements.txt y deploy/)
 # p. ej.: git clone <repo> .  (omitir db.sqlite3, media, media_privada, .env)
+# OJO: el repo DEBE clonarse con manage.py en la raíz de /var/www/tareaenminutos
+# (este repo se versiona desde la carpeta del proyecto, no desde una subcarpeta tareaenminutos_web/).
 
-cd tareaenminutos_web
 python3 -m venv /var/www/tareaenminutos/venv
 /var/www/tareaenminutos/venv/bin/pip install -U pip
 /var/www/tareaenminutos/venv/bin/pip install -r requirements.txt
@@ -176,11 +177,11 @@ sudo nginx -t && sudo systemctl reload nginx
 
 | Cosa | Dónde |
 |---|---|
-| `.env` (producción) | `/var/www/tareaenminutos/tareaenminutos_web/.env` |
+| `.env` (producción) | `/var/www/tareaenminutos/.env` |
 | `/media/` (subidas) | nginx lo sirve de `.../media/` — crea la carpeta y dale permisos |
 | `/static/` | Whitenoise lo sirve desde Daphne (`STATIC_ROOT`) |
 | WebSockets `/ws/` | nginx hace proxy → Daphne (ya configurado) |
-| `django.log` | `.../tareaenminutos_web/django.log` (añade rotación si gustas) |
+| `django.log` | `.../tareaenminutos/django.log` (añade rotación si gustas) |
 
 ## Notas y errores comunes
 
@@ -193,7 +194,7 @@ sudo nginx -t && sudo systemctl reload nginx
 ## Actualizar tras cada cambio
 
 ```bash
-# (en el server, desde tareaenminutos_web/)
+# (en el server, desde /var/www/tareaenminutos/)
 git pull                                          # si usas git
 /var/www/tareaenminutos/venv/bin/pip install -r requirements.txt
 /var/www/tareaenminutos/venv/bin/python manage.py migrate
