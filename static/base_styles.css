@@ -191,6 +191,10 @@ header {
     width: auto;
 }
 
+/* Títulos de tarjetas: mantienen su tamaño al usar h3 para jerarquía de accesibilidad */
+.step-card h3, .service-card h3, .tutor-info h3 { font-size: 1.05rem; }
+.testimonial-info h3 { font-size: 0.92rem; }
+
 .logo-img.logo-light { display: block; }
 .logo-img.logo-dark { display: none; }
 .light-mode .logo-img.logo-light { display: none; }
