@@ -80,7 +80,7 @@
         --accent-hover: #d97706;
 
         --text-main: #000000;
-        --text-muted: #64748b;
+        --text-muted: #5f6b7e;
         --text-dark: #000000;
 
         --success: #06aa44;
@@ -404,7 +404,7 @@ footer {
     max-width: 320px;
 }
 
-.footer-section h4 {
+.footer-section h3, .footer-section h4 {
     color: var(--text-main);
     font-family: var(--font-heading);
     font-size: 1.1rem;
@@ -457,7 +457,6 @@ footer {
 
 .footer-bottom p {
     color: var(--text-muted);
-    opacity: 0.5;
 }
 
 /* ─── Floating WhatsApp button ────────────────────────────── */
