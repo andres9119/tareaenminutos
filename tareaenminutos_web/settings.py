@@ -262,6 +262,11 @@ SITE_BASE_URL = config('SITE_BASE_URL', default='http://localhost:8000')
 
 # ─── HTTPS / Security Settings (for production) ───────────────────────────────
 
+# Detrás de nginx (que termina SSL), Django confía en el header X-Forwarded-Proto
+# que nginx ya envía. Sin esto, SECURE_SSL_REDIRECT crea un bucle 301 en HTTPS.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
