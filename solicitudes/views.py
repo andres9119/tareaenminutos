@@ -170,6 +170,17 @@ def solicitud_detalle(request, pk):
         cotizaciones = solicitud.cotizaciones.select_related('tutor').order_by('monto')
     else:
         cotizaciones = solicitud.cotizaciones.filter(tutor=request.user).select_related('tutor')
+    # Todas las cotizaciones (de todos los tutores) para el gráfico de rangos de precios.
+    cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor').order_by('monto'))
+    montos = [c.monto for c in cotizaciones_todas if c.monto]
+    max_monto = max(montos) if montos else 0
+    precios_resumen = None
+    if montos:
+        precios_resumen = {
+            'min': min(montos),
+            'max': max(montos),
+            'promedio': sum(montos) / len(montos),
+        }
     historial = solicitud.historial_estados.select_related(
         'estado_anterior', 'estado_nuevo', 'cambiado_por'
     ).order_by('-created_at')[:10]
@@ -196,6 +207,9 @@ def solicitud_detalle(request, pk):
         'solicitud': solicitud,
         'documentos': documentos,
         'cotizaciones': cotizaciones,
+        'cotizaciones_todas': cotizaciones_todas,
+        'max_monto': max_monto,
+        'precios_resumen': precios_resumen,
         'historial': historial,
         'sala_chat': sala_chat,
         'doc_form': doc_form,

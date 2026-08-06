@@ -60,6 +60,7 @@
                     </div>
                     <div class="sidebar-divider"></div>
                     <div class="sidebar-section">
+                        <p><strong>Fecha de Creación:</strong> {{ solicitud.created_at|date:"d/m/Y H:i" }}</p>
                         <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
                         <p><strong>Presupuesto:</strong>
                             {% if solicitud.presupuesto_cliente %}
@@ -399,6 +400,35 @@
         </div>
     </div>
 
+    <!-- Gráfico de rangos de precios cotizados (todos los tutores) -->
+    {% if cotizaciones_todas|length > 1 %}
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-chart-bar"></i> Rangos de Precios Cotizados</h3>
+        </div>
+        <div class="card-tem-body">
+            <div class="chart-summary">
+                {% if precios_resumen %}
+                <span class="chart-stat"><strong>Mín:</strong> ${{ precios_resumen.min|floatformat:0 }}</span>
+                <span class="chart-stat"><strong>Promedio:</strong> ${{ precios_resumen.promedio|floatformat:0 }}</span>
+                <span class="chart-stat"><strong>Máx:</strong> ${{ precios_resumen.max|floatformat:0 }}</span>
+                {% endif %}
+            </div>
+            <div class="chart-bars">
+                {% for cotizacion in cotizaciones_todas %}
+                <div class="chart-col" title="{% firstof cotizacion.tutor.get_full_name cotizacion.tutor.username %}: ${{ cotizacion.monto|floatformat:0 }}">
+                    <div class="chart-bar-track">
+                        <div class="chart-bar" style="height: {% widthratio cotizacion.monto max_monto 100 %}%;"></div>
+                    </div>
+                    <div class="chart-label">{% firstof cotizacion.tutor.first_name cotizacion.tutor.username %}</div>
+                    <div class="chart-value">${{ cotizacion.monto|floatformat:0 }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Historial de estados -->
     <div class="card-tem" style="margin-top: 1.5rem;">
         <div class="card-tem-header">
@@ -691,6 +721,75 @@
     background: var(--primary-glow);
 }
 .table-responsive { overflow-x: auto; }
+
+/* Gráfico de rangos de precios cotizados */
+.chart-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.chart-stat {
+    background: var(--bg-base);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.chart-stat strong { color: var(--text-main); }
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+.chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+.chart-bar-track {
+    width: 100%;
+    max-width: 48px;
+    height: 130px;
+    display: flex;
+    align-items: flex-end;
+    background: var(--bg-base);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+.chart-bar {
+    width: 100%;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: var(--border-radius-sm);
+    min-height: 4px;
+    transition: var(--transition-smooth);
+}
+.chart-col:nth-child(2n) .chart-bar {
+    background: linear-gradient(180deg, var(--secondary) 0%, var(--primary) 100%);
+}
+.chart-label {
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chart-value {
+    font-size: 0.7rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+@media (max-width: 600px) {
+    .chart-bars { gap: 0.5rem; }
+    .chart-bar-track { max-width: 34px; }
+}
 .timeline { display: flex; flex-direction: column; gap: 0.25rem; }
 .timeline-item {
     display: flex;
