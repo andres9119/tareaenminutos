@@ -15,7 +15,7 @@
     {% endif %}
     {% endif %}
     <link rel="canonical" href="https://tareaenminutos.com{% block canonical_path %}/{% endblock %}">
-    <link rel="alternate" hreflang="es-CO" href="https://tareaenminutos.com">
+    <link rel="alternate" hreflang="es-CO" href="https://tareaenminutos.com{{ request.path }}">
     
     <!-- Open Graph (OG) Metatags -->
     <meta property="og:title" content="{% block og_title %}Ayuda con Tareas, Exámenes y Tesis Universitarias en Colombia{% endblock %}">

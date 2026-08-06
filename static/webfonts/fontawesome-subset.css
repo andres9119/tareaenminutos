@@ -1,7 +1,7 @@
 /*! Font Awesome Free 6.4.0 subset - auto-generado, font-display: swap */
 @font-face{font-family:"Font Awesome 6 Free";font-style:normal;font-weight:900;font-display:swap;src:url(../webfonts/fa-solid-900.woff2) format("woff2")}
 @font-face{font-family:"Font Awesome 6 Brands";font-style:normal;font-weight:400;font-display:swap;src:url(../webfonts/fa-brands-400.woff2) format("woff2")}
-.fas,.fa-solid{font-weight:900}.fab,.fa-brands{font-weight:400}
+.fas,.fab,.fa-solid,.fa-brands,.fa-regular,.far{font-style:normal}.fas,.fa-solid{font-weight:900}.fab,.fa-brands{font-weight:400}
 .fa-solid::before,.fas::before{font-family:"Font Awesome 6 Free";font-weight:900}
 .fa-brands::before,.fab::before{font-family:"Font Awesome 6 Brands";font-weight:400}
 :root{--fa-font-solid:normal 900 1em/1 "Font Awesome 6 Free";--fa-font-brands:normal 400 1em/1 "Font Awesome 6 Brands"}
