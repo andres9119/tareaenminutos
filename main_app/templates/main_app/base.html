@@ -114,10 +114,10 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet"></noscript>
     
-    <!-- FontAwesome Iconos -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <!-- FontAwesome Iconos (auto-alojado, subset + font-display: swap) -->
+    <link rel="preload" as="font" type="font/woff2" href="{% static 'webfonts/fa-solid-900.woff2' %}" crossorigin>
+    <link rel="stylesheet" href="{% static 'webfonts/fontawesome-subset.css' %}" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="{% static 'webfonts/fontawesome-subset.css' %}"></noscript>
     
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'main_app/images/favicon/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'main_app/images/favicon/favicon-16x16.png' %}">
