@@ -6,6 +6,7 @@ Twisted==26.4.0
 django-axes==6.5.2
 python-decouple==3.8
 Pillow==11.3.0
+Markdown==3.8.2
 psycopg2-binary==2.9.10
 redis==8.0.0
 gunicorn==23.0.0
