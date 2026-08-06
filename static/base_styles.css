@@ -243,7 +243,7 @@ header {
 
 .logo-img {
     transition: var(--transition-smooth);
-    height: 64px;
+    height: 72px;
     width: auto;
 }
 
@@ -941,12 +941,12 @@ footer {
         animation: fadeInDown 0.3s ease-out;
     }
 
-    nav.nav-links a { padding: 0.5rem 0; font-size: 1rem; }
+    nav.nav-links a { padding: 0.5rem 0; font-size: 1.2rem; }
     nav.nav-links a::after { display: none; }
 
     .nav-login-btn, .nav-panel-btn { justify-content: center; margin-top: 0.4rem; }
 
-    .logo-img { height: 56px; }
+    .logo-img { height: 72px; }
 
     .header-content { padding-top: 0.7rem; padding-bottom: 0.7rem; }
 
