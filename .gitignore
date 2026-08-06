@@ -18,6 +18,9 @@ collected_static/
 .env
 *.env
 
+# Imágenes fuente de gran tamaño (solo se versionan los .webp optimizados)
+static/images/*.PNG
+
 # Test / coverage
 .pytest_cache/
 .coverage

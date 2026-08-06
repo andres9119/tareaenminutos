@@ -1180,7 +1180,10 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
         </div>
     </div>
     <div class="hero-img-right">
-        <img src="{% static 'images/estudiante4.webp' %}" alt="Estudiante" width="675" height="675"
+        <img src="{% static 'images/estudiante_inicio.webp' %}"
+            srcset="{% static 'images/estudiante_inicio-450.webp' %} 450w, {% static 'images/estudiante_inicio.webp' %} 900w"
+            sizes="(min-width: 1100px) 820px, (min-width: 576px) 400px, 100vw"
+            alt="Estudiante" width="675" height="675"
             fetchpriority="high" decoding="async">
     </div>
 </section>
@@ -1432,7 +1435,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
     <div class="stats-container">
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>250+</h3>
+                <h3>350+</h3>
                 <p>Estudiantes Satisfechos</p>
             </div>
             <div class="stat-card">
@@ -1440,7 +1443,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
                 <p>Trabajos Completados</p>
             </div>
             <div class="stat-card">
-                <h3>15+</h3>
+                <h3>40+</h3>
                 <p>Tutores Verificados</p>
             </div>
             <div class="stat-card">

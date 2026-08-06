@@ -189,6 +189,10 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Compresión y cache headers de estáticos (Whitenoise).
+# En producción usamos ManifestStorage: genera nombres con hash inmutable, lo que
+# permite servir /static/ con caché de 1 año + `immutable` sin riesgo de contenido
+# obsoleto tras un despliegue. En desarrollo se mantiene la versión simple (no
+# requiere collectstatic para que runserver sirva los estáticos).
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
@@ -197,6 +201,9 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
 }
+
+if not DEBUG:
+    STORAGES['staticfiles']['BACKEND'] = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ─── Media files (imágenes, documentos subidos) ───────────────────────────────
 
