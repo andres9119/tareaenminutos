@@ -651,6 +651,17 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
         box-shadow: 0 8px 25px rgba(8, 145, 178, 0.4);
     }
 
+    .tutor-avatar-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: center;
+        z-index: 2;
+        border: 3px solid var(--border-glow);
+        box-shadow: 0 8px 25px var(--primary-glow);
+    }
+
     .tutor-avatar-placeholder.rose-theme {
         background: linear-gradient(135deg, var(--highlight) 0%, var(--primary) 100%);
         box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
@@ -1533,8 +1544,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
     <div class="tutors-grid">
         <div class="tutor-card">
             <div class="tutor-image-area">
-                <i class="fas fa-user tutor-image-fallback"></i>
-                <div class="tutor-avatar-placeholder">JPS</div>
+                <img src="{% static 'images/director.webp' %}" alt="Juan Pablo Sierra Munevar, Director General" class="tutor-avatar-img" width="120" height="120">
             </div>
             <div class="tutor-info">
                 <h3>Juan Pablo Sierra Munevar</h3>
