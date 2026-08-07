@@ -29,24 +29,19 @@ def _salas_con_datos(user, limite=25):
     if user.is_superuser or user.groups.filter(name='Administrador').exists():
         salas = list(SalaChat.objects.all())
     else:
-        from solicitudes.models import EstadoSolicitud as ES
-        abiertos = ES.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
-        salas = list(
-            SalaChat.objects.filter(
-                participantes=user
-            ).filter(solicitud__isnull=True)
-        ) + list(
-            SalaChat.objects.filter(
-                participantes=user, solicitud__isnull=False
+        # Tutores: salas generales donde participa + salas de solicitudes asignadas a él.
+        salas = _dedup(
+            list(
+                SalaChat.objects.filter(
+                    participantes=user, solicitud__isnull=True
+                )
+            ) + list(
+                SalaChat.objects.filter(
+                    solicitud__isnull=False,
+                    solicitud__tutor_asignado=user,
+                )
             )
         )
-        abiertas = list(
-            SalaChat.objects.filter(
-                solicitud__isnull=False,
-                solicitud__estado__in=abiertos,
-            ).exclude(participantes=user)
-        )
-        salas = _dedup(salas + abiertas)
 
     datos = [_construir_datos_sala(s, user) for s in salas]
     # Ordenar por actividad: último mensaje más reciente primero (sin mensajes al final)

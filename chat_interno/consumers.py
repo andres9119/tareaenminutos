@@ -98,21 +98,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def verificar_acceso(self):
         from chat_interno.models import SalaChat
-        from solicitudes.models import EstadoSolicitud as ES
         try:
             sala = SalaChat.objects.get(pk=self.sala_id)
             # Admins tienen acceso total
             if self.user.is_staff or self.user.groups.filter(name='Administrador').exists():
                 return True
-            # Participante directo
-            if sala.participantes.filter(pk=self.user.pk).exists():
-                return True
-            # Sala de solicitud abierta (nueva/en_cotizacion) o asignada a él
+            # Salas de solicitud: solo el tutor asignado (las abiertas no dan acceso)
             if sala.solicitud:
-                estados_abiertos = ES.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
-                if sala.solicitud.tutor_asignado == self.user or sala.solicitud.estado in estados_abiertos:
-                    return True
-            return False
+                return sala.solicitud.tutor_asignado == self.user
+            # Salas generales: requiere ser participante
+            return sala.participantes.filter(pk=self.user.pk).exists()
         except SalaChat.DoesNotExist:
             return False
 

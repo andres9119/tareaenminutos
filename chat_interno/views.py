@@ -16,23 +16,18 @@ from .context_processors import _salas_con_datos
 def sala_chat(request, pk):
     """Vista de una sala de chat específica."""
     from django.http import Http404
-    from solicitudes.models import EstadoSolicitud as ES
     user_is_admin = es_admin(request.user)
 
     sala = get_object_or_404(SalaChat, pk=pk)
 
     if not user_is_admin:
-        # Acceso si es participante, o si es una sala de solicitud abierta
-        # (nueva/en_cotizacion) o asignada al tutor.
-        estados_abiertos = ES.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
-        es_participante = sala.participantes.filter(pk=request.user.pk).exists()
-        es_solicitud_accesible = bool(
-            sala.solicitud
-            and (sala.solicitud.tutor_asignado == request.user
-                 or sala.solicitud.estado in estados_abiertos)
-        )
-        if not (es_participante or es_solicitud_accesible):
-            raise Http404('No tienes acceso a esta sala.')
+        # Salas de solicitud: solo el tutor asignado. Salas generales: participantes.
+        if sala.solicitud:
+            if sala.solicitud.tutor_asignado != request.user:
+                raise Http404('No tienes acceso a esta sala.')
+        else:
+            if not sala.participantes.filter(pk=request.user.pk).exists():
+                raise Http404('No tienes acceso a esta sala.')
 
     # Agregar usuario como participante si aún no está
     sala.participantes.add(request.user)
