@@ -30,6 +30,17 @@ class TutorPasswordResetForm(PasswordResetForm):
             if user.has_usable_password():
                 yield user
 
+    def clean(self):
+        """Solo permite solicitar recuperación si el dato corresponde a un tutor."""
+        cleaned = super().clean()
+        email = cleaned.get('email')
+        if email and not any(self.get_users(email)):
+            raise forms.ValidationError(
+                'No encontramos una cuenta de tutor con ese correo o usuario. '
+                'Verifica el dato e inténtalo de nuevo.'
+            )
+        return cleaned
+
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
         user = context.get('user')

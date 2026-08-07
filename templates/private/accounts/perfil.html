@@ -38,13 +38,6 @@
                         <h5 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 1rem;">Estadísticas</h5>
                         <p style="color: var(--text-muted);"><strong>Calificación:</strong> <i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }}</p>
                         <p style="color: var(--text-muted);"><strong>Trabajos:</strong> {{ perfil.trabajos_completados }}</p>
-                        <p style="color: var(--text-muted);"><strong>Estado:</strong> 
-                            {% if perfil.disponible %}
-                                <span style="color: var(--success);">Disponible</span>
-                            {% else %}
-                                <span style="color: var(--text-muted);">No disponible</span>
-                            {% endif %}
-                        </p>
                     </div>
                 </div>
             {% endif %}

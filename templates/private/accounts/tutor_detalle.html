@@ -27,13 +27,6 @@
                     <p><strong>Nombre:</strong> {{ tutor.get_full_name|default:"No registrado" }}</p>
                     <p><strong>Email:</strong> {{ tutor.email|default:"No registrado" }}</p>
                     <p><strong>Teléfono:</strong> {{ perfil.telefono|default:"No registrado" }}</p>
-                    <p><strong>Disponible:</strong>
-                        {% if perfil.disponible %}
-                        <span class="badge-tem badge-success">Sí</span>
-                        {% else %}
-                        <span class="badge-tem badge-danger">No</span>
-                        {% endif %}
-                    </p>
                     {% if perfil.bio %}
                     <p><strong>Bio:</strong> {{ perfil.bio }}</p>
                     {% endif %}
