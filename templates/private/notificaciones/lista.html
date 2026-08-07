@@ -49,7 +49,7 @@
                     <p>{{ notif.mensaje }}</p>
                 </div>
                 <div class="notif-actions">
-                    <a href="{{ notif.url_accion }}" class="btn-tem btn-sm-tem">
+                    <a href="{{ notif.url_accion }}" class="btn-tem btn-sm-tem notif-nav" data-id="{{ notif.pk }}">
                         <i class="fas fa-arrow-right"></i>
                     </a>
                     {% if not notif.leida %}
@@ -216,6 +216,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     decBadge();
                 }
             });
+        });
+    });
+    // Hacer clic en el enlace de una notificación la marca como leída y actualiza la fila antes de navegar.
+    document.querySelectorAll('.notif-nav').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var id = link.getAttribute('data-id');
+            var url = link.getAttribute('href');
+            var item = link.closest('.notif-item');
+            var unread = item && item.classList.contains('notif-unread');
+            if (unread) {
+                fetch('{% url "notif_marcar_leida" 0 %}'.replace('0', id), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(function(r) { return r.json(); }).then(function(res) {
+                    if (res.ok) {
+                        item.classList.remove('notif-unread');
+                        var mb = item.querySelector('.notif-mark-read');
+                        if (mb) mb.remove();
+                        decBadge();
+                    }
+                    window.location.href = url;
+                }).catch(function() { window.location.href = url; });
+            } else {
+                window.location.href = url;
+            }
         });
     });
 });

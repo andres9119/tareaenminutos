@@ -312,6 +312,28 @@
         d.textContent = s == null ? '' : String(s);
         return d.innerHTML;
     }
+    function playChatSound() {
+        try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            var ac = new AC();
+            var t = ac.currentTime;
+            [660, 880].forEach(function(f, i) {
+                var o = ac.createOscillator();
+                var g = ac.createGain();
+                o.connect(g); g.connect(ac.destination);
+                o.frequency.value = f;
+                o.type = 'sine';
+                var st = t + i * 0.12;
+                g.gain.setValueAtTime(0.0001, st);
+                g.gain.exponentialRampToValueAtTime(0.1, st + 0.03);
+                g.gain.exponentialRampToValueAtTime(0.0001, st + 0.12);
+                o.start(st);
+                o.stop(st + 0.15);
+            });
+            setTimeout(function() { ac.close(); }, 800);
+        } catch (e) {}
+    }
     function fechaLabel(isoFull) {
         if (!isoFull) return null;
         const d = new Date(isoFull);
@@ -460,6 +482,7 @@
             }
             if (data.type === 'mensaje') {
                 appendMensaje(data);
+                if (data.autor_id !== userId) playChatSound();
                 return;
             }
         };
