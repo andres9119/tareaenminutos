@@ -212,7 +212,7 @@
             <p class="text-muted" style="margin-bottom: 1.5rem;">No hay documentos adjuntos todavía.</p>
             {% endif %}
 
-            {% if es_admin or solicitud.tutor_asignado == request.user %}
+            {% if es_admin %}
             <details style="cursor: pointer;">
                 <summary style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">
                     <i class="fas fa-upload"></i> Subir documento
@@ -250,7 +250,7 @@
         </div>
         <div class="card-tem-body">
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                Sube el archivo final de la tarea. Al entregar, el estado cambiará automáticamente a <strong>En Revisión</strong> para que el administrador lo verifique.
+                Sube el archivo final de la tarea. Al entregar, la solicitud pasará automáticamente a <strong>Completada</strong>.
             </p>
             <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" class="tem-form">
                 {% csrf_token %}
@@ -267,38 +267,6 @@
                 </div>
                 <button type="submit" class="btn-tem btn-success-tem">
                     <i class="fas fa-paper-plane"></i> Entregar Tarea
-                </button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Cambio de estado (Tutor) -->
-    {% if not es_admin and solicitud.tutor_asignado == request.user %}
-    <div class="card-tem" style="margin-top: 1.5rem;">
-        <div class="card-tem-header">
-            <h3><i class="fas fa-exchange-alt"></i> Actualizar Estado de mi Trabajo</h3>
-        </div>
-        <div class="card-tem-body">
-            <form method="post" action="{% url 'solicitud_actualizar_estado_tutor' solicitud.pk %}" class="tem-form">
-                {% csrf_token %}
-                <div class="grid-tem grid-2">
-                    <div class="form-group-tem">
-                        <label for="id_estado_tutor" class="form-label-tem">Nuevo Estado</label>
-                        <select name="estado" id="id_estado_tutor" class="form-select-tem" required>
-                            <option value="">-- Seleccionar --</option>
-                            {% for estado in estados_tutor %}
-                            <option value="{{ estado.pk }}">{{ estado.etiqueta }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group-tem">
-                        <label for="id_comentario_tutor" class="form-label-tem">Comentario</label>
-                        <textarea name="comentario" id="id_comentario_tutor" class="form-control-tem" rows="3" placeholder="Comentario opcional sobre el avance..."></textarea>
-                    </div>
-                </div>
-                <button type="submit" class="btn-tem btn-success-tem">
-                    <i class="fas fa-check"></i> Actualizar Estado
                 </button>
             </form>
         </div>

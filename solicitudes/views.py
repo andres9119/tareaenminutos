@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.urls import reverse
 from .models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
-from .forms import SolicitudForm, CambiarEstadoForm, FiltroSolicitudForm
+from .forms import SolicitudForm, FiltroSolicitudForm
 from .utils import recalcular_estadisticas_tutor
 from accounts.decorators import admin_required, admin_o_tutor_required, tutor_required
 from accounts.utils import es_admin
@@ -200,9 +200,6 @@ def solicitud_detalle(request, pk):
             groups__name='Tutor', is_active=True
         ).select_related('perfil').order_by('first_name')
 
-    # Estados permitidos para que el tutor actualice
-    estados_tutor = EstadoSolicitud.objects.filter(nombre__in=['en_progreso', 'en_revision', 'completada'])
-
     context = {
         'solicitud': solicitud,
         'documentos': documentos,
@@ -216,7 +213,6 @@ def solicitud_detalle(request, pk):
         'cotizacion_form': cotizacion_form,
         'cotizacion_propia': cotizacion_propia,
         'tutores_disponibles': tutores_disponibles,
-        'estados_tutor': estados_tutor,
         'es_admin': user_is_admin,
     }
     return render(request, 'private/solicitudes/detalle.html', context)
@@ -283,42 +279,8 @@ def solicitudes_disponibles(request):
 
 
 @tutor_required
-def solicitud_actualizar_estado_tutor(request, pk):
-    """Actualizar el estado de una solicitud asignada (solo Tutor)."""
-    solicitud = get_object_or_404(
-        SolicitudAcademica,
-        pk=pk,
-        tutor_asignado=request.user
-    )
-
-    if request.method == 'POST':
-        form = CambiarEstadoForm(request.POST, allowed_states=['en_progreso', 'en_revision', 'completada'])
-        if form.is_valid():
-            estado_anterior = solicitud.estado
-            estado_nuevo = form.cleaned_data['estado']
-            comentario = form.cleaned_data.get('comentario', '')
-
-            solicitud._notif_actor = request.user
-            solicitud.estado = estado_nuevo
-            solicitud.save()
-
-            HistorialEstado.objects.create(
-                solicitud=solicitud,
-                estado_anterior=estado_anterior,
-                estado_nuevo=estado_nuevo,
-                cambiado_por=request.user,
-                comentario=comentario,
-            )
-
-            messages.success(request, f'Estado cambiado a "{estado_nuevo.etiqueta}". El administrador ha sido notificado.')
-            return redirect('solicitud_detalle', pk=pk)
-
-    return redirect('solicitud_detalle', pk=pk)
-
-
-@tutor_required
 def solicitud_entregar(request, pk):
-    """Entrega de tarea: subir archivo + cambiar estado a 'en_revision' en 1 paso."""
+    """Entrega de tarea: subir archivo + cambiar estado a 'completada' en 1 paso."""
     from documentos.models import Documento
     from documentos.forms import DocumentoSubirForm
 
@@ -339,17 +301,17 @@ def solicitud_entregar(request, pk):
             doc.tipo = 'entrega'
             doc.save()
 
-            if solicitud.estado.nombre not in ('en_revision', 'completada', 'cancelada'):
+            if solicitud.estado.nombre not in ('completada', 'cancelada', 'en_correccion'):
                 estado_anterior = solicitud.estado
-                estado_revision = EstadoSolicitud.objects.get(nombre='en_revision')
+                estado_completada = EstadoSolicitud.objects.get(nombre='completada')
                 solicitud._notif_actor = request.user
-                solicitud.estado = estado_revision
+                solicitud.estado = estado_completada
                 solicitud.save()
 
                 HistorialEstado.objects.create(
                     solicitud=solicitud,
                     estado_anterior=estado_anterior,
-                    estado_nuevo=estado_revision,
+                    estado_nuevo=estado_completada,
                     cambiado_por=request.user,
                     comentario=f'Entrega realizada: {doc.nombre_original}',
                 )
