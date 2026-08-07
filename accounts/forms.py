@@ -73,12 +73,11 @@ class PerfilEditarForm(forms.ModelForm):
 
     class Meta:
         model = PerfilUsuario
-        fields = ['telefono', 'foto', 'bio', 'especialidades', 'disponible']
+        fields = ['telefono', 'foto', 'bio', 'especialidades']
         widgets = {
             'telefono': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': '+57 300 000 0000'}),
             'bio': forms.Textarea(attrs={'class': 'form-control-tem', 'rows': 3}),
             'especialidades': forms.CheckboxSelectMultiple(),
-            'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'foto': forms.FileInput(attrs={'class': 'form-control-tem'}),
         }
 

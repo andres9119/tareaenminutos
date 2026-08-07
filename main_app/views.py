@@ -1,12 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import (
+    PasswordResetView, PasswordResetDoneView,
+    PasswordResetConfirmView, PasswordResetCompleteView,
+)
 from django.contrib import messages
 from django.conf import settings
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from .models import BlogPost, ContactMessage, ChatMessage
 from .models import Banner
-from .forms import ContactForm, ChatForm
+from .forms import ContactForm, ChatForm, TutorPasswordResetForm
 
 def index(request):
     """Vista de la landing page pública"""
@@ -43,6 +47,24 @@ def logout_view(request):
     """Vista para cerrar sesión"""
     logout(request)
     return redirect('index')
+
+
+class TutorPasswordResetView(PasswordResetView):
+    """Solicitud de recuperación de contraseña (solo tutores)."""
+    template_name = 'main_app/recuperar_contrasena.html'
+    form_class = TutorPasswordResetForm
+    success_url = reverse_lazy('password_reset_done')
+    from_email = None
+
+
+password_reset_request = TutorPasswordResetView.as_view()
+password_reset_done = PasswordResetDoneView.as_view(
+    template_name='main_app/password_reset_done.html')
+password_reset_confirm = PasswordResetConfirmView.as_view(
+    template_name='main_app/password_reset_confirm.html',
+    success_url=reverse_lazy('password_reset_complete'))
+password_reset_complete = PasswordResetCompleteView.as_view(
+    template_name='main_app/password_reset_complete.html')
 
 @login_required(login_url='login')
 def administracion(request):

@@ -239,7 +239,7 @@ def solicitud_editar(request, pk):
     return render(request, 'private/solicitudes/editar.html', {'form': form, 'solicitud': solicitud})
 
 
-@admin_required
+@admin_o_tutor_required
 def solicitudes_disponibles(request):
     """Lista de solicitudes abiertas disponibles para cotizar (Tutores)."""
     from cotizaciones.models import Cotizacion

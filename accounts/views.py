@@ -182,7 +182,6 @@ def usuario_crear(request):
                 # populate perfil fields from perfil_form
                 perfil.telefono = perfil_form.cleaned_data.get('telefono', '')
                 perfil.bio = perfil_form.cleaned_data.get('bio', '')
-                perfil.disponible = perfil_form.cleaned_data.get('disponible', True)
                 # handle foto if uploaded
                 foto = request.FILES.get('foto')
                 if foto:
