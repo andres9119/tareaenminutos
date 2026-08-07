@@ -921,8 +921,7 @@ footer {
                 var value = '; ' + document.cookie;
                 var parts = value.split('; ' + name + '=');
                 if (parts.length === 2) return parts.pop().split(';').shift();
-            }
-            function markRead(id) {
+            }            function markRead(id) {
                 return fetch('/notificaciones/' + id + '/leida/', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': getCookie('csrftoken') },
@@ -965,6 +964,48 @@ footer {
             const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
             const notifSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
 
+            function agregarNotif(notif) {
+                const dropdown = document.getElementById('notifDropdown');
+                if (!dropdown) return;
+                const empty = dropdown.querySelector('.notif-dropdown-empty');
+                if (empty) empty.remove();
+                let footer = dropdown.querySelector('.notif-dropdown-footer');
+                if (!footer) {
+                    footer = document.createElement('div');
+                    footer.className = 'notif-dropdown-footer';
+                    const link = document.createElement('a');
+                    link.href = '/notificaciones/';
+                    link.textContent = 'Ver todas';
+                    footer.appendChild(link);
+                    dropdown.appendChild(footer);
+                }
+                const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins' };
+                const icon = iconMap[notif.tipo] || 'fa-bell';
+                const a = document.createElement('a');
+                a.href = notif.url || '/notificaciones/';
+                a.className = 'notif-dropdown-item notif-item-link';
+                a.setAttribute('data-id', notif.id);
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'notif-item-icon ' + (notif.tipo || '');
+                iconDiv.innerHTML = '<i class="fas ' + icon + '"></i>';
+                const content = document.createElement('div');
+                content.className = 'notif-item-content';
+                const strong = document.createElement('strong');
+                strong.textContent = notif.titulo || '';
+                const p = document.createElement('p');
+                p.textContent = notif.mensaje || '';
+                const small = document.createElement('small');
+                small.textContent = 'hace un momento';
+                content.appendChild(strong); content.appendChild(p); content.appendChild(small);
+                a.appendChild(iconDiv); a.appendChild(content);
+                a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var url = a.getAttribute('href');
+                    markRead(a.getAttribute('data-id')).then(function() { window.location.href = url; });
+                });
+                dropdown.insertBefore(a, footer);
+            }
+
             notifSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
                 if (data.type === 'notificacion') {
@@ -974,6 +1015,7 @@ footer {
                     notifBadge.classList.remove('hidden');
                     notifBadge.classList.add('pulse');
                     setTimeout(function() { notifBadge.classList.remove('pulse'); }, 300);
+                    agregarNotif(data.notif);
                 }
             };
 

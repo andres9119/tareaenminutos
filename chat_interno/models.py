@@ -5,6 +5,7 @@ Chat en tiempo real entre Admin y Tutores usando Django Channels.
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from solicitudes.models import SolicitudAcademica
 
 
@@ -102,6 +103,7 @@ class MensajeChat(models.Model):
 
     def to_dict(self):
         """Serializa el mensaje para WebSocket."""
+        local = timezone.localtime(self.created_at)
         return {
             'id': self.pk,
             'sala_id': self.sala_id,
@@ -110,6 +112,6 @@ class MensajeChat(models.Model):
             'autor_foto': self.autor.perfil.get_foto_url() if hasattr(self.autor, 'perfil') else '',
             'contenido': self.contenido,
             'tipo': self.tipo,
-            'created_at': self.created_at.strftime('%H:%M'),
-            'created_at_full': self.created_at.isoformat(),
+            'created_at': local.strftime('%H:%M'),
+            'created_at_full': local.isoformat(),
         }

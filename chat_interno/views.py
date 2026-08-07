@@ -52,7 +52,8 @@ def sala_chat(request, pk):
     ultimo_autor = None
     fecha_anterior = None
     for m in mensajes:
-        fecha = m.created_at.date()
+        local = timezone.localtime(m.created_at)
+        fecha = local.date()
         etiqueta_fecha = None
         if fecha != fecha_anterior:
             if fecha == hoy:
@@ -71,7 +72,7 @@ def sala_chat(request, pk):
             'propio': propio,
             'mostrar_autor': mostrar_autor,
             'etiqueta_fecha': etiqueta_fecha,
-            'hora': m.created_at.strftime('%H:%M'),
+            'hora': local.strftime('%H:%M'),
         })
         fecha_anterior = fecha
 

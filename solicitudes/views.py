@@ -166,6 +166,8 @@ def solicitud_detalle(request, pk):
 
     # Sub-componentes
     documentos = solicitud.documentos.all().order_by('-created_at')
+    documentos_entrega = documentos.filter(tipo='entrega')
+    documentos_otros = documentos.exclude(tipo='entrega')
     if user_is_admin:
         cotizaciones = solicitud.cotizaciones.select_related('tutor').order_by('monto')
     else:
@@ -203,6 +205,8 @@ def solicitud_detalle(request, pk):
     context = {
         'solicitud': solicitud,
         'documentos': documentos,
+        'documentos_entrega': documentos_entrega,
+        'documentos_otros': documentos_otros,
         'cotizaciones': cotizaciones,
         'cotizaciones_todas': cotizaciones_todas,
         'max_monto': max_monto,
