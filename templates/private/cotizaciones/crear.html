@@ -57,16 +57,6 @@
                 </div>
 
                 <div class="form-group-tem">
-                    <label for="{{ form.fecha_entrega_propuesta.id_for_label }}" class="form-label-tem">
-                        {{ form.fecha_entrega_propuesta.label }}
-                    </label>
-                    {{ form.fecha_entrega_propuesta }}
-                    {% if form.fecha_entrega_propuesta.errors %}
-                        <div class="field-error" style="margin-top: 0.5rem;">{{ form.fecha_entrega_propuesta.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group-tem">
                     <label for="{{ form.descripcion_propuesta.id_for_label }}" class="form-label-tem">
                         {{ form.descripcion_propuesta.label }}
                     </label>
@@ -76,7 +66,7 @@
                     {% endif %}
                 </div>
 
-                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
                     <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">
                         Cancelar
                     </a>

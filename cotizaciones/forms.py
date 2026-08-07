@@ -12,7 +12,7 @@ class CotizacionForm(forms.ModelForm):
 
     class Meta:
         model = Cotizacion
-        fields = ['monto', 'tiempo_estimado_dias', 'fecha_entrega_propuesta', 'descripcion_propuesta']
+        fields = ['monto', 'tiempo_estimado_dias', 'descripcion_propuesta']
         widgets = {
             'monto': forms.NumberInput(attrs={
                 'class': 'form-control-tem',
@@ -26,32 +26,17 @@ class CotizacionForm(forms.ModelForm):
                 'min': '1',
                 'max': '60',
             }),
-            'fecha_entrega_propuesta': forms.DateInput(
-                attrs={'class': 'form-control-tem', 'type': 'date'},
-                format='%Y-%m-%d'
-            ),
             'descripcion_propuesta': forms.Textarea(attrs={
                 'class': 'form-control-tem',
-                'rows': 5,
-                'placeholder': 'Describe tu enfoque, experiencia en el tema, metodología y cualquier información relevante para el cliente...',
+                'rows': 3,
+                'placeholder': 'Describe tu enfoque, experiencia en el tema y metodología...',
             }),
         }
         labels = {
             'monto': 'Tu precio (COP)',
             'tiempo_estimado_dias': 'Tiempo estimado (días)',
-            'fecha_entrega_propuesta': 'Fecha de entrega que propones',
             'descripcion_propuesta': 'Descripción de tu propuesta',
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['fecha_entrega_propuesta'].input_formats = ['%Y-%m-%d']
-
-    def clean_fecha_entrega_propuesta(self):
-        fecha = self.cleaned_data.get('fecha_entrega_propuesta')
-        if fecha and fecha < timezone.localdate():
-            raise forms.ValidationError('La fecha de entrega propuesta no puede ser en el pasado.')
-        return fecha
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')

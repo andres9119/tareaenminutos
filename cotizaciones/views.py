@@ -3,10 +3,12 @@ Views para cotizaciones de tutores.
 """
 
 import logging
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.urls import reverse
+from django.utils import timezone
 from .models import Cotizacion
 from .forms import CotizacionForm
 from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
@@ -37,6 +39,10 @@ def cotizacion_crear(request, solicitud_pk):
             cotizacion = form.save(commit=False)
             cotizacion.solicitud = solicitud
             cotizacion.tutor = request.user
+            # La fecha de entrega se deriva del tiempo propuesto en días
+            cotizacion.fecha_entrega_propuesta = (
+                timezone.localdate() + timedelta(days=cotizacion.tiempo_estimado_dias)
+            )
             cotizacion.save()
 
             # Cambiar estado a "en_cotizacion" si aún era "nueva"
