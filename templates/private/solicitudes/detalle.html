@@ -212,6 +212,7 @@
             <p class="text-muted" style="margin-bottom: 1.5rem;">No hay documentos adjuntos todavía.</p>
             {% endif %}
 
+            {% if es_admin or solicitud.tutor_asignado == request.user %}
             <details style="cursor: pointer;">
                 <summary style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">
                     <i class="fas fa-upload"></i> Subir documento
@@ -237,6 +238,7 @@
                     </button>
                 </form>
             </details>
+            {% endif %}
         </div>
     </div>
 
