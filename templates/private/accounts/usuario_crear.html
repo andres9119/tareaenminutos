@@ -56,9 +56,6 @@
                     <div class="form-group-tem">
                         <label class="form-label-tem">{{ form.username.label }}</label>
                         {{ form.username }}
-                        {% if form.username.help_text %}
-                            <small class="text-muted-tem" style="display:block; margin-top:0.25rem; font-size:0.8rem; line-height:1.2;">{{ form.username.help_text|safe }}</small>
-                        {% endif %}
                         {% if form.username.errors %}<div class="field-error">{{ form.username.errors }}</div>{% endif %}
                     </div>
                     <div class="form-group-tem">
@@ -71,17 +68,11 @@
                     <div class="form-group-tem">
                         <label class="form-label-tem">{{ form.password1.label }}</label>
                         {{ form.password1 }}
-                        {% if form.password1.help_text %}
-                            <div class="text-muted-tem password-help" style="margin-top:0.25rem; font-size:0.8rem; line-height:1.2;">{{ form.password1.help_text|safe }}</div>
-                        {% endif %}
                         {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors }}</div>{% endif %}
                     </div>
                     <div class="form-group-tem">
                         <label class="form-label-tem">{{ form.password2.label }}</label>
                         {{ form.password2 }}
-                        {% if form.password2.help_text %}
-                            <small class="text-muted-tem" style="display:block; margin-top:0.25rem; font-size:0.8rem; line-height:1.2;">{{ form.password2.help_text|safe }}</small>
-                        {% endif %}
                         {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors }}</div>{% endif %}
                     </div>
                 </div>
