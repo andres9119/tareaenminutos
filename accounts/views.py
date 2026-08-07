@@ -188,9 +188,11 @@ def usuario_crear(request):
                     perfil.foto = foto
                 perfil.save()
                 # M2M especialidades
-                especialidades = perfil_form.cleaned_data.get('especialidades')
-                if especialidades:
-                    perfil.especialidades.set(especialidades)
+                especialidades = list(perfil_form.cleaned_data.get('especialidades') or [])
+                nueva = perfil_form.procesar_nueva_especialidad()
+                if nueva and nueva not in especialidades:
+                    especialidades.append(nueva)
+                perfil.especialidades.set(especialidades)
 
             messages.success(request, f'Usuario @{user.username} creado correctamente.')
             return redirect('usuarios_list')

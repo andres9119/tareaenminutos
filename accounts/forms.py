@@ -70,6 +70,14 @@ class PerfilEditarForm(forms.ModelForm):
         required=False, label='Correo',
         widget=forms.EmailInput(attrs={'class': 'form-control-tem'})
     )
+    nueva_especialidad = forms.CharField(
+        required=False,
+        label='Agregar otra área',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control-tem',
+            'placeholder': 'Si el área no está en la lista, escríbela aquí'
+        })
+    )
 
     class Meta:
         model = PerfilUsuario
@@ -90,6 +98,14 @@ class PerfilEditarForm(forms.ModelForm):
             self.fields['email'].initial = user.email
             self._user = user
 
+    def procesar_nueva_especialidad(self):
+        """Crea (o reutiliza) un AreaConocimiento a partir del campo nueva_especialidad."""
+        nombre = (self.cleaned_data.get('nueva_especialidad') or '').strip()
+        if not nombre:
+            return None
+        area, _ = AreaConocimiento.objects.get_or_create(nombre=nombre)
+        return area
+
     def save(self, commit=True):
         perfil = super().save(commit=False)
         if hasattr(self, '_user'):
@@ -100,4 +116,7 @@ class PerfilEditarForm(forms.ModelForm):
         if commit:
             perfil.save()
             self.save_m2m()
+            nueva = self.procesar_nueva_especialidad()
+            if nueva:
+                perfil.especialidades.add(nueva)
         return perfil

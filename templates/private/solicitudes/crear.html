@@ -6,8 +6,13 @@
 <style>
     .form-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    @media (max-width: 992px) {
+        .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
     @media (max-width: 768px) {
         .form-grid {
@@ -142,12 +147,6 @@
                         {% if form.fecha_entrega_cliente.errors %}
                             <div class="field-error" style="margin-top: 0.5rem;">{{ form.fecha_entrega_cliente.errors }}</div>
                         {% endif %}
-                    </div>
-                    <div class="form-group-tem">
-                        <label for="{{ form.materia.id_for_label }}" class="form-label-tem">
-                            {{ form.materia.label }}
-                        </label>
-                        {{ form.materia }}
                     </div>
                 </div>
 

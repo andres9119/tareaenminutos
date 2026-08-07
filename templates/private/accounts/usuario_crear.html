@@ -41,13 +41,13 @@
                     <div class="form-group-tem">
                         <label class="form-label-tem">{{ field.label }}</label>
                         <div>
-                            {% if field.name == 'especialidades' %}
-                                <div class="checkbox-multiple">
-                                    {{ field }}
-                                </div>
-                            {% else %}
-                                {{ field }}
-                            {% endif %}
+                    {% if field.name == 'especialidades' %}
+                        <div class="checkbox-multiple" style="gap: 0.35rem; max-height: 230px; overflow-y: auto; padding-right: 0.5rem;">
+                            {{ field }}
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                             {% if field.help_text %}
                                 <small class="text-muted-tem">{{ field.help_text }}</small>
                             {% endif %}
