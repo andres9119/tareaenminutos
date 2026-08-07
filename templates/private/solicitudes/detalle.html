@@ -161,13 +161,9 @@
             {% endif %}
 
             {% if sala_chat %}
-            <div class="card-tem" style="margin-top: 1rem;">
-                <div class="card-tem-body">
-                    <a href="{% url 'sala_chat' sala_chat.pk %}" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;">
-                        <i class="fas fa-comments"></i> Ir al Chat de la Solicitud
-                    </a>
-                </div>
-            </div>
+            <a href="{% url 'sala_chat' sala_chat.pk %}" class="btn-tem btn-outline-tem" style="display:inline-flex;align-items:center;gap:0.5rem;">
+                <i class="fas fa-comments"></i> Ir al Chat de la Solicitud
+            </a>
             {% endif %}
         </div>
     </div>
@@ -366,30 +362,41 @@
         </div>
     </div>
 
-    <!-- Gráfico de rangos de precios cotizados (todos los tutores) -->
+    <!-- Rangos de precios cotizados (slider min/max) -->
     {% if cotizaciones_todas|length > 1 %}
     <div class="card-tem" style="margin-top: 1.5rem;">
         <div class="card-tem-header">
-            <h3><i class="fas fa-chart-bar"></i> Rangos de Precios Cotizados</h3>
+            <h3><i class="fas fa-chart-line"></i> Rangos de Precios Cotizados</h3>
         </div>
         <div class="card-tem-body">
-            <div class="chart-summary">
-                {% if precios_resumen %}
-                <span class="chart-stat"><strong>Mín:</strong> ${{ precios_resumen.min|floatformat:0 }}</span>
-                <span class="chart-stat"><strong>Promedio:</strong> ${{ precios_resumen.promedio|floatformat:0 }}</span>
-                <span class="chart-stat"><strong>Máx:</strong> ${{ precios_resumen.max|floatformat:0 }}</span>
-                {% endif %}
-            </div>
-            <div class="chart-bars">
-                {% for cotizacion in cotizaciones_todas %}
-                <div class="chart-col" title="{% firstof cotizacion.tutor.get_full_name cotizacion.tutor.username %}: ${{ cotizacion.monto|floatformat:0 }}">
-                    <div class="chart-bar-track">
-                        <div class="chart-bar" style="height: {% widthratio cotizacion.monto max_monto 100 %}%;"></div>
-                    </div>
-                    <div class="chart-label">{% firstof cotizacion.tutor.first_name cotizacion.tutor.username %}</div>
-                    <div class="chart-value">${{ cotizacion.monto|floatformat:0 }}</div>
+            <div class="range-slider">
+                <div class="range-track">
+                    <div class="range-fill" style="left:0%;right:0%;"></div>
+                    <div class="range-handle range-handle-min"></div>
+                    <div class="range-handle range-handle-max"></div>
                 </div>
-                {% endfor %}
+                <div class="range-labels">
+                    <span class="range-min"><strong>Mín:</strong> ${{ precios_resumen.min|floatformat:0 }}</span>
+                    <span class="range-max"><strong>Máx:</strong> ${{ precios_resumen.max|floatformat:0 }}</span>
+                </div>
+            </div>
+            {% if precios_resumen %}
+            <div class="chart-summary">
+                <span class="chart-stat"><strong>{{ cotizaciones_todas|length }} cotizaciones</strong></span>
+                <span class="chart-stat"><strong>Promedio:</strong> ${{ precios_resumen.promedio|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% elif cotizaciones_todas|length == 1 %}
+    <div class="card-tem" style="margin-top: 1.5rem;">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-check-circle"></i> Valor Pactado</h3>
+        </div>
+        <div class="card-tem-body">
+            <div class="range-pactado">
+                <span>Monto acordado de la cotización:</span>
+                <span class="badge-pactado">${{ cotizaciones_todas.0.monto|floatformat:0 }}</span>
             </div>
         </div>
     </div>
@@ -688,7 +695,7 @@
 }
 .table-responsive { overflow-x: auto; }
 
-/* Gráfico de rangos de precios cotizados */
+/* Gráfico de rangos de precios cotizados (slider min/max) */
 .chart-summary {
     display: flex;
     flex-wrap: wrap;
@@ -704,57 +711,59 @@
     color: var(--text-muted);
 }
 .chart-stat strong { color: var(--text-main); }
-.chart-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 1rem;
-    padding-top: 0.5rem;
+.range-slider {
+    padding: 0.5rem 0.25rem;
 }
-.chart-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 0;
-}
-.chart-bar-track {
-    width: 100%;
-    max-width: 48px;
-    height: 130px;
-    display: flex;
-    align-items: flex-end;
+.range-track {
+    position: relative;
+    height: 6px;
     background: var(--bg-base);
-    border-radius: var(--border-radius-sm);
-    overflow: hidden;
+    border: 1px solid var(--border-glow);
+    border-radius: 999px;
 }
-.chart-bar {
-    width: 100%;
-    background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-    border-radius: var(--border-radius-sm);
-    min-height: 4px;
-    transition: var(--transition-smooth);
+.range-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 999px;
 }
-.chart-col:nth-child(2n) .chart-bar {
-    background: linear-gradient(180deg, var(--secondary) 0%, var(--primary) 100%);
+.range-handle {
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translate(-50%, -50%);
+    background: var(--primary);
+    border: 3px solid var(--bg-base);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--border-glow);
 }
-.chart-label {
-    margin-top: 0.4rem;
-    font-size: 0.7rem;
+.range-handle-min { left: 0; }
+.range-handle-max { right: 0; transform: translate(50%, -50%); }
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    text-align: center;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
-.chart-value {
-    font-size: 0.7rem;
+.range-labels strong { color: var(--text-main); }
+.range-pactado {
+    font-size: 0.95rem;
     color: var(--text-main);
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-@media (max-width: 600px) {
-    .chart-bars { gap: 0.5rem; }
-    .chart-bar-track { max-width: 34px; }
+.range-pactado .badge-pactado {
+    background: var(--primary-glow);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 0.35rem 0.9rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 700;
 }
 .timeline { display: flex; flex-direction: column; gap: 0.25rem; }
 .timeline-item {
