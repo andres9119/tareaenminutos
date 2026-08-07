@@ -962,7 +962,7 @@ footer {
             }
 
             const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const notifSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
+            let notifSocket = null;
 
             function agregarNotif(notif) {
                 const dropdown = document.getElementById('notifDropdown');
@@ -1031,27 +1031,31 @@ footer {
             }
             function playNotifSound() { playTone([880, 1174.66], 0.18); }
 
-            notifSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                if (data.type === 'notificacion') {
-                    const count = parseInt(notifBadge.textContent) || 0;
-                    const newCount = count + 1;
-                    notifBadge.textContent = newCount;
-                    notifBadge.classList.remove('hidden');
-                    notifBadge.classList.add('pulse');
-                    setTimeout(function() { notifBadge.classList.remove('pulse'); }, 300);
-                    agregarNotif(data.notif);
-                    playNotifSound();
-                }
-            };
+            function connectNotif() {
+                notifSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
 
-            notifSocket.onclose = function(e) {
-                if (e.code !== 1000) {
-                    setTimeout(function() {
-                        new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
-                    }, 5000);
-                }
-            };
+                notifSocket.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'notificacion') {
+                        const count = parseInt(notifBadge.textContent) || 0;
+                        const newCount = count + 1;
+                        notifBadge.textContent = newCount;
+                        notifBadge.classList.remove('hidden');
+                        notifBadge.classList.add('pulse');
+                        setTimeout(function() { notifBadge.classList.remove('pulse'); }, 300);
+                        agregarNotif(data.notif);
+                        playNotifSound();
+                    }
+                };
+
+                notifSocket.onclose = function(e) {
+                    if (e.code !== 1000) {
+                        setTimeout(connectNotif, 5000);
+                    }
+                };
+            }
+
+            connectNotif();
         });
     </script>
     {% endif %}
