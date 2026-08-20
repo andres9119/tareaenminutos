@@ -45,10 +45,15 @@ class UsuarioCrearForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        rol = self.cleaned_data['rol']
+        # Rol único: un usuario es Administrador O Tutor, nunca ambos.
+        # Un Administrador se crea como superuser (is_staff + is_superuser),
+        # dándole acceso completo al panel de Django /admin/.
+        if rol == 'Administrador':
+            user.is_staff = True
+            user.is_superuser = True
         if commit:
             user.save()
-            rol = self.cleaned_data['rol']
-            # Rol único: un usuario es Administrador O Tutor, nunca ambos.
             for grupo_rol in user.groups.filter(name__in=['Administrador', 'Tutor']):
                 user.groups.remove(grupo_rol)
             group, _ = Group.objects.get_or_create(name=rol)

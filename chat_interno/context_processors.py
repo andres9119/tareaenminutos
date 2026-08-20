@@ -18,7 +18,7 @@ def _construir_datos_sala(sala, user):
         'codigo': sala.solicitud.codigo if sala.solicitud else None,
         'titulo': sala.solicitud.titulo if sala.solicitud else None,
         'ultimo_mensaje': ultimo.contenido if ultimo else None,
-        'ultimo_autor': ultimo.autor.get_full_name() or ultimo.autor.username if ultimo else None,
+        'ultimo_autor': (ultimo.autor.get_full_name() or ultimo.autor.username) if (ultimo and ultimo.autor) else None,
         'ultimo_tiempo': ultimo.created_at if ultimo else None,
         'es_propio_ultimo': bool(ultimo and ultimo.autor_id == user.pk),
         'no_leidos': sala.unread_count(user),

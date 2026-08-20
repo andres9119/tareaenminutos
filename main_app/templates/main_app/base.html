@@ -800,7 +800,7 @@ footer {
                     <div class="messenger-item-prev">
                         {% if chat.ultimo_mensaje %}
                             <span class="{% if chat.es_propio_ultimo %}msg-propio{% else %}msg-ajeno{% endif %}">
-                                {% if chat.es_propio_ultimo %}Tú:{% else %}{{ chat.ultimo_autor }}:{% endif %}
+                                {% if chat.es_propio_ultimo %}Tú:{% elif chat.ultimo_autor %}{{ chat.ultimo_autor }}:{% endif %}
                             </span>
                             {{ chat.ultimo_mensaje|truncatechars:40 }}
                         {% else %}
