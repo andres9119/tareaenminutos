@@ -98,7 +98,7 @@
                                 <label for="{{ form.especialidades.id_for_label }}" class="form-label-tem">
                                     {{ form.especialidades.label }}
                                 </label>
-                                {{ form.especialidades }}
+                                {% include "private/accounts/_areas_especialidad.html" with esp=form es_admin=es_admin %}
                             </div>
                         {% endif %}
 

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User, Group
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from .models import PerfilUsuario, AreaConocimiento
-from .forms import UsuarioCrearForm, PerfilEditarForm
+from .forms import UsuarioCrearForm, PerfilEditarForm, AreaForm
 from .decorators import admin_required, admin_o_tutor_required
 from .utils import es_admin
 
@@ -138,7 +138,7 @@ def perfil_view(request):
     else:
         form = PerfilEditarForm(instance=perfil, user=request.user)
 
-    context = {'form': form, 'perfil': perfil}
+    context = {'form': form, 'perfil': perfil, 'es_admin': perfil.es_admin}
     return render(request, 'private/accounts/perfil.html', context)
 
 
@@ -252,3 +252,99 @@ def tutor_detalle(request, pk):
         'solicitudes': solicitudes,
     }
     return render(request, 'private/accounts/tutor_detalle.html', context)
+
+
+# ─── Gestión de Áreas de Conocimiento (catálogo) ────────────────────────────
+
+def _es_ajax(request):
+    return (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.GET.get('json') == '1'
+    )
+
+
+@admin_required
+def areas_list(request):
+    """Catálogo de áreas de conocimiento: listar + crear (solo Admin)."""
+    areas = AreaConocimiento.objects.all()
+    if request.method == 'POST':
+        form = AreaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if _es_ajax(request):
+                area = form.instance
+                from django.http import JsonResponse
+                return JsonResponse({'ok': True, 'id': area.pk, 'nombre': area.nombre})
+            messages.success(request, f'Área "{form.instance.nombre}" creada correctamente.')
+            return redirect('areas_list')
+    else:
+        form = AreaForm()
+    return render(request, 'private/accounts/areas_list.html', {'areas': areas, 'area_form': form})
+
+
+@admin_o_tutor_required
+def area_crear(request):
+    """Crea un área de conocimiento. Disponible para admins (página y AJAX)
+    y para tutores vía el modal 'Otra' de su perfil."""
+    if request.method != 'POST':
+        return redirect('areas_list')
+    nombre = (request.POST.get('nombre') or '').strip()
+    icono = (request.POST.get('icono') or '').strip() or 'fa-book-open'
+    activa = request.POST.get('activa') in ('on', 'true', '1')
+    from django.http import JsonResponse
+    if not nombre:
+        if _es_ajax(request):
+            return JsonResponse({'ok': False, 'error': 'El nombre es obligatorio.'}, status=400)
+        messages.error(request, 'El nombre del área es obligatorio.')
+        return redirect('areas_list')
+    area, created = AreaConocimiento.objects.get_or_create(nombre=nombre)
+    area.icono = icono or area.icono
+    area.activa = activa
+    area.save()
+    if _es_ajax(request):
+        return JsonResponse({'ok': True, 'id': area.pk, 'nombre': area.nombre, 'reutilizada': not created})
+    messages.success(request, f'Área "{area.nombre}" {"creada" if created else "ya existía (se actualizó)"}.')
+    return redirect('areas_list')
+
+
+@admin_required
+def area_editar(request, pk):
+    """Renombra y actualiza un área de conocimiento (solo Admin)."""
+    area = get_object_or_404(AreaConocimiento, pk=pk)
+    if request.method == 'POST':
+        nombre = (request.POST.get('nombre') or '').strip()
+        if nombre:
+            area.nombre = nombre
+            area.icono = (request.POST.get('icono') or '').strip() or area.icono
+            area.activa = request.POST.get('activa') in ('on', 'true', '1') or area.activa
+            area.save()
+            if _es_ajax(request):
+                from django.http import JsonResponse
+                return JsonResponse({'ok': True})
+            messages.success(request, f'Área actualizada a "{area.nombre}".')
+            return redirect('areas_list')
+        if _es_ajax(request):
+            from django.http import JsonResponse
+            return JsonResponse({'ok': False, 'error': 'El nombre es obligatorio.'}, status=400)
+    return redirect('areas_list')
+
+
+@admin_required
+def area_eliminar(request, pk):
+    """Elimina un área de conocimiento (solo Admin)."""
+    area = get_object_or_404(AreaConocimiento, pk=pk)
+    from django.db.models.deletion import ProtectedError
+    from django.http import JsonResponse
+    if request.method == 'POST':
+        try:
+            area.delete()
+        except ProtectedError:
+            if _es_ajax(request):
+                return JsonResponse({'ok': False, 'error': 'No se puede eliminar: está en uso por solicitudes existentes.'}, status=400)
+            messages.error(request, f'No se puede eliminar el área "{area.nombre}" porque está en uso por solicitudes existentes.')
+            return redirect('areas_list')
+        if _es_ajax(request):
+            return JsonResponse({'ok': True})
+        messages.success(request, f'Área "{area.nombre}" eliminada.')
+        return redirect('areas_list')
+    return redirect('areas_list')

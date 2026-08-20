@@ -12,4 +12,8 @@ urlpatterns = [
     path('usuarios/<int:pk>/toggle/', views.usuario_toggle_activo, name='usuario_toggle_activo'),
     path('usuarios/<int:pk>/eliminar/', views.usuario_eliminar, name='usuario_eliminar'),
     path('tutores/<int:pk>/', views.tutor_detalle, name='tutor_detalle'),
+    path('areas/', views.areas_list, name='areas_list'),
+    path('areas/crear/', views.area_crear, name='area_crear'),
+    path('areas/<int:pk>/editar/', views.area_editar, name='area_editar'),
+    path('areas/<int:pk>/eliminar/', views.area_eliminar, name='area_eliminar'),
 ]

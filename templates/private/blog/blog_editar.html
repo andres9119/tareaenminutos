@@ -64,17 +64,13 @@
                     <h3 style="margin:0;font-size:1.1rem;color:var(--text-main);">Contenido por bloques</h3>
                     <button type="button" id="btnAgregarBloque" class="btn-tem btn-primary-tem"><i class="fas fa-plus"></i> Agregar bloque</button>
                 </div>
-                <p class="text-muted-tem" style="margin-top:0;">Agrega bloques de texto, títulos, subtítulos, citas o imágenes para enriquecer visualmente el artículo. Ordena usando los números.</p>
+                <p class="text-muted-tem" style="margin-top:0;">Agrega bloques de texto, títulos, subtítulos, citas o imágenes para enriquecer visualmente el artículo. Los bloques se muestran en el orden en que los agregas.</p>
 
                 <div id="bloques-contenedor">
                     {% for f in formset %}
                     <div class="card-tem bloque-fila" style="margin-bottom:0.75rem;" data-idx="{{ forloop.counter0 }}">
                         <div class="card-body-tem">
                             <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
-                                <div>
-                                    <label class="form-label-tem">Orden</label>
-                                    <input type="number" name="{{ f.orden.html_name }}" value="{{ f.orden.value }}" class="form-control-tem bloque-orden" style="width:70px;" min="0">
-                                </div>
                                 <div style="min-width:160px;">
                                     <label class="form-label-tem">Tipo</label>
                                     {{ f.tipo }}
@@ -84,7 +80,7 @@
                                     {{ f.contenido }}
                                     {% if f.contenido.errors %}<div class="field-error">{{ f.contenido.errors }}</div>{% endif %}
                                 </div>
-                                <div>
+                                <div class="bloque-imagen-campo">
                                     <label class="form-label-tem">Imagen</label>
                                     {{ f.imagen }}
                                     {% if f.instance.imagen %}
@@ -107,10 +103,6 @@
                     <div class="card-tem bloque-fila" style="margin-bottom:0.75rem;" data-idx="__prefix__">
                         <div class="card-body-tem">
                             <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
-                                <div>
-                                    <label class="form-label-tem">Orden</label>
-                                    <input type="number" name="{{ f.orden.html_name }}" value="__prefix__" class="form-control-tem bloque-orden" style="width:70px;" min="0">
-                                </div>
                                 <div style="min-width:160px;">
                                     <label class="form-label-tem">Tipo</label>
                                     {{ f.tipo }}
@@ -119,7 +111,7 @@
                                     <label class="form-label-tem">Contenido</label>
                                     {{ f.contenido }}
                                 </div>
-                                <div>
+                                <div class="bloque-imagen-campo">
                                     <label class="form-label-tem">Imagen</label>
                                     {{ f.imagen }}
                                 </div>
@@ -154,12 +146,11 @@
     var btn = document.getElementById('btnAgregarBloque');
     var totalForms = document.querySelector('#id_bloques-TOTAL_FORMS');
 
-    function renumerarOrdenes() {
-        var filas = contenedor.querySelectorAll('.bloque-fila');
-        filas.forEach(function (fila, i) {
-            var ord = fila.querySelector('.bloque-orden');
-            if (ord) ord.value = i;
-        });
+    function sincronizarCampoImagen(fila) {
+        var tipoSelect = fila.querySelector('select');
+        var imgCampo = fila.querySelector('.bloque-imagen-campo');
+        if (!imgCampo) return;
+        imgCampo.style.display = (tipoSelect && tipoSelect.value === 'imagen') ? '' : 'none';
     }
 
     function prepararFila(fila, idx) {
@@ -176,9 +167,16 @@
                 } else {
                     fila.remove();
                 }
-                renumerarOrdenes();
             });
         }
+        // Mostrar/ocultar la imagen según el tipo de bloque
+        var tipoSelect = fila.querySelector('select');
+        if (tipoSelect) {
+            tipoSelect.addEventListener('change', function () {
+                sincronizarCampoImagen(fila);
+            });
+        }
+        sincronizarCampoImagen(fila);
         // Preview de imagen al elegir archivo (solo para el nuevo que no tenga checkbox)
         var fileInput = fila.querySelector('input[type="file"]');
         if (fileInput) {
@@ -210,7 +208,6 @@
             prepararFila(fila, count);
             contenedor.appendChild(fila);
             totalForms.value = count + 1;
-            renumerarOrdenes();
         });
     }
 
@@ -226,9 +223,15 @@
                 } else {
                     fila.remove();
                 }
-                renumerarOrdenes();
             });
         }
+        var tipoSelect = fila.querySelector('select');
+        if (tipoSelect) {
+            tipoSelect.addEventListener('change', function () {
+                sincronizarCampoImagen(fila);
+            });
+        }
+        sincronizarCampoImagen(fila);
         var fileInput = fila.querySelector('input[type="file"]');
         if (fileInput) {
             fileInput.addEventListener('change', function () {

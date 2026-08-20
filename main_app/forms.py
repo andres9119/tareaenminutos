@@ -146,7 +146,7 @@ class BlogPostForm(forms.ModelForm):
 
 BlogBlockFormSet = inlineformset_factory(
     BlogPost, BlogBlock,
-    fields=['tipo', 'contenido', 'imagen', 'orden'],
+    fields=['tipo', 'contenido', 'imagen'],
     extra=0,
     can_delete=True,
     widgets={
@@ -159,7 +159,7 @@ BlogBlockFormSet = inlineformset_factory(
 # antiguos (solo Markdown) al editor por bloques al abrirlos en modo edición.
 BlogBlockFormSetLegacy = inlineformset_factory(
     BlogPost, BlogBlock,
-    fields=['tipo', 'contenido', 'imagen', 'orden'],
+    fields=['tipo', 'contenido', 'imagen'],
     extra=1,
     can_delete=True,
     widgets={

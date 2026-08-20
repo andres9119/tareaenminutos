@@ -8,6 +8,18 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import PerfilUsuario, AreaConocimiento
 
 
+class AreaForm(forms.ModelForm):
+    """Formulario para crear/editar un Área de Conocimiento (catálogo)."""
+
+    class Meta:
+        model = AreaConocimiento
+        fields = ['nombre', 'icono', 'activa']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'Ej: Ingeniería de Software'}),
+            'icono': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'fa-code'}),
+        }
+
+
 class UsuarioCrearForm(UserCreationForm):
     """Formulario para crear nuevos usuarios del sistema TEM."""
     first_name = forms.CharField(

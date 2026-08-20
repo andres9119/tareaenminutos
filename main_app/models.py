@@ -76,7 +76,7 @@ class BlogBlock(models.Model):
     class Meta:
         verbose_name = 'Bloque de contenido'
         verbose_name_plural = 'Bloques de contenido'
-        ordering = ['orden', 'id']
+        ordering = ['id']
 
     def __str__(self):
         return f'{self.post.title} - {self.get_tipo_display()} #{self.orden}'

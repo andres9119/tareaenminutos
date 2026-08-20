@@ -1,0 +1,233 @@
+{% comment %}Sección "Áreas de Especialidad" reutilizable.
+Uso: {% include "private/accounts/_areas_especialidad.html" with esp=<form_con_especialidades> es_admin=<bool> %}
+Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el usuario puede gestionar el catálogo.
+{% endcomment %}
+<style>
+    .areas-esp-wrap ul#id_especialidades {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.35rem;
+        padding: 0;
+        margin: 0 0 0.75rem;
+        list-style: none;
+    }
+    @media (max-width: 768px) {
+        .areas-esp-wrap ul#id_especialidades { grid-template-columns: 1fr; }
+    }
+    .areas-esp-wrap ul#id_especialidades li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-surface);
+        margin: 0;
+    }
+    .areas-esp-wrap ul#id_especialidades li label {
+        display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.9rem; flex: 1;
+    }
+    .areas-esp-acciones { display: flex; gap: 0.25rem; }
+    .areas-esp-acciones button {
+        border: none; background: transparent; cursor: pointer;
+        color: var(--text-muted); font-size: 0.8rem; padding: 0.1rem 0.3rem;
+    }
+    .areas-esp-acciones button:hover { color: var(--primary); }
+    .areas-esp-acciones .del:hover { color: var(--danger); }
+</style>
+
+<div class="areas-esp-wrap">
+    {% if esp.especialidades.errors %}
+        <div class="field-error">{{ esp.especialidades.errors }}</div>
+    {% endif %}
+    {{ esp.especialidades }}
+    <button type="button" class="btn-tem btn-outline-tem btn-otra-area" id="btnAbrirCrearArea">
+        <i class="fas fa-plus"></i> Otra (agregar nueva área)
+    </button>
+</div>
+
+<div id="modal-areas-esp" class="modal-tem" style="display:none;">
+    <div class="modal-box-tem">
+        <h3 style="margin-top:0;" id="modal-areas-esp-titulo">Agregar nueva área</h3>
+        <input type="hidden" id="area-esp-id" value="">
+        <div class="form-group-tem">
+            <label class="form-label-tem">Nombre del área</label>
+            <input type="text" id="area-esp-nombre" class="form-control-tem" placeholder="Ej: Estadística">
+        </div>
+        <div id="area-esp-icono-grupo" class="form-group-tem" style="display:none;">
+            <label class="form-label-tem">Icono (FontAwesome)</label>
+            <input type="text" id="area-esp-icono" class="form-control-tem" placeholder="fa-book-open">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">
+            <button type="button" class="btn-tem btn-outline-tem btn-cerrar-modal-areas">Cancelar</button>
+            <button type="button" class="btn-tem btn-primary-tem" id="btnGuardarAreaEsp">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-tem { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+    .modal-box-tem { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--border-radius-sm); padding: 1.5rem; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+</style>
+
+<script>
+(function () {
+    var csrf = '{{ csrf_token }}';
+    var urlCrear = '{% url "area_crear" %}';
+    var urlEditar = '{% url "area_editar" 0 %}';
+    var urlEliminar = '{% url "area_eliminar" 0 %}';
+    var esAdmin = {% if es_admin %}true{% else %}false{% endif %};
+
+    var areasMap = {};
+    {% for a in esp.especialidades.field.queryset %}
+    areasMap['{{ a.pk }}'] = { id: '{{ a.pk }}', nombre: {{ a.nombre|escapejs }}, icono: {{ a.icono|escapejs }}, activa: {% if a.activa %}true{% else %}false{% endif %} };
+    {% endfor %}
+
+    function ajax(url, data) {
+        var body = new URLSearchParams();
+        for (var k in data) body.append(k, data[k]);
+        return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: body });
+    }
+
+    var modal = document.getElementById('modal-areas-esp');
+    var titulo = document.getElementById('modal-areas-esp-titulo');
+    var idInput = document.getElementById('area-esp-id');
+    var nombreInput = document.getElementById('area-esp-nombre');
+    var iconoInput = document.getElementById('area-esp-icono');
+    var iconoGrupo = document.getElementById('area-esp-icono-grupo');
+
+    function cerrarModal() { modal.style.display = 'none'; }
+
+    function asegurarSpan(li) {
+        var label = li.querySelector('label');
+        if (!label) return null;
+        if (!label.querySelector('.areas-esp-nombre')) {
+            var nodes = label.childNodes;
+            var texto = '';
+            for (var i = nodes.length - 1; i >= 0; i--) {
+                if (nodes[i].nodeType === 3) {
+                    texto = nodes[i].nodeValue + texto;
+                    label.removeChild(nodes[i]);
+                }
+            }
+            var span = document.createElement('span');
+            span.className = 'areas-esp-nombre';
+            span.textContent = (texto || '').trim();
+            label.appendChild(span);
+        }
+        return label.querySelector('.areas-esp-nombre');
+    }
+
+    function agregarAcciones(li, area) {
+        if (!esAdmin || li.querySelector('.areas-esp-acciones')) return;
+        var acc = document.createElement('span');
+        acc.className = 'areas-esp-acciones';
+        acc.innerHTML = ''
+            + '<button type="button" class="btn-editar-area" title="Editar área" data-id="' + area.id + '"><i class="fas fa-pen"></i></button>'
+            + '<button type="button" class="btn-eliminar-area del" title="Eliminar área" data-id="' + area.id + '"><i class="fas fa-trash-alt"></i></button>';
+        li.appendChild(acc);
+    }
+
+    function conectar() {
+        var ul = document.getElementById('id_especialidades');
+        if (!ul) return;
+        Array.prototype.forEach.call(ul.querySelectorAll('li'), function (li) {
+            var input = li.querySelector('input[type="checkbox"]');
+            if (!input) return;
+            var area = areasMap[input.value];
+            asegurarSpan(li);
+            if (area) agregarAcciones(li, area);
+        });
+
+        ul.querySelectorAll('.btn-editar-area').forEach(function (btn) {
+            if (btn.dataset.listo === '1') return;
+            btn.dataset.listo = '1';
+            btn.addEventListener('click', function () {
+                var area = areasMap[btn.dataset.id];
+                if (!area) return;
+                idInput.value = area.id;
+                nombreInput.value = area.nombre;
+                iconoInput.value = area.icono || '';
+                iconoGrupo.style.display = '';
+                titulo.textContent = 'Editar área';
+                modal.style.display = 'flex';
+                setTimeout(function () { nombreInput.focus(); }, 50);
+            });
+        });
+
+        ul.querySelectorAll('.btn-eliminar-area').forEach(function (btn) {
+            if (btn.dataset.listo === '1') return;
+            btn.dataset.listo = '1';
+            btn.addEventListener('click', function () {
+                var area = areasMap[btn.dataset.id];
+                if (!confirm('¿Eliminar el área "' + (area ? area.nombre : '') + '"?')) return;
+                ajax(urlEliminar.replace('/0/', '/' + btn.dataset.id + '/'), {})
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (res.ok) {
+                            btn.closest('li').remove();
+                            delete areasMap[btn.dataset.id];
+                        } else {
+                            alert(res.error || 'No se pudo eliminar.');
+                        }
+                    });
+            });
+        });
+    }
+
+    function crearFilaArea(area) {
+        var ul = document.getElementById('id_especialidades');
+        if (!ul) return;
+        areasMap[area.id] = area;
+        var li = document.createElement('li');
+        var nombre = area.nombre;
+        li.innerHTML = '<label><input type="checkbox" name="especialidades" value="' + area.id + '" checked><span class="areas-esp-nombre">' + nombre + '</span></label>';
+        ul.appendChild(li);
+        agregarAcciones(li, area);
+        conectar();
+    }
+
+    document.getElementById('btnAbrirCrearArea').addEventListener('click', function () {
+        idInput.value = '';
+        nombreInput.value = '';
+        iconoGrupo.style.display = 'none';
+        titulo.textContent = 'Agregar nueva área';
+        modal.style.display = 'flex';
+        setTimeout(function () { nombreInput.focus(); }, 50);
+    });
+    document.querySelectorAll('.btn-cerrar-modal-areas').forEach(function (b) {
+        b.addEventListener('click', cerrarModal);
+    });
+    modal.addEventListener('click', function (e) { if (e.target === modal) cerrarModal(); });
+
+    document.getElementById('btnGuardarAreaEsp').addEventListener('click', function () {
+        var nombre = nombreInput.value.trim();
+        if (!nombre) { nombreInput.focus(); return; }
+        var id = idInput.value;
+        if (id) {
+            ajax(urlEditar.replace('/0/', '/' + id + '/'), {
+                nombre: nombre,
+                icono: iconoInput.value.trim()
+            }).then(function (r) { return r.json(); }).then(function (res) {
+                if (!res.ok) { alert(res.error || 'No se pudo guardar.'); return; }
+                var li = document.querySelector('#id_especialidades li input[value="' + id + '"]');
+                if (li) {
+                    var span = asegurarSpan(li.closest('li'));
+                    if (span) span.textContent = nombre;
+                }
+                areasMap[id].nombre = nombre;
+                cerrarModal();
+            });
+        } else {
+            ajax(urlCrear, { nombre: nombre }).then(function (r) { return r.json(); }).then(function (res) {
+                if (!res.ok) { alert(res.error || 'No se pudo crear.'); return; }
+                crearFilaArea({ id: res.id, nombre: nombre, icono: '', activa: true });
+                cerrarModal();
+            });
+        }
+    });
+
+    conectar();
+})();
+</script>
