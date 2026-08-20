@@ -22,7 +22,7 @@ def notificar_mensaje_chat(sender, instance, created, **kwargs):
             continue
 
         url = reverse('sala_chat', args=[sala.pk])
-        nombre_autor = autor.get_full_name() or autor.username
+        nombre_autor = autor.get_full_name() or autor.username if autor else 'Usuario eliminado'
         crear_notificacion(
             destinatario=participante,
             tipo='mensaje_chat',

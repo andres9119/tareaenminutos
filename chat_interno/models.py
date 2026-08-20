@@ -99,7 +99,8 @@ class MensajeChat(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.autor.username}: {self.contenido[:50]}"
+        autor = self.autor.username if self.autor else 'Usuario eliminado'
+        return f"{autor}: {self.contenido[:50]}"
 
     def to_dict(self):
         """Serializa el mensaje para WebSocket."""
@@ -108,7 +109,7 @@ class MensajeChat(models.Model):
             'id': self.pk,
             'sala_id': self.sala_id,
             'autor_id': self.autor_id,
-            'autor_nombre': self.autor.get_full_name() or self.autor.username,
+            'autor_nombre': (self.autor.get_full_name() or self.autor.username) if self.autor else 'Usuario eliminado',
             'autor_foto': self.autor.perfil.get_foto_url() if hasattr(self.autor, 'perfil') else '',
             'contenido': self.contenido,
             'tipo': self.tipo,
