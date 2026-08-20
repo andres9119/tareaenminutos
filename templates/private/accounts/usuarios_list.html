@@ -62,17 +62,15 @@
                         </td>
                         <td>{% if user.is_active %}<span style="color: var(--success);">Sí</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
                         <td>
-                            {% if 'Tutor' in user.groups.all|join:"," %}
-                            <form method="post" action="{% url 'usuario_eliminar' user.pk %}" class="form-eliminar" onsubmit="return confirm('¿Estás seguro de que quieres eliminar definitivamente al tutor @{{ user.username }}? Se borrará su usuario y ya no podrá volver a ingresar al sistema.');">
+                            {% if user.pk == usuario_actual_pk %}
+                            <span class="text-muted-tem"><i class="fas fa-user-shield"></i> Tu cuenta</span>
+                            {% else %}
+                            <form method="post" action="{% url 'usuario_eliminar' user.pk %}" class="form-eliminar" onsubmit="return confirm('¿Confirmas que deseas eliminar definitivamente a @{{ user.username }}? Se borrará su cuenta y no podrá volver a ingresar al sistema.');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn-tem btn-danger-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                     <i class="fas fa-trash-alt"></i> Eliminar
                                 </button>
                             </form>
-                            {% else %}
-                            <a href="{% url 'usuario_toggle_activo' user.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                {% if user.is_active %}<i class="fas fa-ban"></i> Desactivar{% else %}<i class="fas fa-check"></i> Activar{% endif %}
-                            </a>
                             {% endif %}
                         </td>
                     </tr>

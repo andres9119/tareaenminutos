@@ -163,7 +163,7 @@ def usuarios_list(request):
     paginator = Paginator(usuarios, 20)
     page = request.GET.get('page', 1)
     usuarios_page = paginator.get_page(page)
-    context = {'usuarios': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages()}
+    context = {'usuarios': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages(), 'usuario_actual_pk': request.user.pk}
     return render(request, 'private/accounts/usuarios_list.html', context)
 
 
@@ -224,10 +224,10 @@ def usuario_eliminar(request, pk):
     if user == request.user:
         messages.error(request, 'No puedes eliminar tu propia cuenta.')
         return redirect('usuarios_list')
-    if request.user.is_superuser or request.user.groups.filter(name='Administrador').exists():
-        if user.is_superuser or user.groups.filter(name='Administrador').exists():
-            messages.error(request, 'No puedes eliminar un administrador.')
-            return redirect('usuarios_list')
+    # Protección: un admin que no sea superuser no puede eliminar a un superuser.
+    if not request.user.is_superuser and user.is_superuser:
+        messages.error(request, 'No puedes eliminar un usuario superusuario.')
+        return redirect('usuarios_list')
     username = user.username
     user.delete()
     messages.success(request, f'Usuario @{username} eliminado definitivamente de la base de datos.')
