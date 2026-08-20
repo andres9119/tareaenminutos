@@ -133,6 +133,63 @@
         margin-bottom: 0.6rem;
     }
 
+    /* Bloques de contenido */
+    .blog-block-titulo h2 {
+        font-family: var(--font-heading);
+        color: var(--text-main);
+        font-size: 2.1rem;
+        font-weight: 800;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
+        line-height: 1.25;
+    }
+
+    .blog-block-subtitulo h3 {
+        font-family: var(--font-heading);
+        color: var(--text-main);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .blog-block-texto p {
+        margin-bottom: 1.5rem;
+    }
+
+    .blog-block-cita blockquote {
+        margin: 2rem 0;
+        padding: 1.25rem 1.75rem;
+        border-left: 4px solid var(--primary);
+        background: var(--primary-glow);
+        border-radius: var(--border-radius-sm);
+        font-size: 1.15rem;
+        font-style: italic;
+        color: var(--text-main);
+    }
+
+    .blog-block-cita blockquote p { margin-bottom: 0; }
+
+    .blog-block-imagen figure {
+        margin: 2rem 0;
+    }
+
+    .blog-block-imagen img {
+        width: 100%;
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-glow);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .blog-block-imagen figcaption {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+        font-style: italic;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .post-container {
@@ -212,7 +269,30 @@
         
         <!-- Body Content -->
         <div class="post-view-content">
-            {{ post.content|markdown_render }}
+            {% if post.bloques.exists %}
+                {% for bloque in post.bloques.all %}
+                    {% if bloque.tipo == 'titulo' %}
+                        <div class="blog-block-titulo"><h2>{{ bloque.contenido }}</h2></div>
+                    {% elif bloque.tipo == 'subtitulo' %}
+                        <div class="blog-block-subtitulo"><h3>{{ bloque.contenido }}</h3></div>
+                    {% elif bloque.tipo == 'texto' %}
+                        <div class="blog-block-texto">{{ bloque.contenido|markdown_render }}</div>
+                    {% elif bloque.tipo == 'cita' %}
+                        <div class="blog-block-cita"><blockquote>{{ bloque.contenido|markdown_render }}</blockquote></div>
+                    {% elif bloque.tipo == 'imagen' %}
+                        {% if bloque.imagen %}
+                        <div class="blog-block-imagen">
+                            <figure>
+                                <img src="{{ bloque.imagen.url }}" alt="{{ bloque.contenido|default:post.title }}" loading="lazy">
+                                {% if bloque.contenido %}<figcaption>{{ bloque.contenido }}</figcaption>{% endif %}
+                            </figure>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {{ post.content|markdown_render }}
+            {% endif %}
         </div>
     </article>
     

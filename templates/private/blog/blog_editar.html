@@ -1,0 +1,254 @@
+{% extends "main_app/base.html" %}
+{% block title %}{{ titulo_pagina }} - TEM{% endblock %}
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'blog_admin_list' %}">Blog</a>
+        <span>›</span>
+        <span>{{ titulo_pagina }}</span>
+    </div>
+    <div class="page-header">
+        <h1><i class="fas fa-newspaper"></i> {{ titulo_pagina }}</h1>
+        <div class="page-actions">
+            <a href="{% url 'blog_admin_list' %}" class="btn-tem btn-outline-tem"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        <div class="card-tem" style="margin-bottom: 1.5rem;">
+            <div class="card-body-tem">
+                <h3 style="margin-top:0;margin-bottom:1rem;font-size:1.1rem;color:var(--text-main);">Datos del Artículo</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem 1.5rem;">
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<div class="field-error">{{ form.title.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.slug.label }}</label>
+                        {{ form.slug }}
+                        {% if form.slug.help_text %}<small class="text-muted-tem">{{ form.slug.help_text }}</small>{% endif %}
+                        {% if form.slug.errors %}<div class="field-error">{{ form.slug.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.featured_image.label }}</label>
+                        {{ form.featured_image }}
+                        {% if form.featured_image.help_text %}<small class="text-muted-tem">{{ form.featured_image.help_text }}</small>{% endif %}
+                        {% if form.featured_image.errors %}<div class="field-error">{{ form.featured_image.errors }}</div>{% endif %}
+                        {% if post and post.featured_image %}
+                            <img src="{{ post.featured_image.url }}" alt="Portada actual" style="max-width:160px;margin-top:0.5rem;border-radius:var(--border-radius-sm);">
+                        {% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.published.label }}</label>
+                        {{ form.published }}
+                        {% if form.published.errors %}<div class="field-error">{{ form.published.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="form-group-tem" style="margin-top:1rem;">
+                    <label class="form-label-tem">{{ form.excerpt.label }}</label>
+                    {{ form.excerpt }}
+                    {% if form.excerpt.errors %}<div class="field-error">{{ form.excerpt.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:1.1rem;color:var(--text-main);">Contenido por bloques</h3>
+                    <button type="button" id="btnAgregarBloque" class="btn-tem btn-primary-tem"><i class="fas fa-plus"></i> Agregar bloque</button>
+                </div>
+                <p class="text-muted-tem" style="margin-top:0;">Agrega bloques de texto, títulos, subtítulos, citas o imágenes para enriquecer visualmente el artículo. Ordena usando los números.</p>
+
+                <div id="bloques-contenedor">
+                    {% for f in formset %}
+                    <div class="card-tem bloque-fila" style="margin-bottom:0.75rem;" data-idx="{{ forloop.counter0 }}">
+                        <div class="card-body-tem">
+                            <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
+                                <div>
+                                    <label class="form-label-tem">Orden</label>
+                                    <input type="number" name="{{ f.orden.html_name }}" value="{{ f.orden.value }}" class="form-control-tem bloque-orden" style="width:70px;" min="0">
+                                </div>
+                                <div style="min-width:160px;">
+                                    <label class="form-label-tem">Tipo</label>
+                                    {{ f.tipo }}
+                                </div>
+                                <div style="flex:1;min-width:260px;">
+                                    <label class="form-label-tem">Contenido</label>
+                                    {{ f.contenido }}
+                                    {% if f.contenido.errors %}<div class="field-error">{{ f.contenido.errors }}</div>{% endif %}
+                                </div>
+                                <div>
+                                    <label class="form-label-tem">Imagen</label>
+                                    {{ f.imagen }}
+                                    {% if f.instance.imagen %}
+                                        <img src="{{ f.instance.imagen.url }}" alt="Imagen actual" class="bloque-img-preview" style="max-width:120px;margin-top:0.5rem;border-radius:var(--border-radius-sm);display:block;">
+                                    {% endif %}
+                                </div>
+                                <div style="display:flex;align-items:flex-end;gap:0.5rem;">
+                                    <button type="button" class="btn-tem btn-danger-tem btn-eliminar-bloque"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                            {{ f.DELETE }}
+                            {{ f.id }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <template id="bloque-vacio">
+                    {% with f=formset.empty_form %}
+                    <div class="card-tem bloque-fila" style="margin-bottom:0.75rem;" data-idx="__prefix__">
+                        <div class="card-body-tem">
+                            <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
+                                <div>
+                                    <label class="form-label-tem">Orden</label>
+                                    <input type="number" name="{{ f.orden.html_name }}" value="__prefix__" class="form-control-tem bloque-orden" style="width:70px;" min="0">
+                                </div>
+                                <div style="min-width:160px;">
+                                    <label class="form-label-tem">Tipo</label>
+                                    {{ f.tipo }}
+                                </div>
+                                <div style="flex:1;min-width:260px;">
+                                    <label class="form-label-tem">Contenido</label>
+                                    {{ f.contenido }}
+                                </div>
+                                <div>
+                                    <label class="form-label-tem">Imagen</label>
+                                    {{ f.imagen }}
+                                </div>
+                                <div style="display:flex;align-items:flex-end;gap:0.5rem;">
+                                    <button type="button" class="btn-tem btn-danger-tem btn-eliminar-bloque"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                            {{ f.DELETE }}
+                            {{ f.id }}
+                        </div>
+                    </div>
+                    {% endwith %}
+                </template>
+            </div>
+        </div>
+
+        <div style="margin-top:1.5rem;text-align:right;">
+            <button type="submit" class="btn-tem btn-primary-tem" style="min-width:180px;"><i class="fas fa-save"></i> Guardar Artículo</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .bloque-fila { background: var(--bg-surface); }
+    .btn-sm-tem { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+</style>
+
+<script>
+(function () {
+    var contenedor = document.getElementById('bloques-contenedor');
+    var plantilla = document.getElementById('bloque-vacio');
+    var btn = document.getElementById('btnAgregarBloque');
+    var totalForms = document.querySelector('#id_bloques-TOTAL_FORMS');
+
+    function renumerarOrdenes() {
+        var filas = contenedor.querySelectorAll('.bloque-fila');
+        filas.forEach(function (fila, i) {
+            var ord = fila.querySelector('.bloque-orden');
+            if (ord) ord.value = i;
+        });
+    }
+
+    function prepararFila(fila, idx) {
+        var html = fila.innerHTML.split('__prefix__').join(idx);
+        fila.innerHTML = html;
+        // Configurar el botón eliminar y el checkbox DELETE
+        var eliminarBtn = fila.querySelector('.btn-eliminar-bloque');
+        if (eliminarBtn) {
+            eliminarBtn.addEventListener('click', function (e) {
+                var del = fila.querySelector('input[name$="-DELETE"]');
+                if (del) {
+                    del.checked = true;
+                    fila.style.display = 'none';
+                } else {
+                    fila.remove();
+                }
+                renumerarOrdenes();
+            });
+        }
+        // Preview de imagen al elegir archivo (solo para el nuevo que no tenga checkbox)
+        var fileInput = fila.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                var prev = fila.querySelector('.bloque-img-preview');
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        if (!prev) {
+                            prev = document.createElement('img');
+                            prev.className = 'bloque-img-preview';
+                            prev.style.cssText = 'max-width:120px;margin-top:0.5rem;border-radius:var(--border-radius-sm);display:block;';
+                            fileInput.parentNode.appendChild(prev);
+                        }
+                        prev.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    }
+
+    if (btn) {
+        btn.addEventListener('click', function () {
+            var count = parseInt(totalForms.value, 10) || 0;
+            var clone = document.createElement('div');
+            clone.innerHTML = plantilla.innerHTML;
+            var fila = clone.firstElementChild;
+            prepararFila(fila, count);
+            contenedor.appendChild(fila);
+            totalForms.value = count + 1;
+            renumerarOrdenes();
+        });
+    }
+
+    // Inicializar filas ya existentes (presionado del formulario / edición)
+    contenedor.querySelectorAll('.bloque-fila').forEach(function (fila, i) {
+        var eliminarBtn = fila.querySelector('.btn-eliminar-bloque');
+        if (eliminarBtn) {
+            eliminarBtn.addEventListener('click', function () {
+                var del = fila.querySelector('input[name$="-DELETE"]');
+                if (del) {
+                    del.checked = true;
+                    fila.style.display = 'none';
+                } else {
+                    fila.remove();
+                }
+                renumerarOrdenes();
+            });
+        }
+        var fileInput = fila.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                var prev = fila.querySelector('.bloque-img-preview');
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        if (!prev) {
+                            prev = document.createElement('img');
+                            prev.className = 'bloque-img-preview';
+                            prev.style.cssText = 'max-width:120px;margin-top:0.5rem;border-radius:var(--border-radius-sm);display:block;';
+                            fileInput.parentNode.appendChild(prev);
+                        }
+                        prev.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}

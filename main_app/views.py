@@ -10,7 +10,7 @@ from django.conf import settings
 from django.urls import reverse, reverse_lazy
 from .models import BlogPost, ContactMessage, ChatMessage
 from .models import Banner
-from .forms import ContactForm, ChatForm, TutorPasswordResetForm
+from .forms import ContactForm, ChatForm, TutorPasswordResetForm, BlogPostForm, BlogBlockFormSet, BlogBlockFormSetLegacy
 
 def index(request):
     """Vista de la landing page pública"""
@@ -184,3 +184,104 @@ def sitemap_view(request):
     xml += '</urlset>'
     
     return HttpResponse(xml, content_type='application/xml')
+
+
+# ─── Admin: Blog (gestión de artículos con bloques de contenido) ──────────────
+
+@admin_required
+def blog_admin_list(request):
+    """Lista de artículos del blog para administrar (solo Admin)."""
+    posts = BlogPost.objects.select_related('author').order_by('-created_at')
+    return render(request, 'private/blog/blog_list.html', {'posts': posts})
+
+
+def _guardar_blog_post(request, post=None):
+    """Lógica común de crear/editar un post del blog con sus bloques.
+    Retorna una redirección (HttpResponse) si se guardó, o (form, formset, post)."""
+    form = BlogPostForm(request.POST or None, request.FILES or None, instance=post)
+
+    if request.method == 'GET' and post and not post.bloques.exists() and post.content.strip():
+        # Artículo antiguo (solo Markdown): se convierte en un bloque de texto
+        # editable para que el editor por bloques no lo pierda.
+        formset = BlogBlockFormSetLegacy(
+            instance=post, prefix='bloques',
+            initial=[{'tipo': 'texto', 'contenido': post.content}],
+        )
+    else:
+        formset = BlogBlockFormSet(
+            request.POST or None, request.FILES or None,
+            instance=post or BlogPost(), prefix='bloques',
+        )
+
+    if request.method == 'POST':
+        if form.is_valid() and formset.is_valid():
+            post_obj = form.save(commit=False)
+            post_obj.author = request.user
+            post_obj.slug = form.cleaned_data.get('slug') or form.data.get('slug')
+            if not post_obj.slug:
+                from django.utils.text import slugify
+                post_obj.slug = slugify(post_obj.title)[:50]
+            post_obj.save()  # asigna pk para poder enlazar los bloques
+
+            for idx, f in enumerate(formset.forms):
+                if f.cleaned_data and not f.cleaned_data.get('DELETE'):
+                    f.instance.post = post_obj
+                    f.instance.orden = idx
+                    f.instance.save()
+
+            for f in formset.deleted_forms:
+                if f.instance.pk:
+                    f.instance.delete()
+
+            # Si por cualquier motivo no hubo bloques salvados y existía contenido
+            # Markdown legacy, lo preservamos como bloque de texto.
+            if not post_obj.bloques.exists():
+                legacy = post.content if post and post.pk else ''
+                BlogBlock.objects.create(
+                    post=post_obj, tipo='texto',
+                    contenido=legacy or '', orden=0,
+                )
+
+            action = 'actualizado' if post else 'creado'
+            messages.success(request, f'Artículo "{post_obj.title}" {action} correctamente.')
+            return redirect('blog_admin_list')
+
+    return form, formset, post
+
+@admin_required
+def blog_admin_crear(request):
+    """Crear un nuevo artículo del blog (solo Admin)."""
+    resultado = _guardar_blog_post(request)
+    if isinstance(resultado, HttpResponse):
+        return resultado
+    form, formset, post = resultado
+    return render(request, 'private/blog/blog_editar.html', {
+        'form': form, 'formset': formset, 'post': post,
+        'titulo_pagina': 'Crear Artículo',
+    })
+
+
+@admin_required
+def blog_admin_editar(request, pk):
+    """Editar un artículo existente del blog (solo Admin)."""
+    post = get_object_or_404(BlogPost, pk=pk)
+    resultado = _guardar_blog_post(request, post=post)
+    if isinstance(resultado, HttpResponse):
+        return resultado
+    form, formset, _ = resultado
+    return render(request, 'private/blog/blog_editar.html', {
+        'form': form, 'formset': formset, 'post': post,
+        'titulo_pagina': 'Editar Artículo',
+    })
+
+
+@admin_required
+def blog_admin_eliminar(request, pk):
+    """Eliminar un artículo del blog definitivamente (solo Admin)."""
+    post = get_object_or_404(BlogPost, pk=pk)
+    if request.method == 'POST':
+        titulo = post.title
+        post.delete()
+        messages.success(request, f'Artículo "{titulo}" eliminado.')
+        return redirect('blog_admin_list')
+    return render(request, 'private/blog/blog_eliminar.html', {'post': post})

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from io import BytesIO
+import os
 from PIL import Image
 
 
@@ -36,6 +37,62 @@ class BlogPost(models.Model):
                     setattr(self.featured_image, '_webp_converted', True)
                 except Exception:
                     # Si falla (archivo corrupto, formato no soportado), se guarda el original tal cual.
+                    pass
+        super().save(*args, **kwargs)
+
+
+class BlogBlock(models.Model):
+    """Bloque de contenido visual de un artículo del blog.
+
+    Un post se compone de varios bloques ordenados (título, subtítulo, texto,
+    imagen, cita) que permiten enriquecer visualmente las publicaciones, además
+    de la imagen destacada (featured_image).
+    """
+
+    TIPO_BLOQUE = [
+        ('texto', 'Texto'),
+        ('titulo', 'Título'),
+        ('subtitulo', 'Subtítulo'),
+        ('imagen', 'Imagen'),
+        ('cita', 'Cita'),
+    ]
+
+    post = models.ForeignKey(
+        BlogPost, on_delete=models.CASCADE,
+        related_name='bloques',
+        verbose_name='Artículo'
+    )
+    tipo = models.CharField(
+        max_length=15, choices=TIPO_BLOQUE, default='texto',
+        verbose_name='Tipo de bloque'
+    )
+    contenido = models.TextField(blank=True, verbose_name='Contenido')
+    imagen = models.ImageField(
+        upload_to='blog/bloques/', blank=True, null=True,
+        verbose_name='Imagen'
+    )
+    orden = models.PositiveIntegerField(default=0, verbose_name='Orden')
+
+    class Meta:
+        verbose_name = 'Bloque de contenido'
+        verbose_name_plural = 'Bloques de contenido'
+        ordering = ['orden', 'id']
+
+    def __str__(self):
+        return f'{self.post.title} - {self.get_tipo_display()} #{self.orden}'
+
+    def save(self, *args, **kwargs):
+        # Convertir la imagen del bloque a WebP si es nueva (reduce peso).
+        if self.imagen and getattr(self.imagen, '_webp_converted', False) is not True:
+            if not self.imagen.name.lower().endswith('.webp'):
+                try:
+                    image = Image.open(self.imagen)
+                    image = image.convert('RGB')
+                    buffer = BytesIO()
+                    image.save(buffer, format='WEBP', quality=82, method=4)
+                    self.imagen = ContentFile(buffer.getvalue(), name='%s.webp' % os.path.splitext(self.imagen.name)[0].rsplit('/', 1)[-1])
+                    setattr(self.imagen, '_webp_converted', True)
+                except Exception:
                     pass
         super().save(*args, **kwargs)
 

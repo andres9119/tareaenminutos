@@ -5,10 +5,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.db.models import Q
+from django.forms import inlineformset_factory
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from .models import ContactMessage, ChatMessage
+from .models import ContactMessage, ChatMessage, BlogPost, BlogBlock, BlogPost, BlogBlock
 
 
 class TutorPasswordResetForm(PasswordResetForm):
@@ -111,3 +112,58 @@ class ChatForm(forms.ModelForm):
         widgets = {
             'message': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escribe tu mensaje...', 'rows': 3}),
         }
+
+
+class BlogPostForm(forms.ModelForm):
+    """Formulario de creación/edición de un artículo del blog (admin)."""
+
+    class Meta:
+        model = BlogPost
+        fields = ['title', 'slug', 'excerpt', 'published', 'featured_image']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'Título del artículo'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'url-amigable-del-articulo'}),
+            'excerpt': forms.Textarea(attrs={'class': 'form-control-tem', 'rows': 3, 'placeholder': 'Resumen corto que aparece en la lista del blog y en SEO...'}),
+            'published': forms.CheckboxInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['published'].label = 'Publicado'
+        self.fields['slug'].help_text = 'Si lo dejas vacío se genera automáticamente desde el título.'
+        self.fields['featured_image'].label = 'Imagen principal (portada)'
+        self.fields['featured_image'].widget.attrs.update({'class': 'form-control-tem'})
+        if self.instance and self.instance.pk:
+            self.fields['featured_image'].help_text = 'Se convierte automáticamente a WebP.'
+
+    def clean_slug(self):
+        from django.utils.text import slugify
+        slug = (self.cleaned_data.get('slug') or '').strip()
+        if not slug:
+            slug = slugify(self.cleaned_data.get('title') or '')
+        return slug
+
+
+BlogBlockFormSet = inlineformset_factory(
+    BlogPost, BlogBlock,
+    fields=['tipo', 'contenido', 'imagen', 'orden'],
+    extra=0,
+    can_delete=True,
+    widgets={
+        'tipo': forms.Select(attrs={'class': 'form-select-tem'}),
+        'contenido': forms.Textarea(attrs={'class': 'form-control-tem block-text', 'rows': 3}),
+    },
+)
+
+# Variante con un bloque extra pre-rellenado: solo se usa para migrar artículos
+# antiguos (solo Markdown) al editor por bloques al abrirlos en modo edición.
+BlogBlockFormSetLegacy = inlineformset_factory(
+    BlogPost, BlogBlock,
+    fields=['tipo', 'contenido', 'imagen', 'orden'],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'tipo': forms.Select(attrs={'class': 'form-select-tem'}),
+        'contenido': forms.Textarea(attrs={'class': 'form-control-tem block-text', 'rows': 3}),
+    },
+)
