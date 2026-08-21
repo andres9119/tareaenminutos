@@ -187,11 +187,11 @@ def solicitud_detalle(request, pk):
     historial = solicitud.historial_estados.select_related(
         'estado_anterior', 'estado_nuevo', 'cambiado_por'
     ).order_by('-created_at')[:10]
-    # Solo las entradas del historial que tienen nota/motivo (para el modal superior).
-    # Se excluye la nota trivial de creación para no mostrar el botón sin razón.
-    historial_notas = solicitud.historial_estados.exclude(
-        comentario__in=['', 'Solicitud creada.']
-    ).select_related('estado_nuevo', 'cambiado_por').order_by('-created_at')[:10]
+    # Solo las notas de CORRECCIÓN del historial (para el modal superior).
+    # No incluye los cambios de estado normales ni la nota trivial de creación.
+    historial_notas = solicitud.historial_estados.filter(
+        estado_nuevo__nombre='en_correccion'
+    ).exclude(comentario='').select_related('estado_nuevo', 'cambiado_por').order_by('-created_at')[:10]
 
     # Sala de chat
     sala_chat = getattr(solicitud, 'sala_chat', None)

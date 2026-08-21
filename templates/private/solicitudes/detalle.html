@@ -59,8 +59,7 @@
                         </span>
                         {% if historial_notas %}
                         <button type="button" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;margin-top:0.75rem;" onclick="document.getElementById('notasModal').style.display='flex'">
-                            <i class="fas fa-comment-dots"></i>
-                            {% if solicitud.estado.nombre == 'en_correccion' %}Ver motivo de la corrección{% else %}Ver notas del proceso{% endif %}
+                            <i class="fas fa-comment-dots"></i> Ver motivo de la corrección
                         </button>
                         {% endif %}
                     </div>
@@ -475,13 +474,11 @@
 </div>
 
 {% if historial_notas %}
-<!-- Modal notas del proceso (visible para admin y tutor) -->
+<!-- Modal motivos de corrección (visible para admin y tutor) -->
 <div class="modal-overlay" id="notasModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fas fa-comment-dots"></i>
-                {% if solicitud.estado.nombre == 'en_correccion' %}Motivo de la Corrección{% else %}Notas del Proceso{% endif %}
-            </h3>
+            <h3><i class="fas fa-comment-dots"></i> Motivo de la Corrección</h3>
             <button class="modal-close" onclick="document.getElementById('notasModal').style.display='none'">&times;</button>
         </div>
         <div style="padding: 1.5rem; max-height: 60vh; overflow-y: auto;">
