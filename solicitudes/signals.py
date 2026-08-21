@@ -86,6 +86,12 @@ def notificar_cambio_estado(sender, instance, **kwargs):
     if kwargs.get('created'):
         return
 
+    # Las vistas pueden fijar esta bandera para suprimir la notificación
+    # genérica de cambio de estado (p. ej. primera cotización del tutor,
+    # que envía su propia notificación específica).
+    if getattr(instance, '_skip_estado_notif', False):
+        return
+
     def _notificar():
         from notificaciones.utils import crear_notificacion
         from django.contrib.auth.models import User

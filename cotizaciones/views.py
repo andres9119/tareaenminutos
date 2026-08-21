@@ -53,6 +53,9 @@ def cotizacion_crear(request, solicitud_pk):
                 )
                 estado_anterior = solicitud.estado
                 solicitud.estado = estado_cotizacion
+                # Suprime la notificación genérica de cambio de estado:
+                # abajo se envía la notificación específica de cotización.
+                solicitud._skip_estado_notif = True
                 solicitud.save()
                 HistorialEstado.objects.create(
                     solicitud=solicitud,
@@ -60,6 +63,21 @@ def cotizacion_crear(request, solicitud_pk):
                     estado_nuevo=estado_cotizacion,
                     cambiado_por=request.user,
                     comentario=f'Primera cotización recibida del tutor {request.user.get_full_name() or request.user.username}.'
+                )
+
+            # Notificar a los admins que el tutor envió una cotización
+            from notificaciones.utils import crear_notificacion
+            from django.contrib.auth.models import User
+            nombre_tutor = request.user.get_full_name() or request.user.username
+            admins = User.objects.filter(groups__name='Administrador') | User.objects.filter(is_superuser=True)
+            for admin in admins:
+                crear_notificacion(
+                    destinatario=admin,
+                    tipo='cotizacion_recibida',
+                    titulo=f'{solicitud.codigo}: nueva cotización de {nombre_tutor}',
+                    mensaje=f'El tutor {nombre_tutor} envió una cotización de ${cotizacion.monto:,.0f} COP para "{solicitud.titulo}".',
+                    url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                    solicitud_id=solicitud.pk,
                 )
 
             messages.success(request, 'Cotización enviada correctamente. El administrador la revisará.')
