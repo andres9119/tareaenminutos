@@ -95,7 +95,9 @@ def cotizacion_crear(request, solicitud_pk):
     else:
         form = CotizacionForm()
 
-    context = {'form': form, 'solicitud': solicitud}
+    # Documentos de la solicitud (instrucciones/referencias) visibles para cotizar
+    documentos = solicitud.documentos.exclude(tipo='entrega').order_by('-created_at')
+    context = {'form': form, 'solicitud': solicitud, 'documentos': documentos}
     return render(request, 'private/cotizaciones/crear.html', context)
 
 

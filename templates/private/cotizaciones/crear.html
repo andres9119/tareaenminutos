@@ -13,25 +13,59 @@
 
     <div class="card-tem" style="margin-bottom: 1.5rem;">
         <div class="card-body-tem">
-            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin: 0 0 0.5rem;">{{ solicitud.codigo }} — {{ solicitud.titulo }}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin: 0;">{{ solicitud.codigo }} — {{ solicitud.titulo }}</h3>
+                <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">{{ solicitud.estado.etiqueta }}</span>
+            </div>
             {% if solicitud.descripcion %}
             <p style="color: var(--text-muted); margin-bottom: 1rem; white-space: pre-line;">{{ solicitud.descripcion }}</p>
             {% endif %}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; color: var(--text-muted);">
                 <div>
+                    <p><strong>Cliente:</strong> {{ solicitud.cliente_nombre|default:"No especificado" }}</p>
+                    <p><strong>Email:</strong> {{ solicitud.cliente_email|default:"No especificado" }}</p>
+                    <p><strong>Teléfono:</strong> {{ solicitud.cliente_telefono|default:"No especificado" }}</p>
+                    <p><strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:"No especificada" }}</p>
+                </div>
+                <div>
                     <p><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre|default:"No especificada" }}</p>
                     <p><strong>Nivel:</strong> {{ solicitud.nivel_academico|default:"No especificado" }}</p>
                     <p><strong>Tipo:</strong> {{ solicitud.tipo_entrega|default:"No especificado" }}</p>
-                </div>
-                <div>
                     <p><strong>Materia:</strong> {{ solicitud.materia|default:"No especificada" }}</p>
-                    <p><strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:"No especificada" }}</p>
                     <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
                     {% if solicitud.presupuesto_cliente %}
                         <p><strong>Presupuesto:</strong> ${{ solicitud.presupuesto_cliente|floatformat:0 }}</p>
                     {% endif %}
                 </div>
             </div>
+
+            {% if documentos %}
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-glow);">
+                <h4 style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-heading); font-size: 0.95rem; color: var(--text-main); margin: 0 0 0.75rem;">
+                    <i class="fas fa-paperclip"></i> Documentos de la Solicitud ({{ documentos|length }})
+                </h4>
+                <div style="display: grid; gap: 0.5rem;">
+                    {% for doc in documentos %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.6rem 0.9rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <i class="fa-solid {{ doc.icono_extension }}" style="font-size: 1.2rem; color: var(--primary);"></i>
+                            <div>
+                                <strong style="color: var(--text-main); font-size: 0.85rem;">{{ doc.nombre_original }}</strong>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                    {{ doc.get_tipo_display }} · {{ doc.tamaño_display }}{% if doc.descripcion %} · {{ doc.descripcion|truncatechars:40 }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{% url 'documento_descargar' doc.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">
+                            <i class="fas fa-download"></i> Descargar
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);"><i class="fas fa-paperclip"></i> Sin documentos adjuntos.</p>
+            {% endif %}
         </div>
     </div>
 
