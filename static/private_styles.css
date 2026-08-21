@@ -204,6 +204,7 @@
     border: 1px solid var(--border-glow);
     border-radius: var(--border-radius-md);
     color: var(--text-main);
+    font-family: inherit;
     font-size: 0.9rem;
     transition: var(--transition-smooth);
 }
@@ -225,6 +226,7 @@
     border: 1px solid var(--border-glow);
     border-radius: var(--border-radius-md);
     color: var(--text-main);
+    font-family: inherit;
     font-size: 0.9rem;
     transition: var(--transition-smooth);
     cursor: pointer;

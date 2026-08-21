@@ -35,7 +35,7 @@ class CotizacionForm(forms.ModelForm):
         labels = {
             'monto': 'Tu precio (COP)',
             'tiempo_estimado_dias': 'Tiempo estimado (días)',
-            'descripcion_propuesta': 'Descripción de tu propuesta',
+            'descripcion_propuesta': 'Descripción de tu propuesta (opcional)',
         }
 
     def clean_monto(self):

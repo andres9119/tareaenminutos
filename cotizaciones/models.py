@@ -44,6 +44,7 @@ class Cotizacion(models.Model):
 
     # Descripción de la propuesta
     descripcion_propuesta = models.TextField(
+        blank=True,
         verbose_name='Descripción de la propuesta',
         help_text='Explica cómo abordarás el trabajo y tu experiencia en el área'
     )

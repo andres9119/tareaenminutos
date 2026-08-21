@@ -18,7 +18,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; color: var(--text-muted);">
                 <div>
                     <p><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}</p>
-                    <p><strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}</p>
+                    <p><strong>Nivel:</strong> {{ solicitud.nivel_academico|default:"No especificado" }}</p>
                 </div>
                 <div>
                     <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
