@@ -321,15 +321,42 @@ def solicitud_entregar(request, pk):
     )
 
     if request.method == 'POST':
-        form = DocumentoSubirForm(request.POST, request.FILES)
-        if form.is_valid() and request.FILES.get('archivo'):
-            doc = form.save(commit=False)
-            doc.solicitud = solicitud
-            doc.subido_por = request.user
-            doc.nombre_original = request.FILES['archivo'].name
-            doc.tamaño_bytes = request.FILES['archivo'].size
-            doc.tipo = 'entrega'
-            doc.save()
+        archivos = request.FILES.getlist('archivo')
+        if not archivos:
+            messages.error(request, 'Debes seleccionar al menos un archivo para entregar.')
+            return redirect('solicitud_detalle', pk=pk)
+
+        # Validar cada archivo (tamaño/extensión) ANTES de guardar nada:
+        # si uno es inválido no se entrega nada y la solicitud no cambia.
+        docs_validos = []
+        hay_invalidos = False
+        for f in archivos:
+            df = DocumentoSubirForm(
+                {'tipo': 'entrega', 'descripcion': request.POST.get('descripcion', '')},
+                {'archivo': f},
+            )
+            if df.is_valid():
+                docs_validos.append(df)
+            else:
+                hay_invalidos = True
+                for errores in df.errors.values():
+                    for e in errores:
+                        messages.error(request, f'{f.name}: {e}')
+
+        if hay_invalidos or not docs_validos:
+            return redirect('solicitud_detalle', pk=pk)
+
+        with transaction.atomic():
+            nombres = []
+            for df in docs_validos:
+                doc = df.save(commit=False)
+                doc.solicitud = solicitud
+                doc.subido_por = request.user
+                doc.nombre_original = df.cleaned_data['archivo'].name
+                doc.tamaño_bytes = df.cleaned_data['archivo'].size
+                doc.tipo = 'entrega'
+                doc.save()
+                nombres.append(doc.nombre_original)
 
             # La entrega pasa la solicitud a "En revisión" para que el admin
             # la valide y la marque como completada.
@@ -346,30 +373,30 @@ def solicitud_entregar(request, pk):
                 solicitud.estado = estado_revision
                 solicitud.save()
 
+                resumen_historial = ', '.join(nombres[:3]) + ('…' if len(nombres) > 3 else '')
                 HistorialEstado.objects.create(
                     solicitud=solicitud,
                     estado_anterior=estado_anterior,
                     estado_nuevo=estado_revision,
                     cambiado_por=request.user,
-                    comentario=f'Entrega realizada: {doc.nombre_original}',
+                    comentario=f'Entrega realizada: {resumen_historial}',
                 )
 
-            # Notificar a los admins que llegó una entrega para revisar
-            nombre_tutor = request.user.get_full_name() or request.user.username
-            admins = User.objects.filter(groups__name='Administrador') | User.objects.filter(is_superuser=True)
-            for admin in admins:
-                crear_notificacion(
-                    destinatario=admin,
-                    tipo='entrega_recibida',
-                    titulo=f'{solicitud.codigo}: entrega del tutor para revisión',
-                    mensaje=f'El tutor {nombre_tutor} subió la entrega "{doc.nombre_original}". Revísala y márcala como completada.',
-                    url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
-                    solicitud_id=solicitud.pk,
-                )
+        # Notificar a los admins que llegó una entrega para revisar
+        nombre_tutor = request.user.get_full_name() or request.user.username
+        resumen = ', '.join(nombres[:3]) + ('…' if len(nombres) > 3 else '')
+        admins = User.objects.filter(groups__name='Administrador') | User.objects.filter(is_superuser=True)
+        for admin in admins:
+            crear_notificacion(
+                destinatario=admin,
+                tipo='entrega_recibida',
+                titulo=f'{solicitud.codigo}: entrega del tutor para revisión',
+                mensaje=f'El tutor {nombre_tutor} subió la entrega ({len(nombres)} archivo(s)): {resumen}. Revísala y márcala como completada.',
+                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                solicitud_id=solicitud.pk,
+            )
 
-            messages.success(request, 'Tarea entregada. El administrador la revisará y la marcará como completada.')
-        else:
-            messages.error(request, 'Debes seleccionar un archivo para entregar.')
+        messages.success(request, f'Tarea entregada con {len(nombres)} archivo(s). El administrador la revisará y la marcará como completada.')
         return redirect('solicitud_detalle', pk=pk)
 
     return redirect('solicitud_detalle', pk=pk)

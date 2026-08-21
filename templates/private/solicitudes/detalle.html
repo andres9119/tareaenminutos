@@ -286,15 +286,22 @@
         </div>
         <div class="card-tem-body">
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                Sube el archivo final de la tarea. Al entregar, la solicitud pasará a <strong>En Revisión</strong> y el administrador la marcará como completada tras revisarla.
+                Sube el archivo(s) final(es) de la tarea. Puedes adjuntar varios. Al entregar, la solicitud pasará a <strong>En Revisión</strong> y el administrador la marcará como completada tras revisarla.
             </p>
             <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" data-guard class="tem-form">
                 {% csrf_token %}
                 <input type="hidden" name="tipo" value="entrega">
                 <div class="grid-tem grid-2">
                     <div class="form-group-tem">
-                        <label class="form-label-tem">Archivo de entrega</label>
-                        <input type="file" name="archivo" class="form-control-tem" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip,.rar,.7z,.txt,.csv">
+                        <label class="form-label-tem">Archivos de entrega</label>
+                        <div id="entrega-rows">
+                            <div class="doc-row" style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
+                                <input type="file" name="archivo" class="form-control-tem" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip,.rar,.7z,.txt,.csv">
+                            </div>
+                        </div>
+                        <button type="button" id="agregar-archivo" class="btn-tem btn-outline-tem" style="padding:0.35rem 0.75rem;font-size:0.85rem;">
+                            <i class="fas fa-plus"></i> Agregar otro archivo
+                        </button>
                     </div>
                     <div class="form-group-tem">
                         <label class="form-label-tem">Descripción (opcional)</label>
@@ -305,6 +312,30 @@
                     <i class="fas fa-paper-plane"></i> Entregar Tarea
                 </button>
             </form>
+            <script>
+                (function () {
+                    var cont = document.getElementById('entrega-rows');
+                    var btn = document.getElementById('agregar-archivo');
+                    if (!cont || !btn) return;
+                    btn.addEventListener('click', function () {
+                        var primera = cont.querySelector('.doc-row');
+                        var fila = primera.cloneNode(true);
+                        var inp = fila.querySelector('input[type="file"]');
+                        inp.value = '';
+                        var quitar = document.createElement('button');
+                        quitar.type = 'button';
+                        quitar.className = 'btn-tem btn-secondary-tem';
+                        quitar.style.padding = '0.3rem 0.6rem';
+                        quitar.innerHTML = '&times;';
+                        quitar.title = 'Quitar';
+                        quitar.addEventListener('click', function () {
+                            if (cont.querySelectorAll('.doc-row').length > 1) fila.remove();
+                        });
+                        fila.appendChild(quitar);
+                        cont.appendChild(fila);
+                    });
+                })();
+            </script>
         </div>
     </div>
     {% endif %}
