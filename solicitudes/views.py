@@ -298,9 +298,15 @@ def solicitudes_disponibles(request):
 
 @tutor_required
 def solicitud_entregar(request, pk):
-    """Entrega de tarea: subir archivo + cambiar estado a 'completada' en 1 paso."""
+    """Entrega de tarea: subir archivo + cambiar estado a 'en_revision'.
+
+    El administrador recibe una notificación, revisa la entrega y la marca
+    como completada manualmente.
+    """
     from documentos.models import Documento
     from documentos.forms import DocumentoSubirForm
+    from notificaciones.utils import crear_notificacion
+    from django.contrib.auth.models import User
 
     solicitud = get_object_or_404(
         SolicitudAcademica,
@@ -319,22 +325,43 @@ def solicitud_entregar(request, pk):
             doc.tipo = 'entrega'
             doc.save()
 
-            if solicitud.estado.nombre not in ('completada', 'cancelada', 'en_correccion'):
+            # La entrega pasa la solicitud a "En revisión" para que el admin
+            # la valide y la marque como completada.
+            if solicitud.estado.nombre not in ('completada', 'cancelada', 'en_revision'):
                 estado_anterior = solicitud.estado
-                estado_completada = EstadoSolicitud.objects.get(nombre='completada')
+                estado_revision, _ = EstadoSolicitud.objects.get_or_create(
+                    nombre='en_revision',
+                    defaults={'etiqueta': 'En Revisión', 'color_hex': '#f97316', 'orden': 6}
+                )
                 solicitud._notif_actor = request.user
-                solicitud.estado = estado_completada
+                # Se suprime la notificación genérica de cambio de estado:
+                # abajo se envía la notificación específica de entrega.
+                solicitud._skip_estado_notif = True
+                solicitud.estado = estado_revision
                 solicitud.save()
 
                 HistorialEstado.objects.create(
                     solicitud=solicitud,
                     estado_anterior=estado_anterior,
-                    estado_nuevo=estado_completada,
+                    estado_nuevo=estado_revision,
                     cambiado_por=request.user,
                     comentario=f'Entrega realizada: {doc.nombre_original}',
                 )
 
-            messages.success(request, f'Tarea entregada. Archivo "{doc.nombre_original}" subido correctamente.')
+            # Notificar a los admins que llegó una entrega para revisar
+            nombre_tutor = request.user.get_full_name() or request.user.username
+            admins = User.objects.filter(groups__name='Administrador') | User.objects.filter(is_superuser=True)
+            for admin in admins:
+                crear_notificacion(
+                    destinatario=admin,
+                    tipo='entrega_recibida',
+                    titulo=f'{solicitud.codigo}: entrega del tutor para revisión',
+                    mensaje=f'El tutor {nombre_tutor} subió la entrega "{doc.nombre_original}". Revísala y márcala como completada.',
+                    url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                    solicitud_id=solicitud.pk,
+                )
+
+            messages.success(request, 'Tarea entregada. El administrador la revisará y la marcará como completada.')
         else:
             messages.error(request, 'Debes seleccionar un archivo para entregar.')
         return redirect('solicitud_detalle', pk=pk)

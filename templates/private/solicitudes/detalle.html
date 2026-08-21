@@ -281,7 +281,7 @@
         </div>
         <div class="card-tem-body">
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                Sube el archivo final de la tarea. Al entregar, la solicitud pasará automáticamente a <strong>Completada</strong>.
+                Sube el archivo final de la tarea. Al entregar, la solicitud pasará a <strong>En Revisión</strong> y el administrador la marcará como completada tras revisarla.
             </p>
             <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" class="tem-form">
                 {% csrf_token %}
