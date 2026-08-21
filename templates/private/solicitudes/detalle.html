@@ -40,8 +40,8 @@
                         </div>
                         <div class="field-group">
                             <div class="field"><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}</div>
-                            <div class="field"><strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}</div>
-                            <div class="field"><strong>Tipo:</strong> {{ solicitud.get_tipo_entrega_display }}</div>
+                            <div class="field"><strong>Nivel:</strong> {{ solicitud.nivel_academico|default:'No especificado' }}</div>
+                            <div class="field"><strong>Tipo:</strong> {{ solicitud.tipo_entrega|default:'No especificado' }}</div>
                             <div class="field"><strong>Materia:</strong> {{ solicitud.materia|default:'No especificada' }}</div>
                         </div>
                     </div>

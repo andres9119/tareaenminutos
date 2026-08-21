@@ -52,16 +52,24 @@ def crear_sala_chat_solicitud(sender, instance, created, **kwargs):
 @receiver(post_save, sender='solicitudes.SolicitudAcademica')
 def notificar_nueva_solicitud(sender, instance, created, **kwargs):
     """Notifica a todos los tutores disponibles cuando se crea una solicitud."""
-    if created:
+    if not created:
+        return
+
+    def _notificar():
         from notificaciones.utils import crear_notificacion
         from django.contrib.auth.models import Group
 
         # Obtener todos los tutores activos
         tutores_group = Group.objects.filter(name='Tutor').first()
         if not tutores_group:
+            logger.warning('notificar_nueva_solicitud: no existe el grupo Tutor; sin destinatarios.')
             return
 
-        tutores = tutores_group.user_set.filter(is_active=True)
+        tutores = list(tutores_group.user_set.filter(is_active=True))
+        if not tutores:
+            logger.warning('notificar_nueva_solicitud: no hay tutores activos en el grupo Tutor.')
+            return
+
         url = reverse('solicitud_detalle', args=[instance.pk])
         area = instance.area_conocimiento.nombre if instance.area_conocimiento else 'General'
 
@@ -74,6 +82,9 @@ def notificar_nueva_solicitud(sender, instance, created, **kwargs):
                 url_accion=url,
                 solicitud_id=instance.pk,
             )
+        logger.info(f'notificar_nueva_solicitud: {instance.codigo} notificada a {len(tutores)} tutores.')
+
+    transaction.on_commit(_notificar)
 
 
 @receiver(post_save, sender='solicitudes.SolicitudAcademica')
