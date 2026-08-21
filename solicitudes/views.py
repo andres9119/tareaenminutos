@@ -412,6 +412,14 @@ def solicitud_marcar_completada(request, pk):
             messages.warning(request, 'La solicitud ya está completada.')
             return redirect('solicitud_detalle', pk=pk)
 
+        # Solo se puede completar si el tutor ya hizo al menos una entrega.
+        if not Documento.objects.filter(solicitud=solicitud, tipo='entrega').exists():
+            messages.error(
+                request,
+                'No se puede marcar como completada: el tutor todavía no ha realizado ninguna entrega.'
+            )
+            return redirect('solicitud_detalle', pk=pk)
+
         estado_anterior = solicitud.estado
         estado_completada = EstadoSolicitud.objects.get(nombre='completada')
         solicitud._notif_actor = request.user

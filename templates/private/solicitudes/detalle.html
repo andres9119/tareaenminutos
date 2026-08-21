@@ -105,12 +105,22 @@
                             <i class="fas fa-edit"></i> Editar Solicitud
                         </a>
                         {% if solicitud.tutor_asignado and solicitud.estado.nombre != 'completada' %}
-                        <form method="post" action="{% url 'solicitud_marcar_completada' solicitud.pk %}" style="width:100%;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" onclick="return confirm('¿Marcar {{ solicitud.codigo }} como completada?')">
+                            {% if documentos_entrega %}
+                            <form method="post" action="{% url 'solicitud_marcar_completada' solicitud.pk %}" style="width:100%;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" onclick="return confirm('¿Marcar {{ solicitud.codigo }} como completada?')">
+                                    <i class="fas fa-check-circle"></i> Marcar Completada
+                                </button>
+                            </form>
+                            {% else %}
+                            <button type="button" class="btn-tem btn-secondary-tem" style="width:100%;justify-content:center;opacity:0.6;cursor:not-allowed;" disabled
+                                    title="Disponible cuando el tutor realice la entrega">
                                 <i class="fas fa-check-circle"></i> Marcar Completada
                             </button>
-                        </form>
+                            <small style="display:block;color:var(--text-muted);font-size:0.78rem;margin-top:0.35rem;text-align:center;">
+                                Esperando la entrega del tutor
+                            </small>
+                            {% endif %}
                         {% endif %}
                         {% if solicitud.estado.nombre == 'completada' %}
                         <button type="button" class="btn-tem btn-warning-tem" style="width:100%;justify-content:center;" onclick="document.getElementById('reactivarModal').style.display='flex'">
@@ -175,9 +185,6 @@
 
     <!-- Documentos -->
     <div class="card-tem" style="margin-top: 1.5rem;">
-        <div class="card-tem-header">
-            <h3><i class="fas fa-paperclip"></i> Documentos ({{ documentos|length }})</h3>
-        </div>
         <div class="card-tem-body">
             {% if documentos_entrega %}
             <h4 class="docs-subtitle docs-entrega-title"><i class="fas fa-box-open"></i> Entrega del Tutor ({{ documentos_entrega|length }})</h4>
