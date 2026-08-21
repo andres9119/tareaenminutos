@@ -187,6 +187,11 @@ def solicitud_detalle(request, pk):
     historial = solicitud.historial_estados.select_related(
         'estado_anterior', 'estado_nuevo', 'cambiado_por'
     ).order_by('-created_at')[:10]
+    # Solo las entradas del historial que tienen nota/motivo (para el modal superior).
+    # Se excluye la nota trivial de creación para no mostrar el botón sin razón.
+    historial_notas = solicitud.historial_estados.exclude(
+        comentario__in=['', 'Solicitud creada.']
+    ).select_related('estado_nuevo', 'cambiado_por').order_by('-created_at')[:10]
 
     # Sala de chat
     sala_chat = getattr(solicitud, 'sala_chat', None)
@@ -213,6 +218,7 @@ def solicitud_detalle(request, pk):
         'max_monto': max_monto,
         'precios_resumen': precios_resumen,
         'historial': historial,
+        'historial_notas': historial_notas,
         'sala_chat': sala_chat,
         'doc_form': doc_form,
         'cotizacion_form': cotizacion_form,

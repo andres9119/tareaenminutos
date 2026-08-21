@@ -57,6 +57,12 @@
                         <span class="badge-tem" style="background: {{ solicitud.estado.color_hex }}">
                             {{ solicitud.estado.etiqueta }}
                         </span>
+                        {% if historial_notas %}
+                        <button type="button" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;margin-top:0.75rem;" onclick="document.getElementById('notasModal').style.display='flex'">
+                            <i class="fas fa-comment-dots"></i>
+                            {% if solicitud.estado.nombre == 'en_correccion' %}Ver motivo de la corrección{% else %}Ver notas del proceso{% endif %}
+                        </button>
+                        {% endif %}
                     </div>
                     <div class="sidebar-divider"></div>
                     <div class="sidebar-section">
@@ -457,9 +463,6 @@
                         <strong>{{ item.estado_nuevo.etiqueta }}</strong>
                         <small>{{ item.created_at|date:"d/m/Y H:i" }}</small>
                         <p>Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</p>
-                        {% if item.comentario %}
-                        <p class="text-muted">{{ item.comentario }}</p>
-                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -470,6 +473,32 @@
         </div>
     </div>
 </div>
+
+{% if historial_notas %}
+<!-- Modal notas del proceso (visible para admin y tutor) -->
+<div class="modal-overlay" id="notasModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-comment-dots"></i>
+                {% if solicitud.estado.nombre == 'en_correccion' %}Motivo de la Corrección{% else %}Notas del Proceso{% endif %}
+            </h3>
+            <button class="modal-close" onclick="document.getElementById('notasModal').style.display='none'">&times;</button>
+        </div>
+        <div style="padding: 1.5rem; max-height: 60vh; overflow-y: auto;">
+            {% for item in historial_notas %}
+            <div style="margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <span class="badge-tem" style="background: {{ item.estado_nuevo.color_hex }}; color: white;">{{ item.estado_nuevo.etiqueta }}</span>
+                    <small style="color: var(--text-muted); font-size: 0.78rem;">{{ item.created_at|date:"d/m/Y H:i" }}</small>
+                </div>
+                <p style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; margin: 0 0 0.25rem; white-space: pre-line;">{{ item.comentario }}</p>
+                <small style="color: var(--text-muted); font-size: 0.75rem;">Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% if es_admin %}
 <!-- Modal reasignar tutor -->
