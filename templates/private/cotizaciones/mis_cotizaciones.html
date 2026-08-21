@@ -2,6 +2,66 @@
 
 {% block title %}Mis Cotizaciones - TEM{% endblock %}
 
+{% block extra_css %}
+<style>
+    .modal-rango-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2000;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .modal-rango-box {
+        background: var(--bg-surface); border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg); padding: 1.5rem;
+        width: 100%; max-width: 460px; box-shadow: 0 20px 50px rgba(0,0,0,.3);
+    }
+    .modal-rango-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 1.25rem;
+    }
+    .modal-rango-header h3 {
+        margin: 0; font-family: var(--font-heading); font-size: 1.05rem; color: var(--text-main);
+    }
+    .modal-rango-close {
+        background: none; border: none; color: var(--text-muted);
+        font-size: 1.4rem; cursor: pointer; line-height: 1;
+    }
+    .modal-rango-close:hover { color: var(--text-main); }
+
+    .range-slider { padding: 0.5rem 0.25rem; }
+    .range-track {
+        position: relative; height: 6px; background: var(--bg-base);
+        border: 1px solid var(--border-glow); border-radius: 999px;
+    }
+    .range-fill {
+        position: absolute; top: 0; left: 0; height: 100%;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: 999px;
+    }
+    .range-handle {
+        position: absolute; top: 50%; width: 18px; height: 18px;
+        transform: translate(-50%, -50%); background: var(--primary);
+        border: 3px solid var(--bg-base); border-radius: 50%;
+        box-shadow: 0 0 0 1px var(--border-glow);
+    }
+    .range-handle-min { left: 0; }
+    .range-handle-max { right: 0; transform: translate(50%, -50%); }
+    .range-labels {
+        display: flex; justify-content: space-between; margin-top: 1rem;
+        font-size: 0.85rem; color: var(--text-muted);
+    }
+    .range-labels strong { color: var(--text-main); }
+    .rango-resumen {
+        margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); text-align: center;
+    }
+    .rango-unico {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; padding: 0.75rem 1rem; border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-md); background: var(--primary-glow);
+        color: var(--text-main); font-size: 0.95rem;
+    }
+    .rango-unico strong { color: var(--primary); font-size: 1.15rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-tem">
     <div class="page-header">
@@ -47,9 +107,16 @@
                                 </td>
                                 <td>{{ cotizacion.created_at|date:"d/m/Y H:i" }}</td>
                                 <td>
-                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}" 
+                                    <button type="button" class="btn-tem btn-outline-tem btn-ver-rango" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        data-codigo="{{ cotizacion.solicitud.codigo }}"
+                                        data-num="{{ cotizacion.sol_num }}"
+                                        data-min="{{ cotizacion.sol_min|floatformat:0 }}"
+                                        data-max="{{ cotizacion.sol_max|floatformat:0 }}">
+                                        <i class="fas fa-chart-line"></i> Ver
+                                    </button>
+                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}"
                                        class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                        Ver Detalle
+                                        Detalle
                                     </a>
                                 </td>
                             </tr>
@@ -65,4 +132,68 @@
         </div>
     {% endif %}
 </div>
+
+<!-- Modal rango de cotizaciones -->
+<div id="modalRango" class="modal-rango-overlay" style="display:none;">
+    <div class="modal-rango-box">
+        <div class="modal-rango-header">
+            <h3><i class="fas fa-chart-line"></i> Cotizaciones de <span id="rangoCodigo"></span></h3>
+            <button type="button" class="modal-rango-close" id="rangoCerrar">&times;</button>
+        </div>
+
+        <div id="rangoUnico" style="display:none;">
+            <div class="rango-unico">
+                <span>Valor de la cotización recibida:</span>
+                <strong id="rangoUnicoValor"></strong>
+            </div>
+        </div>
+
+        <div id="rangoMultiple" style="display:none;">
+            <div class="range-slider">
+                <div class="range-track">
+                    <div class="range-fill" style="left:0%;right:0%;"></div>
+                    <div class="range-handle range-handle-min"></div>
+                    <div class="range-handle range-handle-max"></div>
+                </div>
+                <div class="range-labels">
+                    <span><strong>Mín:</strong> $<span id="rangoMin"></span></span>
+                    <span><strong>Máx:</strong> $<span id="rangoMax"></span></span>
+                </div>
+            </div>
+            <p class="rango-resumen"><strong id="rangoNum"></strong> cotizaciones recibidas para esta solicitud</p>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('modalRango');
+
+    function cerrar() { modal.style.display = 'none'; }
+
+    document.querySelectorAll('.btn-ver-rango').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var num = parseInt(btn.dataset.num, 10) || 0;
+            document.getElementById('rangoCodigo').textContent = btn.dataset.codigo || '';
+            var unico = document.getElementById('rangoUnico');
+            var multiple = document.getElementById('rangoMultiple');
+            if (num <= 1) {
+                document.getElementById('rangoUnicoValor').textContent = '$' + (btn.dataset.min || btn.dataset.max || '0');
+                unico.style.display = '';
+                multiple.style.display = 'none';
+            } else {
+                document.getElementById('rangoMin').textContent = btn.dataset.min || '0';
+                document.getElementById('rangoMax').textContent = btn.dataset.max || '0';
+                document.getElementById('rangoNum').textContent = String(num);
+                unico.style.display = 'none';
+                multiple.style.display = '';
+            }
+            modal.style.display = 'flex';
+        });
+    });
+
+    document.getElementById('rangoCerrar').addEventListener('click', cerrar);
+    modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+})();
+</script>
 {% endblock %}

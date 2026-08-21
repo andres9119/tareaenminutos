@@ -71,7 +71,7 @@
 
                             <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
                                 <strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}<br>
-                                <strong>Nivel:</strong> {{ solicitud.get_nivel_academico_display }}<br>
+                                <strong>Nivel:</strong> {{ solicitud.nivel_academico|default:"No especificado" }}<br>
                                 <strong>Tipo:</strong> {{ solicitud.get_tipo_entrega_display }}<br>
                                 <strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
                             </div>

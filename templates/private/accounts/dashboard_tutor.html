@@ -335,7 +335,7 @@
                                 <td><strong>{{ solicitud.codigo }}</strong></td>
                                 <td>{{ solicitud.titulo|truncatechars:35 }}</td>
                                 <td>{{ solicitud.area_conocimiento.nombre }}</td>
-                                <td>{{ solicitud.get_nivel_academico_display }}</td>
+                                <td>{{ solicitud.nivel_academico|default:"No especificado" }}</td>
                                 <td>
                                     {% if solicitud.presupuesto_cliente %}
                                         ${{ solicitud.presupuesto_cliente|floatformat:0 }}

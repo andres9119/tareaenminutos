@@ -151,7 +151,12 @@ def cotizacion_rechazar(request, pk):
 
 @tutor_required
 def mis_cotizaciones(request):
-    """Lista de cotizaciones enviadas por el tutor actual."""
+    """Lista de cotizaciones enviadas por el tutor actual.
+
+    Cada fila lleva los agregados de su solicitud (número de cotizaciones,
+    monto mínimo y máximo) para el modal "Ver" con el rango de precios.
+    """
+    from django.db.models import Count, Min, Max
     cotizaciones = Cotizacion.objects.filter(
         tutor=request.user
     ).select_related('solicitud', 'solicitud__estado').order_by('-created_at')
@@ -159,7 +164,21 @@ def mis_cotizaciones(request):
     paginator = Paginator(cotizaciones, 20)
     page = request.GET.get('page', 1)
     cotizaciones_page = paginator.get_page(page)
-    
+
+    solicitud_ids = {c.solicitud_id for c in cotizaciones_page.object_list}
+    agregados = {}
+    if solicitud_ids:
+        filas = Cotizacion.objects.filter(solicitud_id__in=solicitud_ids).values(
+            'solicitud_id'
+        ).annotate(n=Count('id'), mn=Min('monto'), mx=Max('monto'))
+        agregados = {f['solicitud_id']: f for f in filas}
+
+    for c in cotizaciones_page.object_list:
+        a = agregados.get(c.solicitud_id)
+        c.sol_num = a['n'] if a else 0
+        c.sol_min = a['mn'] if a else None
+        c.sol_max = a['mx'] if a else None
+
     return render(request, 'private/cotizaciones/mis_cotizaciones.html', {'cotizaciones': cotizaciones_page, 'is_paginated': cotizaciones_page.has_other_pages()})
 
 
