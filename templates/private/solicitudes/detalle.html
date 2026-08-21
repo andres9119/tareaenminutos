@@ -502,13 +502,13 @@
 <div class="modal-overlay" id="reasignarModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fas fa-user-switch"></i> Reasignar Tutor</h3>
+            <h3><i class="fas fa-user-switch"></i> {% if solicitud.tutor_asignado %}Reasignar Tutor{% else %}Asignar Tutor{% endif %}</h3>
             <button class="modal-close" onclick="document.getElementById('reasignarModal').style.display='none'">&times;</button>
         </div>
         <form method="post" action="{% url 'solicitud_reasignar_tutor' solicitud.pk %}">
             {% csrf_token %}
             <div class="form-group-tem">
-                <label for="tutor_id">Seleccionar Nuevo Tutor</label>
+                <label for="tutor_id">{% if solicitud.tutor_asignado %}Seleccionar Nuevo Tutor{% else %}Seleccionar Tutor{% endif %}</label>
                 <select name="tutor_id" id="tutor_id" class="form-select-tem" required>
                     <option value="">-- Seleccionar tutor --</option>
                     {% for tutor in tutores_disponibles %}
@@ -517,7 +517,7 @@
                 </select>
             </div>
             <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
-                <button type="submit" class="btn-tem btn-primary-tem">Reasignar</button>
+                <button type="submit" class="btn-tem btn-primary-tem">{% if solicitud.tutor_asignado %}Reasignar{% else %}Asignar{% endif %}</button>
                 <button type="button" class="btn-tem btn-secondary-tem" onclick="document.getElementById('reasignarModal').style.display='none'">Cancelar</button>
             </div>
         </form>

@@ -503,7 +503,10 @@ def solicitud_reasignar_tutor(request, pk):
                 solicitud_id=solicitud.pk,
             )
 
-        messages.success(request, f'Tarea reasignada a {nuevo_tutor.get_full_name()}.')
+        if tutor_anterior:
+            messages.success(request, f'Tarea reasignada a {nuevo_tutor.get_full_name()}.')
+        else:
+            messages.success(request, f'Tarea asignada a {nuevo_tutor.get_full_name()}.')
         return redirect('solicitud_detalle', pk=pk)
     
     return redirect('solicitud_detalle', pk=pk)
