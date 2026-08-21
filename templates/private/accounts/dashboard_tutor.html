@@ -344,12 +344,17 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if solicitud.num_cotizaciones > 1 %}
-                                        <strong>{{ solicitud.num_cotizaciones }}</strong><br>
-                                        <small class="text-muted-tem">${{ solicitud.monto_min|floatformat:0 }} – ${{ solicitud.monto_max|floatformat:0 }}</small>
-                                    {% elif solicitud.num_cotizaciones == 1 %}
-                                        <strong>1</strong><br>
-                                        <small class="text-muted-tem">desde ${{ solicitud.monto_min|floatformat:0 }}</small>
+                                    {% if solicitud.num_cotizaciones %}
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <strong>{{ solicitud.num_cotizaciones }}</strong>
+                                            <button type="button" class="btn-ver-rango"
+                                                data-codigo="{{ solicitud.codigo }}"
+                                                data-num="{{ solicitud.num_cotizaciones }}"
+                                                data-min="{{ solicitud.monto_min|floatformat:0 }}"
+                                                data-max="{{ solicitud.monto_max|floatformat:0 }}">
+                                                <i class="fas fa-eye"></i> Ver
+                                            </button>
+                                        </div>
                                     {% else %}
                                         <span class="text-muted-tem">—</span>
                                     {% endif %}
@@ -423,4 +428,6 @@
         </div>
     </div>
 </div>
+
+{% include "private/cotizaciones/_modal_rango.html" %}
 {% endblock %}

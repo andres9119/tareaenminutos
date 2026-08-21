@@ -82,16 +82,19 @@
                                 </p>
                             {% endif %}
 
-                            {% if solicitud.num_cotizaciones > 1 %}
-                                <p style="background: var(--primary-glow); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md); padding: 0.5rem 0.75rem; font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem;">
-                                    <i class="fas fa-chart-line" style="color: var(--primary);"></i>
-                                    <strong>{{ solicitud.num_cotizaciones }} cotizaciones</strong> ·
-                                    Rango: ${{ solicitud.monto_min|floatformat:0 }} – ${{ solicitud.monto_max|floatformat:0 }}
-                                </p>
-                            {% elif solicitud.num_cotizaciones == 1 %}
-                                <p style="background: var(--primary-glow); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md); padding: 0.5rem 0.75rem; font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem;">
-                                    <i class="fas fa-coins" style="color: var(--primary);"></i>
-                                    <strong>1 cotización</strong> · desde ${{ solicitud.monto_min|floatformat:0 }}
+                            {% if solicitud.num_cotizaciones %}
+                                <p style="background: var(--primary-glow); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md); padding: 0.5rem 0.75rem; font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+                                    <span>
+                                        <i class="fas fa-chart-line" style="color: var(--primary);"></i>
+                                        <strong>Cotizaciones: {{ solicitud.num_cotizaciones }}</strong>
+                                    </span>
+                                    <button type="button" class="btn-ver-rango"
+                                        data-codigo="{{ solicitud.codigo }}"
+                                        data-num="{{ solicitud.num_cotizaciones }}"
+                                        data-min="{{ solicitud.monto_min|floatformat:0 }}"
+                                        data-max="{{ solicitud.monto_max|floatformat:0 }}">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </button>
                                 </p>
                             {% endif %}
 
@@ -124,4 +127,6 @@
         </div>
     {% endif %}
 </div>
+
+{% include "private/cotizaciones/_modal_rango.html" %}
 {% endblock %}
