@@ -2,27 +2,6 @@
 
 {% block title %}Crear Usuario - TEM{% endblock %}
 
-{% block extra_css %}
-<style>
-    #id_especialidades {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.35rem;
-        padding: 0;
-        margin: 0;
-        list-style: none;
-    }
-    #id_especialidades li {
-        margin: 0;
-    }
-    @media (max-width: 768px) {
-        #id_especialidades {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container-tem">
     <div class="page-header">

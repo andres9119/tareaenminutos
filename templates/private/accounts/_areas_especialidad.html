@@ -3,7 +3,7 @@ Uso: {% include "private/accounts/_areas_especialidad.html" with esp=<form_con_e
 Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el usuario puede gestionar el catálogo.
 {% endcomment %}
 <style>
-    .areas-esp-wrap ul#id_especialidades {
+    .areas-esp-wrap #id_especialidades {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 0.35rem;
@@ -12,21 +12,30 @@ Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el us
         list-style: none;
     }
     @media (max-width: 768px) {
-        .areas-esp-wrap ul#id_especialidades { grid-template-columns: 1fr; }
+        .areas-esp-wrap #id_especialidades { grid-template-columns: 1fr; }
     }
-    .areas-esp-wrap ul#id_especialidades li {
+    .areas-esp-wrap #id_especialidades > div,
+    .areas-esp-wrap #id_especialidades > li {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        padding: 0.35rem 0.5rem;
-        border: 1px solid var(--border);
-        border-radius: var(--border-radius-sm);
-        background: var(--bg-surface);
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-md);
+        background: transparent;
         margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-main);
     }
-    .areas-esp-wrap ul#id_especialidades li label {
-        display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.9rem; flex: 1;
+    .areas-esp-wrap #id_especialidades label {
+        display: flex; align-items: center; gap: 0.45rem; margin: 0;
+        font-size: 0.9rem; font-weight: 500; color: var(--text-main);
+        line-height: 1.25; cursor: pointer; flex: 1;
+    }
+    .areas-esp-wrap #id_especialidades input[type="checkbox"] {
+        accent-color: var(--primary);
+        margin: 0;
     }
     .areas-esp-acciones { display: flex; gap: 0.25rem; }
     .areas-esp-acciones button {
@@ -132,9 +141,9 @@ Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el us
     function conectar() {
         var ul = document.getElementById('id_especialidades');
         if (!ul) return;
-        Array.prototype.forEach.call(ul.querySelectorAll('li'), function (li) {
-            var input = li.querySelector('input[type="checkbox"]');
-            if (!input) return;
+        Array.prototype.forEach.call(ul.querySelectorAll('input[type="checkbox"]'), function (input) {
+            var li = input.closest('div, li');
+            if (!li) return;
             var area = areasMap[input.value];
             asegurarSpan(li);
             if (area) agregarAcciones(li, area);
@@ -166,7 +175,7 @@ Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el us
                     .then(function (r) { return r.json(); })
                     .then(function (res) {
                         if (res.ok) {
-                            btn.closest('li').remove();
+                            btn.closest('div, li').remove();
                             delete areasMap[btn.dataset.id];
                         } else {
                             alert(res.error || 'No se pudo eliminar.');
@@ -180,11 +189,11 @@ Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el us
         var ul = document.getElementById('id_especialidades');
         if (!ul) return;
         areasMap[area.id] = area;
-        var li = document.createElement('li');
+        var fila = document.createElement('div');
         var nombre = area.nombre;
-        li.innerHTML = '<label><input type="checkbox" name="especialidades" value="' + area.id + '" checked><span class="areas-esp-nombre">' + nombre + '</span></label>';
-        ul.appendChild(li);
-        agregarAcciones(li, area);
+        fila.innerHTML = '<label><input type="checkbox" name="especialidades" value="' + area.id + '" checked><span class="areas-esp-nombre">' + nombre + '</span></label>';
+        ul.appendChild(fila);
+        agregarAcciones(fila, area);
         conectar();
     }
 
@@ -211,9 +220,9 @@ Recibe: esp = formulario con el campo 'especialidades', es_admin = True si el us
                 icono: iconoInput.value.trim()
             }).then(function (r) { return r.json(); }).then(function (res) {
                 if (!res.ok) { alert(res.error || 'No se pudo guardar.'); return; }
-                var li = document.querySelector('#id_especialidades li input[value="' + id + '"]');
-                if (li) {
-                    var span = asegurarSpan(li.closest('li'));
+                var input = document.querySelector('#id_especialidades input[value="' + id + '"]');
+                if (input) {
+                    var span = asegurarSpan(input.closest('div, li'));
                     if (span) span.textContent = nombre;
                 }
                 areasMap[id].nombre = nombre;
