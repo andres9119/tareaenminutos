@@ -1132,10 +1132,10 @@ footer {
     {% endif %}
 
     <script>
-        /* Alerta al abandonar la pagina con un formulario sin guardar.
-           Se activa en cualquier <form data-guard>: si el usuario escribio
-           algo o selecciono archivos y navega a otra pagina, recarga o cierra
-           la pestana, el navegador pide confirmacion antes de salir. */
+        /* Proteccion de formularios <form data-guard>:
+           1. Al enviar, pide confirmacion (mensaje personalizable con data-confirm).
+           2. Si hay datos sin guardar y el usuario navega a otra pagina,
+              recarga o cierra la pestana, el navegador pide confirmacion. */
         (function () {
             var forms = Array.prototype.slice.call(document.querySelectorAll('form[data-guard]'));
             if (!forms.length) return;
@@ -1165,9 +1165,19 @@ footer {
                 form.addEventListener('input', function () { sucio = true; }, true);
                 form.addEventListener('change', function () { sucio = true; }, true);
                 form.addEventListener('reset', function () { sucio = false; });
-                /* La validacion nativa bloquea el submit antes de este handler:
-                   solo se limpia cuando el envio realmente parte. */
-                form.addEventListener('submit', function () { sucio = false; }, true);
+                /* Confirmacion antes de enviar. La validacion nativa bloquea
+                   el submit antes de este handler, asi que solo se pregunta
+                   cuando el formulario esta listo para partir. Si se cancela,
+                   no se envia y los datos siguen marcados como sin guardar. */
+                var mensajeConfirm = form.getAttribute('data-confirm') ||
+                    '¿Confirma que desea enviar este formulario?';
+                form.addEventListener('submit', function (e) {
+                    if (!window.confirm(mensajeConfirm)) {
+                        e.preventDefault();
+                        return;
+                    }
+                    sucio = false;
+                }, true);
             });
 
             window.addEventListener('beforeunload', function (e) {
