@@ -109,6 +109,28 @@ def cotizacion_aceptar(request, pk):
     return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
 
 
+@admin_required
+def cotizacion_rechazar(request, pk):
+    """Rechazar manualmente una cotización pendiente (solo Admin)."""
+    cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
+    cotizacion.estado = 'rechazada'
+    cotizacion.save(update_fields=['estado', 'updated_at'])
+
+    from notificaciones.utils import crear_notificacion
+    crear_notificacion(
+        destinatario=cotizacion.tutor,
+        tipo='cotizacion_rechazada',
+        titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
+        mensaje=f'El administrador descartó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". ¡Sigue participando!',
+        url_accion=reverse('solicitudes_disponibles'),
+        solicitud_id=cotizacion.solicitud.pk,
+    )
+
+    nombre_tutor = cotizacion.tutor.get_full_name() or cotizacion.tutor.username
+    messages.info(request, f'Cotización de {nombre_tutor} rechazada para {cotizacion.solicitud.codigo}.')
+    return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
+
+
 @tutor_required
 def mis_cotizaciones(request):
     """Lista de cotizaciones enviadas por el tutor actual."""

@@ -82,10 +82,15 @@
                                         Ver Solicitud
                                     </a>
                                     {% if cotizacion.estado == 'pendiente' %}
-                                        <a href="{% url 'cotizacion_aceptar' cotizacion.pk %}" 
+                                        <a href="{% url 'cotizacion_aceptar' cotizacion.pk %}"
                                            class="btn-tem btn-success-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
                                            onclick="return confirm('¿Aceptar esta cotización y asignar el tutor?')">
                                             Aceptar
+                                        </a>
+                                        <a href="{% url 'cotizacion_rechazar' cotizacion.pk %}"
+                                           class="btn-tem btn-danger-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                           onclick="return confirm('¿Rechazar esta cotización? El tutor será notificado.')">
+                                            Rechazar
                                         </a>
                                     {% endif %}
                                 </td>
