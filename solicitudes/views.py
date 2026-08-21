@@ -242,20 +242,22 @@ def solicitud_editar(request, pk):
 
 @admin_o_tutor_required
 def solicitudes_disponibles(request):
-    """Lista de solicitudes abiertas disponibles para cotizar (Tutores)."""
+    """Lista de solicitudes abiertas disponibles para cotizar (Tutores).
+
+    Incluye también las solicitudes donde el tutor ya cotizó (marcadas con
+    `ya_cotizo`) para que pueda ver el rango de cotizaciones recibidas.
+    """
+    from django.db.models import Exists, OuterRef
     from cotizaciones.models import Cotizacion
 
-    ya_cotizadas = Cotizacion.objects.filter(
-        tutor=request.user
-    ).values_list('solicitud_id', flat=True)
+    ya_cotizo_subq = Cotizacion.objects.filter(solicitud=OuterRef('pk'), tutor=request.user)
 
     estados_abiertos = EstadoSolicitud.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
     solicitudes = SolicitudAcademica.objects.filter(
         estado__in=estados_abiertos,
         tutor_asignado__isnull=True
-    ).exclude(
-        id__in=ya_cotizadas
     ).select_related('estado', 'area_conocimiento').annotate(
+        ya_cotizo=Exists(ya_cotizo_subq),
         num_cotizaciones=Count('cotizaciones'),
         monto_min=Min('cotizaciones__monto'),
         monto_max=Max('cotizaciones__monto'),

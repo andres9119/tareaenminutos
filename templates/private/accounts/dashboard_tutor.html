@@ -325,6 +325,7 @@
                             <th>Área</th>
                             <th>Nivel</th>
                             <th>Presupuesto</th>
+                            <th>Cotizaciones</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -343,9 +344,24 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-primary-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                        Cotizar
-                                    </a>
+                                    {% if solicitud.num_cotizaciones > 1 %}
+                                        <strong>{{ solicitud.num_cotizaciones }}</strong><br>
+                                        <small class="text-muted-tem">${{ solicitud.monto_min|floatformat:0 }} – ${{ solicitud.monto_max|floatformat:0 }}</small>
+                                    {% elif solicitud.num_cotizaciones == 1 %}
+                                        <strong>1</strong><br>
+                                        <small class="text-muted-tem">desde ${{ solicitud.monto_min|floatformat:0 }}</small>
+                                    {% else %}
+                                        <span class="text-muted-tem">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if solicitud.ya_cotizo %}
+                                        <span class="text-muted-tem" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Ya cotizaste</span>
+                                    {% else %}
+                                        <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-primary-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                            Cotizar
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

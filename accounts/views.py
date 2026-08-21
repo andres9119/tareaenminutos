@@ -86,10 +86,11 @@ def dashboard_tutor(request):
     ).select_related('estado', 'area_conocimiento').order_by('-updated_at')
     mis_solicitudes = mis_solicitudes_qs[:10]
 
-    # Solicitudes disponibles para cotizar (sin tutor, estado nueva/en_cotizacion)
-    ya_cotizadas_ids = Cotizacion.objects.filter(
-        tutor=request.user
-    ).values_list('solicitud_id', flat=True)
+    # Solicitudes disponibles para cotizar (sin tutor, estado nueva/en_cotizacion).
+    # Incluye las ya cotizadas por el tutor (marcadas con `ya_cotizo`) para que
+    # pueda ver el rango de cotizaciones recibidas.
+    from django.db.models import Count, Min, Max, Exists, OuterRef
+    ya_cotizo_subq = Cotizacion.objects.filter(solicitud=OuterRef('pk'), tutor=request.user)
 
     estados_abiertos = EstadoSolicitud.objects.filter(
         nombre__in=['nueva', 'en_cotizacion']
@@ -97,9 +98,12 @@ def dashboard_tutor(request):
     solicitudes_disponibles = SolicitudAcademica.objects.filter(
         estado__in=estados_abiertos,
         tutor_asignado__isnull=True
-    ).exclude(
-        id__in=ya_cotizadas_ids
-    ).select_related('estado', 'area_conocimiento').order_by('-created_at')[:6]
+    ).select_related('estado', 'area_conocimiento').annotate(
+        ya_cotizo=Exists(ya_cotizo_subq),
+        num_cotizaciones=Count('cotizaciones'),
+        monto_min=Min('cotizaciones__monto'),
+        monto_max=Max('cotizaciones__monto'),
+    ).order_by('-created_at')[:6]
 
     # Mis cotizaciones enviadas
     mis_cotizaciones = Cotizacion.objects.filter(

@@ -99,9 +99,15 @@
                                 <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                                     <i class="fas fa-eye"></i> Ver Detalles
                                 </a>
-                                <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-success-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                                    <i class="fas fa-coins"></i> Cotizar
-                                </a>
+                                {% if solicitud.ya_cotizo %}
+                                    <span class="btn-tem btn-secondary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem; cursor: default;">
+                                        <i class="fas fa-check"></i> Ya cotizaste
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-success-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                        <i class="fas fa-coins"></i> Cotizar
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}
