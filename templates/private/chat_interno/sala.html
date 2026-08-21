@@ -2,6 +2,15 @@
 {% load static %}
 {% block title %}{{ sala.nombre }} - Chat TEM{% endblock %}
 {% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'mis_chats' %}">Mensajes</a>
+        <span>›</span>
+        <span>{{ sala.nombre|truncatechars:30 }}</span>
+    </div>
+</div>
 <div class="wa-chat">
     <div class="wa-header">
         <a href="{% url 'mis_chats' %}" class="wa-back" title="Volver a chats"><i class="fas fa-arrow-left"></i></a>
