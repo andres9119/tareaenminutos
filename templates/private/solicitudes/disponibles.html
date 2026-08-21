@@ -28,6 +28,13 @@
         </div>
     </div>
 
+    {% if not puede_cotizar %}
+    <div class="alert-tem alert-warning-tem" style="margin-bottom: 2rem;">
+        <h4><i class="fas fa-lock"></i> Límite de solicitudes activas alcanzado</h4>
+        <p>Tienes <strong>{{ num_solicitudes_activas }}</strong> solicitudes activas (máximo {{ max_solicitudes_activas }}). Debes completar al menos una antes de poder cotizar otra.</p>
+    </div>
+    {% endif %}
+
     <div class="alert-tem alert-info-tem" style="margin-bottom: 2rem;">
         <h4><i class="fas fa-info-circle"></i> Instrucciones</h4>
         <p>Estas son las solicitudes disponibles para cotizar. Revisa los detalles y envía tu propuesta si estás interesado.</p>
@@ -105,6 +112,10 @@
                                 {% if solicitud.ya_cotizo %}
                                     <span class="btn-tem btn-secondary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem; cursor: default;">
                                         <i class="fas fa-check"></i> Ya cotizaste
+                                    </span>
+                                {% elif not puede_cotizar %}
+                                    <span class="btn-tem btn-secondary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem; cursor: default;" title="Tienes {{ num_solicitudes_activas }} solicitudes activas. Debes completar al menos una antes de poder cotizar otra.">
+                                        <i class="fas fa-lock"></i> Límite alcanzado
                                     </span>
                                 {% else %}
                                     <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-success-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">

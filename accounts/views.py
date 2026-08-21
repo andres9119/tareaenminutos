@@ -117,6 +117,10 @@ def dashboard_tutor(request):
         tutor_asignado=request.user, estado__nombre='completada'
     ).count()
 
+    # Límite de solicitudes activas para cotizar
+    num_activas = SolicitudAcademica.activas_de_tutor(request.user).count()
+    max_activas = SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR
+
     context = {
         'mis_solicitudes': mis_solicitudes,
         'solicitudes_disponibles': solicitudes_disponibles,
@@ -124,6 +128,9 @@ def dashboard_tutor(request):
         'perfil': perfil,
         'en_progreso_count': en_progreso_count,
         'completadas_count': completadas_count,
+        'num_solicitudes_activas': num_activas,
+        'max_solicitudes_activas': max_activas,
+        'puede_cotizar': num_activas < max_activas,
     }
     return render(request, 'private/accounts/dashboard_tutor.html', context)
 

@@ -197,6 +197,24 @@ class SolicitudAcademica(models.Model):
             return False
         return self.dias_para_entrega <= 1
 
+    # ─── Límite de carga de trabajo por tutor ───
+    # Un tutor puede tener máximo 3 solicitudes activas simultáneas y necesita
+    # tener máximo 2 para poder cotizar una nueva.
+    MAX_SOLICITUDES_ACTIVAS_TUTOR = 3
+    ESTADOS_CERRADOS_TUTOR = ['completada', 'cancelada']
+
+    @classmethod
+    def activas_de_tutor(cls, tutor):
+        """Solicitudes asignadas al tutor que aún no finalizan.
+
+        Cuenta como activas todas las asignadas cuyo estado no sea
+        completada ni cancelada (incluye en_progreso, en_revision,
+        en_correccion, en_disputa, etc.).
+        """
+        return cls.objects.filter(tutor_asignado=tutor).exclude(
+            estado__nombre__in=cls.ESTADOS_CERRADOS_TUTOR
+        )
+
 
 class HistorialEstado(models.Model):
     """

@@ -283,9 +283,16 @@ def solicitudes_disponibles(request):
 
     solicitudes = solicitudes.order_by('-created_at')
 
+    # Límite de solicitudes activas para cotizar (solo aplica a tutores)
+    num_activas = SolicitudAcademica.activas_de_tutor(request.user).count()
+    max_activas = SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR
+
     return render(request, 'private/solicitudes/disponibles.html', {
         'solicitudes': solicitudes,
         'form_filtro': form_filtro,
+        'num_solicitudes_activas': num_activas,
+        'max_solicitudes_activas': max_activas,
+        'puede_cotizar': num_activas < max_activas,
     })
 
 

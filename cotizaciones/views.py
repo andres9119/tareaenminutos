@@ -33,6 +33,16 @@ def cotizacion_crear(request, solicitud_pk):
         messages.warning(request, 'Ya enviaste una cotización para esta solicitud.')
         return redirect('solicitud_detalle', pk=solicitud.pk)
 
+    # Límite de carga: máximo 2 solicitudes activas para poder cotizar otra
+    num_activas = SolicitudAcademica.activas_de_tutor(request.user).count()
+    if num_activas >= SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR:
+        messages.warning(
+            request,
+            f'Tienes {num_activas} solicitudes activas. '
+            'Debes completar al menos una antes de poder cotizar otra.'
+        )
+        return redirect('solicitudes_disponibles')
+
     if request.method == 'POST':
         form = CotizacionForm(request.POST)
         if form.is_valid():
@@ -93,7 +103,18 @@ def cotizacion_crear(request, solicitud_pk):
 def cotizacion_aceptar(request, pk):
     """Aceptar una cotización y asignar el tutor automáticamente (solo Admin)."""
     cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
-    
+
+    # Límite de carga: el tutor no puede superar el máximo de solicitudes activas
+    num_activas = SolicitudAcademica.activas_de_tutor(cotizacion.tutor).count()
+    if num_activas >= SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR:
+        nombre_tutor = cotizacion.tutor.get_full_name() or cotizacion.tutor.username
+        messages.error(
+            request,
+            f'El tutor {nombre_tutor} ya tiene {num_activas} solicitudes activas. '
+            'Debe completar al menos una antes de recibir una nueva asignación.'
+        )
+        return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
+
     # Obtener las otras cotizaciones antes de aceptar (para notificar rechazo)
     otras_cotizaciones = Cotizacion.objects.filter(
         solicitud=cotizacion.solicitud
