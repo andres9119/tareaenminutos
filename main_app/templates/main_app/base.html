@@ -1003,7 +1003,8 @@ footer {
                     var url = a.getAttribute('href');
                     markRead(a.getAttribute('data-id')).then(function() { window.location.href = url; });
                 });
-                dropdown.insertBefore(a, footer);
+                const firstItem = dropdown.querySelector('.notif-dropdown-item');
+                dropdown.insertBefore(a, firstItem || footer);
             }
 
             function playTone(freqs, dur) {
