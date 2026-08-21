@@ -3,6 +3,7 @@ Views para solicitudes académicas — CRUD completo + gestión de estados.
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Count, Min, Max
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -254,7 +255,11 @@ def solicitudes_disponibles(request):
         tutor_asignado__isnull=True
     ).exclude(
         id__in=ya_cotizadas
-    ).select_related('estado', 'area_conocimiento')
+    ).select_related('estado', 'area_conocimiento').annotate(
+        num_cotizaciones=Count('cotizaciones'),
+        monto_min=Min('cotizaciones__monto'),
+        monto_max=Max('cotizaciones__monto'),
+    )
 
     form_filtro = FiltroSolicitudForm(request.GET or None)
     if form_filtro.is_valid():
