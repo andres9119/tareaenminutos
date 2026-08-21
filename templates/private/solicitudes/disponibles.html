@@ -74,14 +74,25 @@
 
                             <h4 style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500; margin-bottom: 1rem;">{{ solicitud.titulo|truncatechars:60 }}</h4>
 
-                            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">{{ solicitud.descripcion|truncatewords:20 }}</p>
-
                             <div style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-                                <strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}<br>
+                                <strong>Área:</strong> {{ solicitud.area_conocimiento.nombre|default:"No especificada" }}<br>
                                 <strong>Nivel:</strong> {{ solicitud.nivel_academico|default:"No especificado" }}<br>
-                                <strong>Tipo:</strong> {{ solicitud.get_tipo_entrega_display }}<br>
+                                <strong>Tipo:</strong> {{ solicitud.tipo_entrega|default:"No especificado" }}<br>
+                                <strong>Materia:</strong> {{ solicitud.materia|default:"No especificada" }}<br>
+                                <strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:"No especificada" }}<br>
                                 <strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
                             </div>
+
+                            {% if solicitud.descripcion %}
+                            <details style="margin-bottom: 1rem;">
+                                <summary style="cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-align-left"></i> Ver descripción completa
+                                </summary>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; margin: 0.5rem 0 0; white-space: pre-line;">{{ solicitud.descripcion }}</p>
+                            </details>
+                            {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Sin descripción.</p>
+                            {% endif %}
 
                             {% if solicitud.presupuesto_cliente %}
                                 <p style="color: var(--primary); font-weight: 600; margin-bottom: 1rem;">
