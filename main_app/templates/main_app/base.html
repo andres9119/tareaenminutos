@@ -1131,6 +1131,54 @@ footer {
     </script>
     {% endif %}
 
+    <script>
+        /* Alerta al abandonar la pagina con un formulario sin guardar.
+           Se activa en cualquier <form data-guard>: si el usuario escribio
+           algo o selecciono archivos y navega a otra pagina, recarga o cierra
+           la pestana, el navegador pide confirmacion antes de salir. */
+        (function () {
+            var forms = Array.prototype.slice.call(document.querySelectorAll('form[data-guard]'));
+            if (!forms.length) return;
+
+            var sucio = false;
+
+            function campoModificado(el) {
+                if (!el.name || el.disabled) return false;
+                if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button') return false;
+                if (el.type === 'file') return el.files && el.files.length > 0;
+                if (el.type === 'checkbox' || el.type === 'radio') return el.checked !== el.defaultChecked;
+                if (el.tagName === 'SELECT') {
+                    return Array.prototype.some.call(el.options, function (o) { return o.selected !== o.defaultSelected; });
+                }
+                return el.value !== el.defaultValue;
+            }
+
+            function hayDatosSinGuardar() {
+                if (sucio) return true;
+                /* Respaldo: detecta datos tras volver con el boton atras (bfcache) */
+                return forms.some(function (form) {
+                    return Array.prototype.some.call(form.elements, campoModificado);
+                });
+            }
+
+            forms.forEach(function (form) {
+                form.addEventListener('input', function () { sucio = true; }, true);
+                form.addEventListener('change', function () { sucio = true; }, true);
+                form.addEventListener('reset', function () { sucio = false; });
+                /* La validacion nativa bloquea el submit antes de este handler:
+                   solo se limpia cuando el envio realmente parte. */
+                form.addEventListener('submit', function () { sucio = false; }, true);
+            });
+
+            window.addEventListener('beforeunload', function (e) {
+                if (hayDatosSinGuardar()) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            });
+        })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

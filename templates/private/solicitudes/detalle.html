@@ -253,7 +253,7 @@
                 <summary style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">
                     <i class="fas fa-upload"></i> Subir documento
                 </summary>
-                <form method="post" action="{% url 'documento_subir' solicitud.pk %}" enctype="multipart/form-data" style="margin-top: 1rem; padding: 1rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
+                <form method="post" action="{% url 'documento_subir' solicitud.pk %}" enctype="multipart/form-data" data-guard style="margin-top: 1rem; padding: 1rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
                     {% csrf_token %}
                     <div class="grid-tem grid-2">
                         <div class="form-group-tem">
@@ -288,7 +288,7 @@
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
                 Sube el archivo final de la tarea. Al entregar, la solicitud pasará a <strong>En Revisión</strong> y el administrador la marcará como completada tras revisarla.
             </p>
-            <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" class="tem-form">
+            <form method="post" action="{% url 'solicitud_entregar' solicitud.pk %}" enctype="multipart/form-data" data-guard class="tem-form">
                 {% csrf_token %}
                 <input type="hidden" name="tipo" value="entrega">
                 <div class="grid-tem grid-2">

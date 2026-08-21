@@ -52,7 +52,7 @@
             <div class="card-tem">
                 <div class="card-body-tem">
                     <h5 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 1.5rem;">Editar Perfil</h5>
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" data-guard>
                         {% csrf_token %}
 
                         <div class="grid-tem grid-2">
