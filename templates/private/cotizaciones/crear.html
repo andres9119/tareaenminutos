@@ -14,13 +14,18 @@
     <div class="card-tem" style="margin-bottom: 1.5rem;">
         <div class="card-body-tem">
             <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin: 0 0 0.5rem;">{{ solicitud.codigo }} — {{ solicitud.titulo }}</h3>
-            <p style="color: var(--text-muted); margin-bottom: 1rem;">{{ solicitud.descripcion|truncatewords:30 }}</p>
+            {% if solicitud.descripcion %}
+            <p style="color: var(--text-muted); margin-bottom: 1rem; white-space: pre-line;">{{ solicitud.descripcion }}</p>
+            {% endif %}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; color: var(--text-muted);">
                 <div>
-                    <p><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre }}</p>
+                    <p><strong>Área:</strong> {{ solicitud.area_conocimiento.nombre|default:"No especificada" }}</p>
                     <p><strong>Nivel:</strong> {{ solicitud.nivel_academico|default:"No especificado" }}</p>
+                    <p><strong>Tipo:</strong> {{ solicitud.tipo_entrega|default:"No especificado" }}</p>
                 </div>
                 <div>
+                    <p><strong>Materia:</strong> {{ solicitud.materia|default:"No especificada" }}</p>
+                    <p><strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:"No especificada" }}</p>
                     <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
                     {% if solicitud.presupuesto_cliente %}
                         <p><strong>Presupuesto:</strong> ${{ solicitud.presupuesto_cliente|floatformat:0 }}</p>
