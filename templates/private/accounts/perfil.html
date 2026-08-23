@@ -30,9 +30,9 @@
                     <h4 style="font-family: var(--font-heading); color: var(--text-main);">{{ request.user.get_full_name|default:request.user.username }}</h4>
                     <p style="color: var(--text-muted);">{{ request.user.email }}</p>
                     {% if perfil.es_admin %}
-                        <span class="badge-tem" style="background: var(--primary);">Administrador</span>
+                        <span class="badge-tem" style="background: var(--primary); color: #ffffff;">Administrador</span>
                     {% elif perfil.es_tutor %}
-                        <span class="badge-tem" style="background: var(--success);">Tutor</span>
+                        <span class="badge-tem" style="background: var(--success); color: #ffffff;">Tutor</span>
                     {% endif %}
                 </div>
             </div>

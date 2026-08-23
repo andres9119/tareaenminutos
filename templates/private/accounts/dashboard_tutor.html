@@ -250,7 +250,8 @@
         gap: 0.3rem;
         font-size: 0.72rem;
         font-weight: 600;
-        margin-top: 0.3rem;
+        margin-left: 0.35rem;
+        vertical-align: middle;
         color: var(--highlight);
     }
 
@@ -671,17 +672,8 @@
                                     <tr>
                                         <td><strong>{{ solicitud.codigo }}</strong></td>
                                         <td title="{{ solicitud.area_conocimiento.nombre|default:'' }}">{{ solicitud.titulo|truncatechars:30 }}</td>
-                                        <td>
-                                            <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
-                                                {{ solicitud.estado.etiqueta }}
-                                            </span>
-                                            {% if solicitud.estado.nombre == 'en_correccion' and solicitud.fecha_limite_correccion %}
-                                                <div class="mini-corr" title="Fecha límite de corrección">
-                                                    <i class="fas fa-clock"></i>
-                                                    hasta {{ solicitud.fecha_limite_correccion|date:"d/m" }}
-                                                    {% if solicitud.correccion_vencida %}(vencida){% endif %}
-                                                </div>
-                                            {% endif %}
+                                        <td style="white-space: nowrap;">
+                                            <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">{{ solicitud.estado.etiqueta }}</span>{% if solicitud.estado.nombre == 'en_correccion' and solicitud.fecha_limite_correccion %} <span class="mini-corr" title="Fecha límite de corrección"><i class="fas fa-clock"></i> hasta {{ solicitud.fecha_limite_correccion|date:"d/m" }}{% if solicitud.correccion_vencida %}(vencida){% endif %}</span>{% endif %}
                                         </td>
                                         <td>{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</td>
                                         <td>
