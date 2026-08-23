@@ -57,8 +57,19 @@
 
                         {% if not es_admin %}
                             <p class="text-muted-tem" style="font-size: 0.85rem; margin-top: 0;">
-                                Solo puedes actualizar tu correo, teléfono y foto. Tu nombre, apellido y áreas de especialidad los gestiona el administrador.
+                                Solo puedes actualizar tu correo, teléfono y foto. Tu nombre, apellido y áreas de especialidad las gestiona el administrador.
                             </p>
+
+                            <div class="grid-tem grid-2">
+                                <div class="form-group-tem">
+                                    <label class="form-label-tem">Nombre</label>
+                                    <p style="margin: 0; color: var(--text-main); font-weight: 500;">{{ request.user.first_name|default:"Sin registrar" }}</p>
+                                </div>
+                                <div class="form-group-tem">
+                                    <label class="form-label-tem">Apellido</label>
+                                    <p style="margin: 0; color: var(--text-main); font-weight: 500;">{{ request.user.last_name|default:"Sin registrar" }}</p>
+                                </div>
+                            </div>
                         {% endif %}
 
                         {% if es_admin %}
@@ -118,6 +129,28 @@
                                 {% include "private/accounts/_areas_especialidad.html" with esp=form es_admin=es_admin %}
                             </div>
                         {% endif %}
+                        {% else %}
+                        <div class="form-group-tem">
+                            <label class="form-label-tem">Bio</label>
+                            {% if perfil.bio %}
+                                <p style="margin: 0; color: var(--text-main); white-space: pre-line;">{{ perfil.bio }}</p>
+                            {% else %}
+                                <p style="margin: 0; color: var(--text-muted);">Sin información</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group-tem">
+                            <label class="form-label-tem">Áreas de especialidad</label>
+                            {% if perfil.especialidades.exists %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem;">
+                                    {% for area in perfil.especialidades.all %}
+                                        <span class="badge-tem" style="background: var(--primary-glow); color: var(--text-main); font-weight: 500;">{{ area.nombre }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p style="margin: 0.25rem 0 0; color: var(--text-muted);">Sin áreas asignadas aún</p>
+                            {% endif %}
+                        </div>
                         {% endif %}
 
                         <button type="submit" class="btn-tem btn-primary-tem" style="margin-top: 1rem;">
