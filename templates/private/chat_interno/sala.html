@@ -49,16 +49,23 @@
         {% empty %}
             <div class="wa-empty">
                 <i class="fas fa-comments"></i>
-                <p>No hay mensajes aún. ¡Sé el primero en escribir!</p>
+                <p>{% if puede_escribir %}No hay mensajes aún. ¡Sé el primero en escribir!{% else %}Aún no hay anuncios.{% endif %}</p>
             </div>
         {% endfor %}
         <div class="wa-typing" id="wa-typing"></div>
     </div>
 
+    {% if puede_escribir %}
     <div class="wa-input-area">
         <textarea id="wa-input" placeholder="Escribe un mensaje..." rows="1"></textarea>
         <button id="wa-send" class="wa-send"><i class="fas fa-paper-plane"></i></button>
     </div>
+    {% else %}
+    <div class="wa-readonly">
+        <i class="fas fa-bullhorn"></i>
+        Canal de anuncios — solo los administradores publican mensajes.
+    </div>
+    {% endif %}
 </div>
 
 {{ sala.id|json_script:"sala-id" }}
@@ -276,6 +283,20 @@
     transition: border-color 0.2s;
 }
 .wa-input-area textarea:focus { border-color: var(--primary); }
+
+/* Aviso de canal de solo lectura (anuncios) */
+.wa-readonly {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-glow);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+.wa-readonly i { color: var(--primary); }
 .wa-send {
     width: 44px;
     height: 44px;
@@ -419,7 +440,7 @@
         if (!msgs || msgs.length === 0) {
             const e = document.createElement('div');
             e.className = 'wa-empty';
-            e.innerHTML = '<i class="fas fa-comments"></i><p>No hay mensajes aún. ¡Sé el primero en escribir!</p>';
+            e.innerHTML = '<i class="fas fa-comments"></i><p>No hay mensajes aún.</p>';
             messagesDiv.appendChild(e);
             messagesDiv.appendChild(typingEl);
             scrollBottom();
@@ -457,7 +478,7 @@
     }
 
     function sendTyping() {
-        if (chatSocket && chatSocket.readyState === WebSocket.OPEN && input.value.trim() !== '') {
+        if (input && chatSocket && chatSocket.readyState === WebSocket.OPEN && input.value.trim() !== '') {
             chatSocket.send(JSON.stringify({ 'type': 'typing' }));
         }
     }
@@ -507,6 +528,7 @@
     }
 
     function sendMessage() {
+        if (!input) return; // canal de solo lectura (anuncios)
         const message = input.value.trim();
         if (message === '') return;
         if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
@@ -518,24 +540,28 @@
         input.style.height = 'auto';
     }
 
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-    input.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        // Enviar indicador de escritura (máx. 1 vez cada 2s)
-        if (!typingSendTimer) {
-            typingSendTimer = setTimeout(function() {
-                typingSendTimer = null;
-                sendTyping();
-            }, 400);
-        }
-    });
-    submitBtn.addEventListener('click', sendMessage);
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            // Enviar indicador de escritura (máx. 1 vez cada 2s)
+            if (!typingSendTimer) {
+                typingSendTimer = setTimeout(function() {
+                    typingSendTimer = null;
+                    sendTyping();
+                }, 400);
+            }
+        });
+    }
+    if (submitBtn) {
+        submitBtn.addEventListener('click', sendMessage);
+    }
 
     connect();
     scrollBottom();

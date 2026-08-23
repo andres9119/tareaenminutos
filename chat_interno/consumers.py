@@ -52,6 +52,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if not contenido:
                 return
 
+            # Canal general = solo anuncios de admins; salas de solicitud son de doble vía
+            if not await self.puede_escribir():
+                return
+
             # Guardar en DB
             mensaje = await self.guardar_mensaje(contenido)
 
@@ -65,7 +69,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
         elif tipo == 'typing':
-            # Indicador de escritura (no se persiste)
+            # Indicador de escritura (no se persiste); quien no puede escribir no lo envía
+            if not await self.puede_escribir():
+                return
             await self.channel_layer.group_send(
                 self.group_name,
                 {
@@ -110,6 +116,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return sala.participantes.filter(pk=self.user.pk).exists()
         except SalaChat.DoesNotExist:
             return False
+
+    @database_sync_to_async
+    def puede_escribir(self):
+        """Canal General = anuncios: solo admins escriben.
+        Las salas de solicitud son de doble vía (tutor asignado ya validado)."""
+        from chat_interno.models import SalaChat
+        try:
+            sala = SalaChat.objects.get(pk=self.sala_id)
+        except SalaChat.DoesNotExist:
+            return False
+        if sala.solicitud_id:
+            return True
+        return self.user.is_staff or self.user.groups.filter(name='Administrador').exists()
 
     @database_sync_to_async
     def guardar_mensaje(self, contenido):

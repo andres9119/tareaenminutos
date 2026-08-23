@@ -82,6 +82,8 @@ def sala_chat(request, pk):
         'entradas': entradas,
         'es_admin': user_is_admin,
         'user_id': request.user.pk,
+        # Canal General = anuncios: solo admins escriben; salas de solicitud son de doble vía
+        'puede_escribir': user_is_admin or bool(sala.solicitud_id),
     }
     return render(request, 'private/chat_interno/sala.html', context)
 
