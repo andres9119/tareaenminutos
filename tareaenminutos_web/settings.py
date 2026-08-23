@@ -71,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.InactividadMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
@@ -278,11 +279,14 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
-# Sesión: expira por inactividad (10 minutos, pedido del cliente).
-# SESSION_SAVE_EVERY_REQUEST renueva el contador en cada petición, por lo que
-# el timeout es de inactividad real (no desde el inicio de sesión).
+# Sesión: expira por inactividad REAL del usuario (10 minutos, pedido del cliente).
+# NO se usa SESSION_SAVE_EVERY_REQUEST: el polling en background del messenger
+# (/app/chat/datos/, /mensajes/) no cuenta como actividad ni renueva la sesión.
+# El middleware InactividadMiddleware (accounts/middleware.py) guarda
+# _ultima_actividad solo en navegación real y cierra la sesión si pasan más de
+# SESSION_COOKIE_AGE segundos sin ella. Las peticiones de fondo no renuevan nada,
+# así que con la pestaña abierta sin tocar nada, la sesión muere a los 10 minutos.
 SESSION_COOKIE_AGE = 600
-SESSION_SAVE_EVERY_REQUEST = True
 
 SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=bool)
