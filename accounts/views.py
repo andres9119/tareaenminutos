@@ -121,6 +121,39 @@ def dashboard_tutor(request):
     num_activas = SolicitudAcademica.activas_de_tutor(request.user).count()
     max_activas = SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR
 
+    # Distribución de MIS TAREAS por estado (gráfica donut del panel).
+    # Se calculan los segmentos aquí para que el template solo pinte el SVG.
+    tareas_por_estado = (
+        SolicitudAcademica.objects.filter(tutor_asignado=request.user)
+        .values('estado__nombre', 'estado__etiqueta', 'estado__color_hex')
+        .annotate(cantidad=Count('id'))
+        .order_by('estado__orden')
+    )
+    total_tareas = sum(f['cantidad'] for f in tareas_por_estado)
+    tareas_segmentos = []
+    acumulado = 0.0
+    for fila in tareas_por_estado:
+        pct = (fila['cantidad'] * 100.0 / total_tareas) if total_tareas else 0.0
+        tareas_segmentos.append({
+            'nombre': fila['estado__nombre'],
+            'etiqueta': fila['estado__etiqueta'],
+            'color': fila['estado__color_hex'],
+            'cantidad': fila['cantidad'],
+            'pct': pct,
+            'resto': max(100.0 - pct, 0.0),
+            'offset': (25.0 - acumulado) % 100.0,
+        })
+        acumulado += pct
+
+    # Próximas entregas: tareas activas con fecha límite, las más cercanas primero
+    proximas_entregas = (
+        SolicitudAcademica.objects.filter(tutor_asignado=request.user)
+        .exclude(estado__nombre__in=SolicitudAcademica.ESTADOS_CERRADOS_TUTOR)
+        .filter(fecha_entrega_cliente__isnull=False)
+        .select_related('estado', 'area_conocimiento')
+        .order_by('fecha_entrega_cliente')[:5]
+    )
+
     context = {
         'mis_solicitudes': mis_solicitudes,
         'solicitudes_disponibles': solicitudes_disponibles,
@@ -131,6 +164,9 @@ def dashboard_tutor(request):
         'num_solicitudes_activas': num_activas,
         'max_solicitudes_activas': max_activas,
         'puede_cotizar': num_activas < max_activas,
+        'tareas_segmentos': tareas_segmentos,
+        'total_tareas': total_tareas,
+        'proximas_entregas': proximas_entregas,
     }
     return render(request, 'private/accounts/dashboard_tutor.html', context)
 

@@ -11,7 +11,14 @@
         <span>{{ tutor.get_full_name|default:tutor.username }}</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-user-graduate"></i> {{ tutor.get_full_name|default:tutor.username }}</h1>
+        <h1 style="display: flex; align-items: center; gap: 0.7rem;">
+            {% if perfil and perfil.foto %}
+                <img src="{{ perfil.foto.url }}" alt="Foto de {{ tutor.username }}" class="avatar-mini avatar-md">
+            {% else %}
+                <span class="avatar-mini avatar-md avatar-inicial">{% if tutor.first_name or tutor.last_name %}{{ tutor.first_name|first|upper }}{{ tutor.last_name|first|upper }}{% else %}{{ tutor.username|first|upper }}{% endif %}</span>
+            {% endif %}
+            {{ tutor.get_full_name|default:tutor.username }}
+        </h1>
         <div class="page-actions">
             <a href="{% url 'usuarios_list' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-arrow-left"></i> Volver

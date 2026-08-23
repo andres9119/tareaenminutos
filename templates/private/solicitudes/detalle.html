@@ -67,6 +67,19 @@
                     <div class="sidebar-section">
                         <p><strong>Fecha de Creación:</strong> {{ solicitud.created_at|date:"d/m/Y H:i" }}</p>
                         <p><strong>Fecha Límite:</strong> {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</p>
+                        {% if solicitud.fecha_limite_correccion %}
+                        <p>
+                            <strong><i class="fas fa-rotate-left" style="color: var(--highlight);"></i> Corrección hasta:</strong>
+                            {{ solicitud.fecha_limite_correccion|date:"d/m/Y" }}
+                            {% if solicitud.correccion_vencida %}
+                                <span style="color: var(--highlight); font-weight: 600;">(vencida)</span>
+                            {% elif solicitud.dias_para_correccion == 0 %}
+                                <span style="color: var(--secondary); font-weight: 600;">(¡hoy!)</span>
+                            {% else %}
+                                <span class="text-muted">({{ solicitud.dias_para_correccion }} día{{ solicitud.dias_para_correccion|pluralize }})</span>
+                            {% endif %}
+                        </p>
+                        {% endif %}
                         <p><strong>Presupuesto:</strong>
                             {% if solicitud.presupuesto_cliente %}
                                 ${{ solicitud.presupuesto_cliente|floatformat:0 }}

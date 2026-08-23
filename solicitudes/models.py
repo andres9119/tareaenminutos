@@ -108,6 +108,11 @@ class SolicitudAcademica(models.Model):
 
     # Tiempos y precios
     fecha_entrega_cliente = models.DateField(verbose_name='Fecha Límite del Cliente', null=True, blank=True)
+    fecha_limite_correccion = models.DateField(
+        null=True, blank=True,
+        verbose_name='Fecha Límite de Corrección',
+        help_text='Se fija automáticamente al devolver la tarea al tutor (reactivación).'
+    )
     presupuesto_cliente = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True,
         verbose_name='Presupuesto del Cliente (COP)'
@@ -197,11 +202,30 @@ class SolicitudAcademica(models.Model):
             return False
         return self.dias_para_entrega <= 1
 
+    @property
+    def dias_para_correccion(self):
+        """Días restantes para la fecha límite de corrección (None si no hay)."""
+        from django.utils import timezone
+        if not self.fecha_limite_correccion:
+            return None
+        delta = self.fecha_limite_correccion - timezone.localdate()
+        return delta.days
+
+    @property
+    def correccion_vencida(self):
+        if self.dias_para_correccion is None:
+            return False
+        return self.dias_para_correccion < 0
+
     # ─── Límite de carga de trabajo por tutor ───
     # Un tutor puede tener máximo 3 solicitudes activas simultáneas y necesita
     # tener máximo 2 para poder cotizar una nueva.
     MAX_SOLICITUDES_ACTIVAS_TUTOR = 3
     ESTADOS_CERRADOS_TUTOR = ['completada', 'cancelada']
+
+    # Días automáticos que tiene el tutor para corregir cuando el admin
+    # devuelve la tarea (reactivación → en_correccion).
+    DIAS_LIMITE_CORRECCION = 3
 
     @classmethod
     def activas_de_tutor(cls, tutor):

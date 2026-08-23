@@ -278,10 +278,10 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
-# Sesión: expira por inactividad (20 minutos). SESSION_SAVE_EVERY_REQUEST
-# renueva el contador en cada petición, por lo que el timeout es de inactividad
-# real (no desde el inicio de sesión).
-SESSION_COOKIE_AGE = 1200
+# Sesión: expira por inactividad (10 minutos, pedido del cliente).
+# SESSION_SAVE_EVERY_REQUEST renueva el contador en cada petición, por lo que
+# el timeout es de inactividad real (no desde el inicio de sesión).
+SESSION_COOKIE_AGE = 600
 SESSION_SAVE_EVERY_REQUEST = True
 
 SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)

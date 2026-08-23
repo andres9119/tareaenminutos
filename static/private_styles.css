@@ -425,3 +425,71 @@
 .estado-item {
     padding: 0.35rem 0 !important;
 }
+
+/* ===== Jerarquía tipográfica del área privada:
+   solo los títulos de bloque van en color principal;
+   todo el resto del texto usa el tono gris (--text-muted).
+   El alcance está limitado a contenedores privados, el
+   sitio público no se ve afectado. ===== */
+.container-tem,
+.dashboard-container {
+    color: var(--text-muted);
+}
+
+/* Los títulos de cada bloque conservan el color principal */
+.container-tem h1, .container-tem h2, .container-tem h3,
+.container-tem h4, .container-tem h5, .container-tem h6,
+.dashboard-container h1, .dashboard-container h2,
+.dashboard-container h3, .dashboard-container h4,
+.dashboard-container h5, .dashboard-container h6 {
+    color: var(--text-main);
+}
+
+/* Contenido tabular en gris (con !important vence a las copias
+   de .table-tem definidas dentro de cada template) */
+.container-tem .table-tem td,
+.dashboard-container .table-tem td {
+    color: var(--text-muted) !important;
+}
+
+/* ===== Avatar circular junto al nombre ===== */
+.avatar-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-glow);
+    flex-shrink: 0;
+    background: var(--bg-surface);
+}
+
+.avatar-md {
+    width: 38px;
+    height: 38px;
+}
+
+.avatar-hero {
+    width: 52px;
+    height: 52px;
+}
+
+.avatar-inicial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-glow);
+    color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.avatar-mini.avatar-inicial { font-size: 0.68rem; }
+.avatar-md.avatar-inicial { font-size: 0.85rem; }
+.avatar-hero.avatar-inicial { font-size: 1.15rem; }
+
+.avatar-user-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}

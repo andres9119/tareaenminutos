@@ -65,38 +65,29 @@
         border-color: var(--primary);
     }
 
-    .welcome-alert {
+    /* ── Saludo integrado: avatar + nombre + chips al lado ── */
+    .hero-tutor {
         background: var(--bg-surface);
         border: 1px solid var(--border-glow);
         border-radius: var(--border-radius-lg);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.25rem;
     }
 
-    .welcome-alert h4 {
+    .hero-main {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-main h4 {
         font-family: var(--font-heading);
         color: var(--text-main);
-        margin: 0 0 0.5rem 0;
+        margin: 0;
         font-size: 1.65rem;
         font-weight: 700;
         line-height: 1.3;
-    }
-
-    .welcome-alert p {
-        color: var(--text-muted);
-        margin: 0;
-    }
-
-    .dashboard-header {
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .dashboard-header-left {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
     }
 
     .header-stats {
@@ -126,15 +117,36 @@
         font-size: 0.72rem;
     }
 
-    .kpi-card .text-warning { color: var(--secondary); }
-    .kpi-card .text-success { color: var(--success); }
-    .kpi-card .text-danger { color: var(--highlight); }
+    .hero-sub {
+        margin: 0.5rem 0 0 0;
+    }
+
+    /* ── Dos paneles lado a lado (estilo admin) ── */
+    .panels-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        align-items: start;
+    }
+
+    .panels-grid .section-card {
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 992px) {
+        .panels-grid {
+            grid-template-columns: 1fr;
+        }
+        .panels-grid .section-card {
+            margin-bottom: 1.25rem;
+        }
+    }
 
     .section-card {
         background: var(--bg-surface);
         border: 1px solid var(--border-glow);
         border-radius: var(--border-radius-lg);
-        margin-bottom: 2rem;
+        margin-bottom: 1.25rem;
         overflow: hidden;
     }
 
@@ -142,6 +154,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 0.75rem;
         padding: 1.25rem 1.5rem;
         border-bottom: 1px solid var(--border-glow);
         background: transparent;
@@ -156,6 +169,27 @@
 
     .section-body {
         padding: 1.5rem;
+    }
+
+    /* Tablas compactas dentro de los paneles a la mitad de ancho */
+    .panels-grid .table-scroll {
+        overflow-x: auto;
+    }
+
+    .panels-grid .table-tem th,
+    .dashboard-container .panels-grid .table-tem th {
+        padding: 0.45rem 0.6rem !important;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .dashboard-container .panels-grid .table-tem td {
+        padding: 0.5rem 0.6rem !important;
+        font-size: 0.85rem;
+    }
+
+    .table-scroll {
+        overflow-x: auto;
     }
 
     .table-tem {
@@ -209,6 +243,186 @@
         color: var(--text-muted);
     }
 
+    /* Aviso de fecha límite de corrección dentro de la tabla de tareas */
+    .mini-corr {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin-top: 0.3rem;
+        color: var(--highlight);
+    }
+
+    .btn-ver-rango {
+        background: transparent;
+        border: 1px solid var(--border-glow);
+        color: var(--text-main);
+        border-radius: var(--border-radius-sm);
+        padding: 0.25rem 0.6rem;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-ver-rango:hover {
+        background: var(--primary-glow);
+        border-color: var(--primary);
+    }
+
+    /* ── Fila de gráfica + próximas entregas ── */
+    .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        align-items: start;
+    }
+
+    .stats-row .section-card {
+        margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .donut-flex {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .donut-wrap {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        flex-shrink: 0;
+        margin: 0 auto;
+    }
+
+    .donut-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(0deg);
+    }
+
+    .donut-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .donut-center strong {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        color: var(--text-main);
+        line-height: 1;
+    }
+
+    .donut-center small {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+    }
+
+    .donut-leyenda {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        flex: 1;
+        min-width: 170px;
+    }
+
+    .leyenda-item {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+    }
+
+    .leyenda-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 3px var(--border-glow);
+    }
+
+    .leyenda-item .leyenda-cant {
+        margin-left: auto;
+        color: var(--text-main);
+        font-weight: 600;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .leyenda-item .leyenda-pct {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        min-width: 3ch;
+        text-align: right;
+    }
+
+    .entrega-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.25rem;
+        border-bottom: 1px solid var(--border-glow);
+        text-decoration: none;
+        transition: var(--transition-smooth);
+    }
+
+    .entrega-item:last-child {
+        border-bottom: none;
+    }
+
+    .entrega-item:hover {
+        background: var(--primary-glow);
+    }
+
+    .entrega-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .entrega-titulo {
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .entrega-meta {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        margin-top: 0.15rem;
+    }
+
+    .entrega-fecha {
+        font-size: 0.82rem;
+        font-weight: 600;
+        white-space: nowrap;
+        text-align: right;
+        color: var(--text-main);
+    }
+
+    .fecha-vencida { color: var(--highlight); }
+    .fecha-hoy { color: var(--secondary); }
+    .fecha-pronto { color: var(--secondary); }
+
     @media (max-width: 768px) {
         .dashboard-header {
             flex-direction: column;
@@ -223,6 +437,9 @@
             width: 100%;
             justify-content: center;
         }
+        .hero-main h4 {
+            font-size: 1.35rem;
+        }
     }
 </style>
 {% endblock %}
@@ -235,18 +452,7 @@
         <span>Panel del Tutor</span>
     </div>
     <div class="dashboard-header">
-        <div class="dashboard-header-left">
-            <h1><i class="fas fa-chalkboard-teacher"></i> Panel del Tutor</h1>
-            {% if perfil %}
-            <div class="header-stats">
-                <span class="stat-chip"><i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }} <small>calif.</small></span>
-                <span class="stat-chip"><i class="fas fa-check-circle" style="color: var(--success);"></i> {{ perfil.trabajos_completados }} <small>trabajos</small></span>
-                <span class="stat-chip" {% if not puede_cotizar %}style="border-color: var(--highlight); color: var(--highlight);"{% endif %} title="Solicitudes activas / máximo permitido">
-                    <i class="fas fa-layer-group"></i> {{ num_solicitudes_activas }}/{{ max_solicitudes_activas }} <small>activas</small>
-                </span>
-            </div>
-            {% endif %}
-        </div>
+        <h1><i class="fas fa-chalkboard-teacher"></i> Panel del Tutor</h1>
         <div class="dashboard-actions">
             <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-list"></i> Solicitudes Disponibles
@@ -257,146 +463,246 @@
         </div>
     </div>
 
-    <!-- Bienvenida -->
-    <div class="welcome-alert">
-        <h4>¡Hola {{ request.user.get_full_name|default:request.user.username }}!</h4>
-        <p>Bienvenido a tu panel de tutor. Aquí puedes ver tus tareas asignadas y las solicitudes disponibles para cotizar.</p>
-    </div>
-
-    <!-- Mis solicitudes asignadas -->
-    <div class="section-card">
-        <div class="section-header">
-            <h5><i class="fas fa-tasks"></i> Mis Tareas Asignadas</h5>
-            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                Ver todas
-            </a>
-        </div>
-        <div class="section-body">
-            {% if mis_solicitudes %}
-                <table class="table-tem">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Título</th>
-                            <th>Área</th>
-                            <th>Estado</th>
-                            <th>Fecha Límite</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for solicitud in mis_solicitudes %}
-                            <tr>
-                                <td><strong>{{ solicitud.codigo }}</strong></td>
-                                <td>{{ solicitud.titulo|truncatechars:35 }}</td>
-                                <td>{{ solicitud.area_conocimiento.nombre }}</td>
-                                <td>
-                                    <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
-                                        {{ solicitud.estado.etiqueta }}
-                                    </span>
-                                </td>
-                                <td>{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</td>
-                                <td>
-                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                        Ver
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Saludo con avatar y stats al lado del nombre -->
+    <div class="hero-tutor">
+        <div class="hero-main">
+            {% if perfil and perfil.foto %}
+                <img src="{{ perfil.foto.url }}" alt="Mi foto de perfil" class="avatar-mini avatar-hero">
             {% else %}
-                <div class="empty-state">
-                    <p>No tienes tareas asignadas actualmente.</p>
-                </div>
+                <span class="avatar-mini avatar-hero avatar-inicial">{% if request.user.first_name or request.user.last_name %}{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}{% else %}{{ request.user.username|first|upper }}{% endif %}</span>
             {% endif %}
-        </div>
-    </div>
-
-    <!-- Solicitudes disponibles para cotizar -->
-    <div class="section-card">
-        <div class="section-header">
-            <h5><i class="fas fa-bullseye"></i> Solicitudes Disponibles para Cotizar</h5>
-            <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                Ver todas
-            </a>
-        </div>
-        <div class="section-body">
-            {% if not puede_cotizar %}
-            <div class="alert-tem alert-warning-tem" style="margin-bottom: 1.25rem;">
-                <h4><i class="fas fa-lock"></i> Límite de solicitudes activas alcanzado</h4>
-                <p>Tienes <strong>{{ num_solicitudes_activas }}</strong> solicitudes activas (máximo {{ max_solicitudes_activas }}). Debes completar al menos una antes de poder cotizar otra.</p>
+            <h4>¡Hola {{ request.user.get_full_name|default:request.user.username }}!</h4>
+            {% if perfil %}
+            <div class="header-stats">
+                <span class="stat-chip"><i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }} <small>calif.</small></span>
+                <span class="stat-chip"><i class="fas fa-check-circle" style="color: var(--success);"></i> {{ perfil.trabajos_completados }} <small>trabajos</small></span>
+                <span class="stat-chip" {% if not puede_cotizar %}style="border-color: var(--highlight); color: var(--highlight);"{% endif %} title="Solicitudes activas / máximo permitido">
+                    <i class="fas fa-layer-group"></i> {{ num_solicitudes_activas }}/{{ max_solicitudes_activas }} <small>activas</small></span>
             </div>
             {% endif %}
-            {% if solicitudes_disponibles %}
-                <table class="table-tem">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Título</th>
-                            <th>Área</th>
-                            <th>Nivel</th>
-                            <th>Presupuesto</th>
-                            <th>Cotizaciones</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for solicitud in solicitudes_disponibles %}
-                            <tr>
-                                <td><strong>{{ solicitud.codigo }}</strong></td>
-                                <td>{{ solicitud.titulo|truncatechars:35 }}</td>
-                                <td>{{ solicitud.area_conocimiento.nombre }}</td>
-                                <td>{{ solicitud.nivel_academico|default:"No especificado" }}</td>
-                                <td>
-                                    {% if solicitud.presupuesto_cliente %}
-                                        ${{ solicitud.presupuesto_cliente|floatformat:0 }}
-                                    {% else %}
-                                        <span class="text-muted-tem">No especificado</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if solicitud.num_cotizaciones %}
-                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <strong>{{ solicitud.num_cotizaciones }}</strong>
-                                            <button type="button" class="btn-ver-rango"
-                                                data-codigo="{{ solicitud.codigo }}"
-                                                data-num="{{ solicitud.num_cotizaciones }}"
-                                                data-min="{{ solicitud.monto_min|floatformat:0 }}"
-                                                data-max="{{ solicitud.monto_max|floatformat:0 }}">
-                                                <i class="fas fa-eye"></i> Ver
-                                            </button>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted-tem">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if solicitud.ya_cotizo %}
-                                        <span class="text-muted-tem" style="font-size: 0.85rem;"><i class="fas fa-check"></i> Ya cotizaste</span>
-                                    {% elif not puede_cotizar %}
-                                        <span class="text-muted-tem" style="font-size: 0.85rem;" title="Tienes {{ num_solicitudes_activas }} solicitudes activas. Debes completar al menos una antes de poder cotizar otra.">
-                                            <i class="fas fa-lock"></i> Límite alcanzado
-                                        </span>
-                                    {% else %}
-                                        <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-primary-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                            Cotizar
-                                        </a>
-                                    {% endif %}
-                                </td>
-                            </tr>
+        </div>
+        <p class="hero-sub">Bienvenido a tu panel de tutor. Aquí puedes ver tus tareas asignadas y las solicitudes disponibles para cotizar.</p>
+    </div>
+
+    <!-- Gráfica de tareas + próximas entregas -->
+    <div class="stats-row">
+        <div class="section-card">
+            <div class="section-header">
+                <h5><i class="fas fa-chart-pie"></i> Mis Tareas por Estado</h5>
+            </div>
+            <div class="section-body" style="padding: 1.1rem 1.25rem;">
+                {% if total_tareas %}
+                <div class="donut-flex">
+                    <div class="donut-wrap">
+                        <svg viewBox="0 0 42 42" class="donut-svg" role="img" aria-label="Distribución de mis tareas por estado">
+                            {# pista de fondo #}
+                            <circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--border-glow)" stroke-width="3.8"></circle>
+                            {% for s in tareas_segmentos %}
+                            <circle cx="21" cy="21" r="15.9155" fill="none"
+                                stroke="{{ s.color }}" stroke-width="6"
+                                stroke-dasharray="{{ s.pct|stringformat:".2f" }} {{ s.resto|stringformat:".2f" }}"
+                                stroke-dashoffset="{{ s.offset|stringformat:".2f" }}">
+                                <title>{{ s.etiqueta }}: {{ s.cantidad }}</title>
+                            </circle>
+                            {% endfor %}
+                        </svg>
+                        <div class="donut-center">
+                            <strong>{{ total_tareas }}</strong>
+                            <small>tarea{{ total_tareas|pluralize }}</small>
+                        </div>
+                    </div>
+                    <div class="donut-leyenda">
+                        {% for s in tareas_segmentos %}
+                        <div class="leyenda-item">
+                            <span class="leyenda-dot" style="background: {{ s.color }};"></span>
+                            <span>{{ s.etiqueta }}</span>
+                            <span class="leyenda-cant">{{ s.cantidad }} <span class="leyenda-pct">{{ s.pct|floatformat:0 }}%</span></span>
+                        </div>
                         {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="empty-state">
-                    <p>No hay solicitudes disponibles para cotizar en este momento.</p>
+                    </div>
                 </div>
-            {% endif %}
+                {% else %}
+                <div class="empty-state">
+                    <p>Aún no tienes tareas asignadas. Cuando te asignen una aparecerá aquí.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h5><i class="fas fa-hourglass-half"></i> Próximas Entregas</h5>
+            </div>
+            <div class="section-body" style="padding: 0.6rem 1.25rem;">
+                {% if proximas_entregas %}
+                    {% for solicitud in proximas_entregas %}
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="entrega-item">
+                        <div class="entrega-info">
+                            <div class="entrega-titulo"><strong>{{ solicitud.codigo }}</strong> · {{ solicitud.titulo|truncatechars:38 }}</div>
+                            <div class="entrega-meta">{{ solicitud.area_conocimiento.nombre|default:"Sin área" }} · {{ solicitud.estado.etiqueta }}</div>
+                        </div>
+                        <div class="entrega-fecha">
+                            {{ solicitud.fecha_entrega_cliente|date:"d/m" }}
+                            {% if solicitud.dias_para_entrega < 0 %}<div class="fecha-vencida">vencida</div>
+                            {% elif solicitud.dias_para_entrega == 0 %}<div class="fecha-hoy">¡hoy!</div>
+                            {% elif solicitud.dias_para_entrega == 1 %}<div class="fecha-hoy">mañana</div>
+                            {% elif solicitud.dias_para_entrega <= 3 %}<div class="fecha-pronto">en {{ solicitud.dias_para_entrega }} días</div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No tienes entregas próximas.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Mis cotizaciones recientes -->
+    <!-- Dos paneles lado a lado -->
+    <div class="panels-grid">
+        <!-- Izquierda: Solicitudes disponibles para cotizar -->
+        <div class="section-card">
+            <div class="section-header">
+                <h5><i class="fas fa-bullseye"></i> Solicitudes Disponibles para Cotizar</h5>
+                <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    Ver todas
+                </a>
+            </div>
+            <div class="section-body" style="padding: 1.1rem;">
+                {% if not puede_cotizar %}
+                <div class="alert-tem alert-warning-tem" style="margin-bottom: 1.25rem;">
+                    <h4><i class="fas fa-lock"></i> Límite de solicitudes activas alcanzado</h4>
+                    <p>Tienes <strong>{{ num_solicitudes_activas }}</strong> solicitudes activas (máximo {{ max_solicitudes_activas }}). Debes completar al menos una antes de poder cotizar otra.</p>
+                </div>
+                {% endif %}
+                {% if solicitudes_disponibles %}
+                    <div class="table-scroll">
+                        <table class="table-tem">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Título</th>
+                                    <th>Presupuesto</th>
+                                    <th>Cotiz.</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in solicitudes_disponibles %}
+                                    <tr>
+                                        <td><strong>{{ solicitud.codigo }}</strong></td>
+                                        <td title="{{ solicitud.area_conocimiento.nombre|default:'' }}">{{ solicitud.titulo|truncatechars:30 }}</td>
+                                        <td>
+                                            {% if solicitud.presupuesto_cliente %}
+                                                ${{ solicitud.presupuesto_cliente|floatformat:0 }}
+                                            {% else %}
+                                                <span class="text-muted-tem">No especificado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if solicitud.num_cotizaciones %}
+                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                    <strong>{{ solicitud.num_cotizaciones }}</strong>
+                                                    <button type="button" class="btn-ver-rango"
+                                                        data-codigo="{{ solicitud.codigo }}"
+                                                        data-num="{{ solicitud.num_cotizaciones }}"
+                                                        data-min="{{ solicitud.monto_min|floatformat:0 }}"
+                                                        data-max="{{ solicitud.monto_max|floatformat:0 }}"
+                                                        title="Ver rango de cotizaciones">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted-tem">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if solicitud.ya_cotizo %}
+                                                <span class="text-muted-tem" style="font-size: 0.8rem;"><i class="fas fa-check"></i> Ya cotizaste</span>
+                                            {% elif not puede_cotizar %}
+                                                <span class="text-muted-tem" style="font-size: 0.8rem;" title="Tienes {{ num_solicitudes_activas }} solicitudes activas. Debes completar al menos una antes de poder cotizar otra.">
+                                                    <i class="fas fa-lock"></i> Límite
+                                                </span>
+                                            {% else %}
+                                                <a href="{% url 'cotizacion_crear' solicitud.pk %}" class="btn-tem btn-primary-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                    Cotizar
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No hay solicitudes disponibles para cotizar en este momento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Derecha: Mis tareas asignadas -->
+        <div class="section-card">
+            <div class="section-header">
+                <h5><i class="fas fa-tasks"></i> Mis Tareas Asignadas</h5>
+                <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    Ver todas
+                </a>
+            </div>
+            <div class="section-body" style="padding: 1.1rem;">
+                {% if mis_solicitudes %}
+                    <div class="table-scroll">
+                        <table class="table-tem">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th>Límite</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in mis_solicitudes %}
+                                    <tr>
+                                        <td><strong>{{ solicitud.codigo }}</strong></td>
+                                        <td title="{{ solicitud.area_conocimiento.nombre|default:'' }}">{{ solicitud.titulo|truncatechars:30 }}</td>
+                                        <td>
+                                            <span class="badge-tem" style="background-color: {{ solicitud.estado.color_hex }}; color: white;">
+                                                {{ solicitud.estado.etiqueta }}
+                                            </span>
+                                            {% if solicitud.estado.nombre == 'en_correccion' and solicitud.fecha_limite_correccion %}
+                                                <div class="mini-corr" title="Fecha límite de corrección">
+                                                    <i class="fas fa-clock"></i>
+                                                    hasta {{ solicitud.fecha_limite_correccion|date:"d/m" }}
+                                                    {% if solicitud.correccion_vencida %}(vencida){% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                Ver
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No tienes tareas asignadas actualmente.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mis cotizaciones recientes (panel estirado abajo) -->
     <div class="section-card">
         <div class="section-header">
             <h5><i class="fas fa-coins"></i> Mis Cotizaciones Recientes</h5>
@@ -406,36 +712,38 @@
         </div>
         <div class="section-body">
             {% if mis_cotizaciones %}
-                <table class="table-tem">
-                    <thead>
-                        <tr>
-                            <th>Solicitud</th>
-                            <th>Monto</th>
-                            <th>Tiempo</th>
-                            <th>Estado</th>
-                            <th>Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cotizacion in mis_cotizaciones %}
+                <div class="table-scroll">
+                    <table class="table-tem">
+                        <thead>
                             <tr>
-                                <td><strong>{{ cotizacion.solicitud.codigo }}</strong></td>
-                                <td>${{ cotizacion.monto|floatformat:0 }}</td>
-                                <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
-                                <td>
-                                    {% if cotizacion.estado == 'pendiente' %}
-                                        <span class="badge-tem badge-warning">Pendiente</span>
-                                    {% elif cotizacion.estado == 'aceptada' %}
-                                        <span class="badge-tem badge-success">Aceptada</span>
-                                    {% elif cotizacion.estado == 'rechazada' %}
-                                        <span class="badge-tem badge-danger">Rechazada</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
+                                <th>Solicitud</th>
+                                <th>Monto</th>
+                                <th>Tiempo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for cotizacion in mis_cotizaciones %}
+                                <tr>
+                                    <td><strong>{{ cotizacion.solicitud.codigo }}</strong></td>
+                                    <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                                    <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
+                                    <td>
+                                        {% if cotizacion.estado == 'pendiente' %}
+                                            <span class="badge-tem badge-warning">Pendiente</span>
+                                        {% elif cotizacion.estado == 'aceptada' %}
+                                            <span class="badge-tem badge-success">Aceptada</span>
+                                        {% elif cotizacion.estado == 'rechazada' %}
+                                            <span class="badge-tem badge-danger">Rechazada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% else %}
                 <div class="empty-state">
                     <p>No has enviado cotizaciones aún.</p>

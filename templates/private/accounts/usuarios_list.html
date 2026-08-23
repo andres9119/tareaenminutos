@@ -58,7 +58,16 @@
                 <tbody>
                     {% for user in usuarios %}
                     <tr>
-                        <td><strong>{{ user.username }}</strong></td>
+                        <td>
+                            <span class="avatar-user-cell">
+                                {% if user.perfil and user.perfil.foto %}
+                                    <img src="{{ user.perfil.foto.url }}" alt="Foto de {{ user.username }}" class="avatar-mini">
+                                {% else %}
+                                    <span class="avatar-mini avatar-inicial">{% if user.first_name or user.last_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}</span>
+                                {% endif %}
+                                <strong>{{ user.username }}</strong>
+                            </span>
+                        </td>
                         <td>{{ user.get_full_name }}</td>
                         <td>{{ user.email }}</td>
                         <td>

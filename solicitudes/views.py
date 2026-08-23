@@ -371,6 +371,8 @@ def solicitud_entregar(request, pk):
                 # abajo se envía la notificación específica de entrega.
                 solicitud._skip_estado_notif = True
                 solicitud.estado = estado_revision
+                # La entrega resuelve la corrección pendiente (si la había).
+                solicitud.fecha_limite_correccion = None
                 solicitud.save()
 
                 resumen_historial = ', '.join(nombres[:3]) + ('…' if len(nombres) > 3 else '')
@@ -424,6 +426,7 @@ def solicitud_marcar_completada(request, pk):
         estado_completada = EstadoSolicitud.objects.get(nombre='completada')
         solicitud._notif_actor = request.user
         solicitud.estado = estado_completada
+        solicitud.fecha_limite_correccion = None
         solicitud.save()
 
         HistorialEstado.objects.create(
@@ -584,6 +587,12 @@ def solicitud_reactivar(request, pk):
         solicitud.nota_obtenida = None
         solicitud.calificacion_tutor = None
         solicitud.fecha_calificacion = None
+        # Fecha límite de corrección automática (DIAS_LIMITE_CORRECCION días)
+        from datetime import timedelta
+        from django.utils import timezone as tz
+        solicitud.fecha_limite_correccion = tz.localdate() + timedelta(
+            days=SolicitudAcademica.DIAS_LIMITE_CORRECCION
+        )
         solicitud.save()
 
         # Recalcular estadísticas del tutor (la orden ya no cuenta como completada)
@@ -597,13 +606,18 @@ def solicitud_reactivar(request, pk):
             estado_anterior=estado_anterior,
             estado_nuevo=estado_correccion,
             cambiado_por=request.user,
-            comentario=comentario or 'Reactivada para correcciones solicitadas por el cliente.',
+            comentario=(
+                (comentario + ' ' if comentario else '')
+                + f'Fecha límite de corrección: '
+                f'{solicitud.fecha_limite_correccion.strftime("%d/%m/%Y")}.'
+            ),
         )
 
         messages.success(
             request,
             f'Solicitud {solicitud.codigo} reactivada en estado "En Corrección". '
-            f'Tutor: {nuevo_tutor.get_full_name() or nuevo_tutor.username}.'
+            f'Tutor: {nuevo_tutor.get_full_name() or nuevo_tutor.username}. '
+            f'Fecha límite de corrección: {solicitud.fecha_limite_correccion.strftime("%d/%m/%Y")}.'
         )
         return redirect('solicitud_detalle', pk=pk)
 
