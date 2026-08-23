@@ -17,7 +17,18 @@ def notificar_mensaje_chat(sender, instance, created, **kwargs):
     autor = instance.autor
     mensaje_corto = instance.contenido[:100]
 
-    for participante in sala.participantes.all():
+    if sala.solicitud_id:
+        destinatarios = sala.participantes.all()
+    else:
+        # Canal General (anuncios): notifica a TODO el personal activo,
+        # aunque nunca haya abierto la sala.
+        from django.contrib.auth.models import User
+        from django.db.models import Q
+        destinatarios = User.objects.filter(is_active=True).filter(
+            Q(is_staff=True) | Q(groups__name='Tutor')
+        ).distinct()
+
+    for participante in destinatarios:
         if participante == autor:
             continue
 

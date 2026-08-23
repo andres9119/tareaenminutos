@@ -112,8 +112,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Salas de solicitud: solo el tutor asignado (las abiertas no dan acceso)
             if sala.solicitud:
                 return sala.solicitud.tutor_asignado == self.user
-            # Salas generales: requiere ser participante
-            return sala.participantes.filter(pk=self.user.pk).exists()
+            # Salas generales (anuncios): todo el personal interno
+            return (
+                self.user.is_staff
+                or self.user.groups.filter(name__in=['Administrador', 'Tutor']).exists()
+                or sala.participantes.filter(pk=self.user.pk).exists()
+            )
         except SalaChat.DoesNotExist:
             return False
 

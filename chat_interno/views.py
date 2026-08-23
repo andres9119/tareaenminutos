@@ -21,13 +21,10 @@ def sala_chat(request, pk):
     sala = get_object_or_404(SalaChat, pk=pk)
 
     if not user_is_admin:
-        # Salas de solicitud: solo el tutor asignado. Salas generales: participantes.
-        if sala.solicitud:
-            if sala.solicitud.tutor_asignado != request.user:
-                raise Http404('No tienes acceso a esta sala.')
-        else:
-            if not sala.participantes.filter(pk=request.user.pk).exists():
-                raise Http404('No tienes acceso a esta sala.')
+        # Salas de solicitud: solo el tutor asignado.
+        # Salas generales (canal de anuncios): todo el personal interno.
+        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+            raise Http404('No tienes acceso a esta sala.')
 
     # Agregar usuario como participante si aún no está
     sala.participantes.add(request.user)
@@ -86,6 +83,50 @@ def sala_chat(request, pk):
         'puede_escribir': user_is_admin or bool(sala.solicitud_id),
     }
     return render(request, 'private/chat_interno/sala.html', context)
+
+
+@admin_o_tutor_required
+def chat_mensajes_json(request, pk):
+    """Historial de una sala en JSON para las ventanas flotantes.
+    Marca los mensajes ajenos como leídos (igual que sala_chat)."""
+    from django.http import Http404, JsonResponse
+    from django.utils import timezone
+    user_is_admin = es_admin(request.user)
+
+    sala = get_object_or_404(SalaChat, pk=pk)
+    if not user_is_admin:
+        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+            raise Http404('No tienes acceso a esta sala.')
+
+    sala.participantes.add(request.user)
+    for m in sala.mensajes.exclude(autor=request.user):
+        m.leido_por.add(request.user)
+
+    mensajes = sala.mensajes.select_related('autor').order_by('-created_at')[:50]
+    hoy = timezone.localdate()
+    datos = []
+    for m in reversed(list(mensajes)):
+        local = timezone.localtime(m.created_at)
+        autor_nombre = ''
+        if m.autor:
+            autor_nombre = m.autor.get_full_name() or m.autor.username
+        else:
+            autor_nombre = 'Usuario eliminado'
+        datos.append({
+            'autor_id': m.autor_id,
+            'autor_nombre': autor_nombre,
+            'contenido': m.contenido,
+            'hora': local.strftime('%H:%M'),
+            'created_at_full': m.created_at.isoformat(),
+        })
+
+    return JsonResponse({
+        'id': sala.pk,
+        'nombre': sala.nombre,
+        'tipo': sala.tipo,
+        'puede_escribir': user_is_admin or bool(sala.solicitud_id),
+        'mensajes': datos,
+    })
 
 
 @admin_o_tutor_required

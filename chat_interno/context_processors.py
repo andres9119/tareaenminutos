@@ -31,11 +31,9 @@ def _salas_con_datos(user, limite=25):
     else:
         # Tutores: salas generales donde participa + salas de solicitudes asignadas a él.
         salas = _dedup(
-            list(
-                SalaChat.objects.filter(
-                    participantes=user, solicitud__isnull=True
-                )
-            ) + list(
+            # Canal General (anuncios): visible para todo el personal,
+            # sin importar si alguna vez entró a la sala.
+            list(SalaChat.objects.filter(solicitud__isnull=True)) + list(
                 SalaChat.objects.filter(
                     solicitud__isnull=False,
                     solicitud__tutor_asignado=user,
