@@ -143,10 +143,10 @@ class UsuarioEditarForm(forms.ModelForm):
 
 class PerfilPropioForm(forms.ModelForm):
     """Lo que el usuario (tutor) puede editar de su PROPIO perfil:
-    solo correo, teléfono y foto.
+    correo, teléfono, foto y bio.
 
-    Nombre, apellido, bio y áreas de especialidad los gestiona el Admin
-    desde la edición de usuarios; este formulario ni los muestra ni los guarda.
+    Nombre, apellido y áreas de especialidad los gestiona el Admin desde la
+    edición de usuarios; este formulario ni los muestra ni los guarda.
     """
     email = forms.EmailField(
         required=True, label='Correo electrónico',
@@ -155,10 +155,11 @@ class PerfilPropioForm(forms.ModelForm):
 
     class Meta:
         model = PerfilUsuario
-        fields = ['telefono', 'foto']
+        fields = ['telefono', 'foto', 'bio']
         widgets = {
             'telefono': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': '+57 300 000 0000'}),
             'foto': forms.FileInput(attrs={'class': 'form-control-tem'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control-tem', 'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
