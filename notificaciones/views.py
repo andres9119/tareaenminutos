@@ -26,7 +26,7 @@ def notificaciones_list(request):
     page = request.GET.get('page', 1)
     notificaciones_page = paginator.get_page(page)
 
-    return render(request, 'private/notificaciones/lista.html', {'notificaciones': notificaciones_page, 'is_paginated': notificaciones_page.has_other_pages()})
+    return render(request, 'private/notificaciones/lista.html', {'notificaciones': notificaciones_page, 'pagina': notificaciones_page, 'is_paginated': notificaciones_page.has_other_pages()})
 
 
 @require_POST

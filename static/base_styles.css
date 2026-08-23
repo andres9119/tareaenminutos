@@ -338,6 +338,20 @@ nav.nav-links a:hover::after {
     display: none !important;
 }
 
+/* Variante outline para "Mi Perfil": mismo tamaño que Mi Panel, sin fondo verde */
+.nav-perfil-btn {
+    background: transparent;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border-glow);
+    box-shadow: none;
+}
+
+.nav-perfil-btn:hover {
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+
 .nav-logout-btn {
     color: var(--highlight) !important;
     font-weight: 600 !important;

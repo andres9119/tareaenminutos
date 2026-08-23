@@ -273,7 +273,7 @@
         <a href="/app/dashboard/">Panel</a>
     </div>
     <div class="dashboard-header">
-        <h1><i class="fas fa-tachometer-alt"></i> Panel de Administrador</h1>
+        <h1>Panel de Administrador</h1>
         <div class="dashboard-actions">
             <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-plus"></i> Nueva Solicitud
@@ -320,7 +320,7 @@
     <!-- Acciones rápidas -->
     <div class="action-grid">
         <div class="action-card">
-            <h5><i class="fas fa-file-alt"></i> Gestión de Solicitudes</h5>
+            <h5>Gestión de Solicitudes</h5>
             <p>Administra todas las solicitudes académicas del sistema.</p>
             <div class="action-buttons">
                 <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem">
@@ -332,7 +332,7 @@
             </div>
         </div>
         <div class="action-card">
-            <h5><i class="fas fa-coins"></i> Cotizaciones</h5>
+            <h5>Cotizaciones</h5>
             <p>{{ cotizaciones_pendientes }} cotizaciones pendientes de revisión</p>
             <div class="action-buttons">
                 <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem">
@@ -348,7 +348,7 @@
     <!-- Solicitudes recientes -->
     <div class="section-card">
         <div class="section-header">
-            <h5><i class="fas fa-file-alt"></i> Solicitudes Recientes</h5>
+            <h5>Solicitudes Recientes</h5>
             <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 Ver todas
             </a>
@@ -393,6 +393,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% include "private/_paginacion.html" with pagina=solicitudes_recientes param="rec" qs_base=qs_base_rec %}
             {% else %}
                 <div class="empty-state">
                     <p>No hay solicitudes recientes.</p>
@@ -404,28 +405,28 @@
     <!-- Información del sistema -->
     <div class="action-grid">
         <div class="action-card">
-            <h5><i class="fas fa-users"></i> Tutores Activos</h5>
+            <h5>Tutores Activos</h5>
             <p>{{ tutores_activos }} tutores disponibles en el sistema</p>
             <a href="{% url 'usuarios_list' %}?rol=Tutor" class="btn-tem btn-outline-tem">
                 Gestionar Tutores
             </a>
         </div>
         <div class="action-card">
-            <h5><i class="fas fa-chart-bar"></i> Reportes</h5>
+            <h5>Reportes</h5>
             <p>Accede a estadísticas y reportes detallados</p>
             <a href="{% url 'perfil' %}" class="btn-tem btn-outline-tem">
                 Mi Perfil
             </a>
         </div>
         <div class="action-card">
-            <h5><i class="fas fa-envelope"></i> Mensajes de Contacto</h5>
+            <h5>Mensajes de Contacto</h5>
             <p>{{ total_mensajes_contacto }} mensajes recibidos ({{ mensajes_no_leidos }} sin leer)</p>
             <a href="{% url 'contact_mensajes_list' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-inbox"></i> Ver Mensajes
             </a>
         </div>
         <div class="action-card">
-            <h5><i class="fas fa-newspaper"></i> Blog</h5>
+            <h5>Blog</h5>
             <p>Crea y edita artículos del blog con bloques de contenido</p>
             <a href="{% url 'blog_admin_list' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-newspaper"></i> Gestionar Blog

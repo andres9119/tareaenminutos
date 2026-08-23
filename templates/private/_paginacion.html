@@ -1,0 +1,11 @@
+{% if pagina.has_other_pages %}
+<nav class="paginacion-tem" aria-label="Paginación">
+    {% if pagina.has_previous %}
+        <a href="?{{ qs_base|default:'' }}{{ param|default:'page' }}={{ pagina.previous_page_number }}" class="pag-btn">&lsaquo; Anterior</a>
+    {% endif %}
+    <span class="pag-info">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}
+        <a href="?{{ qs_base|default:'' }}{{ param|default:'page' }}={{ pagina.next_page_number }}" class="pag-btn">Siguiente &rsaquo;</a>
+    {% endif %}
+</nav>
+{% endif %}

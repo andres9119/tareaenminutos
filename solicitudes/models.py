@@ -228,6 +228,20 @@ class SolicitudAcademica(models.Model):
     DIAS_LIMITE_CORRECCION = 3
 
     @classmethod
+    def orden_prioridad_tutor(cls):
+        """Expresión de anotación para ordenar listas del tutor:
+        primero las correcciones (en_correccion), después las asignadas
+        activas (asignada/en_progreso/en_revision), después las demás."""
+        from django.db.models import Case, Value, When, IntegerField
+        return Case(
+            When(estado__nombre='en_correccion', then=Value(0)),
+            When(estado__nombre__in=['asignada', 'en_progreso', 'en_revision'], then=Value(1)),
+            default=Value(2),
+            output_field=IntegerField(),
+        )
+
+
+    @classmethod
     def activas_de_tutor(cls, tutor):
         """Solicitudes asignadas al tutor que aún no finalizan.
 

@@ -7,6 +7,7 @@ from django.contrib.auth.views import (
 )
 from django.contrib import messages
 from django.conf import settings
+from django.core.paginator import Paginator
 from django.urls import reverse, reverse_lazy
 from .models import BlogPost, ContactMessage, ChatMessage
 from .models import Banner
@@ -117,8 +118,13 @@ from .models import ContactMessage
 
 @admin_required
 def contact_mensajes_list(request):
-    mensajes = ContactMessage.objects.all().order_by('-created_at')
-    return render(request, 'private/contacto/mensajes_list.html', {'mensajes': mensajes})
+    mensajes = Paginator(
+        ContactMessage.objects.all().order_by('-created_at'), 5
+    ).get_page(request.GET.get('page', 1))
+    return render(request, 'private/contacto/mensajes_list.html', {
+        'mensajes': mensajes,
+        'pagina': mensajes,
+    })
 
 
 @admin_required
@@ -190,9 +196,14 @@ def sitemap_view(request):
 
 @admin_required
 def blog_admin_list(request):
-    """Lista de artículos del blog para administrar (solo Admin)."""
-    posts = BlogPost.objects.select_related('author').order_by('-created_at')
-    return render(request, 'private/blog/blog_list.html', {'posts': posts})
+    """Lista de art�culos del blog para administrar (solo Admin)."""
+    posts = Paginator(
+        BlogPost.objects.select_related('author').order_by('-created_at'), 5
+    ).get_page(request.GET.get('page', 1))
+    return render(request, 'private/blog/blog_list.html', {
+        'posts': posts,
+        'pagina': posts,
+    })
 
 
 def _guardar_blog_post(request, post=None):

@@ -10,7 +10,7 @@
         <span>Usuarios</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-users"></i> Usuarios</h1>
+        <h1>Usuarios</h1>
         <div class="page-actions">
             <a href="{% url 'areas_list' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-layer-group"></i> Áreas de Especialidad
@@ -82,12 +82,17 @@
                             {% if user.pk == usuario_actual_pk %}
                             <span class="text-muted-tem"><i class="fas fa-user-shield"></i> Tu cuenta</span>
                             {% else %}
-                            <form method="post" action="{% url 'usuario_eliminar' user.pk %}" class="form-eliminar" onsubmit="return confirm('¿Confirmas que deseas eliminar definitivamente a @{{ user.username }}? Se borrará su cuenta y no podrá volver a ingresar al sistema.');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-tem btn-danger-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                    <i class="fas fa-trash-alt"></i> Eliminar
-                                </button>
-                            </form>
+                            <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                <a href="{% url 'usuario_editar' user.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <form method="post" action="{% url 'usuario_eliminar' user.pk %}" class="form-eliminar" onsubmit="return confirm('¿Confirmas que deseas eliminar definitivamente a @{{ user.username }}? Se borrará su cuenta y no podrá volver a ingresar al sistema.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-tem btn-danger-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
                             {% endif %}
                         </td>
                     </tr>
@@ -98,9 +103,10 @@
     </div>
     {% else %}
     <div class="alert-tem alert-info-tem">
-        <h4><i class="fas fa-users-slash"></i> No hay usuarios</h4>
+        <h4>No hay usuarios</h4>
         <p>No se encontraron usuarios con los filtros seleccionados.</p>
     </div>
     {% endif %}
+    {% include "private/_paginacion.html" with pagina=usuarios param="page" %}
 </div>
 {% endblock %}

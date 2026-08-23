@@ -8,7 +8,7 @@
         <span>Blog</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-newspaper"></i> Blog</h1>
+        <h1>Blog</h1>
         <div class="page-actions">
             <a href="{% url 'blog_admin_crear' %}" class="btn-tem btn-primary-tem"><i class="fas fa-plus"></i> Nuevo Artículo</a>
         </div>
@@ -53,6 +53,7 @@
                 <p>No hay artículos todavía. Crea el primero.</p>
             </div>
             {% endif %}
+            {% include "private/_paginacion.html" %}
         </div>
     </div>
 </div>

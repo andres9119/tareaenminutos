@@ -9,7 +9,7 @@
         <span>Notificaciones</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-bell"></i> Notificaciones</h1>
+        <h1>Notificaciones</h1>
         <div class="page-actions">
             <form id="formMarcarTodas" method="post" action="{% url 'notif_todas_leidas' %}" style="display:inline">
                 {% csrf_token %}
@@ -66,6 +66,7 @@
                 <p>No tienes notificaciones.</p>
             </div>
         {% endif %}
+        {% include "private/_paginacion.html" %}
     </div>
 </div>
 

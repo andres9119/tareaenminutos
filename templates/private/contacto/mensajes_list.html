@@ -9,7 +9,7 @@
         <span>Mensajes de Contacto</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-inbox"></i> Mensajes de Contacto</h1>
+        <h1>Mensajes de Contacto</h1>
         <div class="page-actions">
             <a href="/app/dashboard/" class="btn-tem btn-secondary-tem"><i class="fas fa-arrow-left"></i> Volver al Panel</a>
         </div>
@@ -52,6 +52,7 @@
                 <p>No hay mensajes de contacto todavía.</p>
             </div>
             {% endif %}
+            {% include "private/_paginacion.html" %}
         </div>
     </div>
 </div>

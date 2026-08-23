@@ -13,6 +13,7 @@ from .models import Cotizacion
 from .forms import CotizacionForm
 from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
 from accounts.decorators import admin_required, tutor_required, admin_o_tutor_required
+from accounts.utils import qs_base_sin_pagina
 
 logger = logging.getLogger('tareaenminutos')
 
@@ -202,7 +203,7 @@ def mis_cotizaciones(request):
         c.sol_min = a['mn'] if a else None
         c.sol_max = a['mx'] if a else None
 
-    return render(request, 'private/cotizaciones/mis_cotizaciones.html', {'cotizaciones': cotizaciones_page, 'is_paginated': cotizaciones_page.has_other_pages()})
+    return render(request, 'private/cotizaciones/mis_cotizaciones.html', {'cotizaciones': cotizaciones_page, 'pagina': cotizaciones_page, 'is_paginated': cotizaciones_page.has_other_pages()})
 
 
 @admin_required
@@ -235,6 +236,8 @@ def cotizaciones_lista(request):
     cotizaciones_page = paginator.get_page(page)
     context = {
         'cotizaciones': cotizaciones_page,
+        'pagina': cotizaciones_page,
+        'qs_base': qs_base_sin_pagina(request, 'page'),
         'estado': estado,
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,

@@ -452,7 +452,7 @@
         <span>Panel del Tutor</span>
     </div>
     <div class="dashboard-header">
-        <h1><i class="fas fa-chalkboard-teacher"></i> Panel del Tutor</h1>
+        <h1>Panel del Tutor</h1>
         <div class="dashboard-actions">
             <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-list"></i> Solicitudes Disponibles
@@ -488,7 +488,7 @@
     <div class="stats-row">
         <div class="section-card">
             <div class="section-header">
-                <h5><i class="fas fa-chart-pie"></i> Mis Tareas por Estado</h5>
+                <h5>Mis Tareas por Estado</h5>
             </div>
             <div class="section-body" style="padding: 1.1rem 1.25rem;">
                 {% if total_tareas %}
@@ -531,7 +531,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h5><i class="fas fa-hourglass-half"></i> Próximas Entregas</h5>
+                <h5>Próximas Entregas</h5>
             </div>
             <div class="section-body" style="padding: 0.6rem 1.25rem;">
                 {% if proximas_entregas %}
@@ -565,7 +565,7 @@
         <!-- Izquierda: Solicitudes disponibles para cotizar -->
         <div class="section-card">
             <div class="section-header">
-                <h5><i class="fas fa-bullseye"></i> Solicitudes Disponibles para Cotizar</h5>
+                <h5>Solicitudes Disponibles para Cotizar</h5>
                 <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                     Ver todas
                 </a>
@@ -573,7 +573,7 @@
             <div class="section-body" style="padding: 1.1rem;">
                 {% if not puede_cotizar %}
                 <div class="alert-tem alert-warning-tem" style="margin-bottom: 1.25rem;">
-                    <h4><i class="fas fa-lock"></i> Límite de solicitudes activas alcanzado</h4>
+                    <h4>Límite de solicitudes activas alcanzado</h4>
                     <p>Tienes <strong>{{ num_solicitudes_activas }}</strong> solicitudes activas (máximo {{ max_solicitudes_activas }}). Debes completar al menos una antes de poder cotizar otra.</p>
                 </div>
                 {% endif %}
@@ -636,6 +636,7 @@
                             </tbody>
                         </table>
                     </div>
+                    {% include "private/_paginacion.html" with pagina=solicitudes_disponibles param="disp" qs_base=qs_base_disp %}
                 {% else %}
                     <div class="empty-state">
                         <p>No hay solicitudes disponibles para cotizar en este momento.</p>
@@ -647,7 +648,7 @@
         <!-- Derecha: Mis tareas asignadas -->
         <div class="section-card">
             <div class="section-header">
-                <h5><i class="fas fa-tasks"></i> Mis Tareas Asignadas</h5>
+                <h5>Mis Tareas Asignadas</h5>
                 <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                     Ver todas
                 </a>
@@ -693,6 +694,7 @@
                             </tbody>
                         </table>
                     </div>
+                    {% include "private/_paginacion.html" with pagina=mis_solicitudes param="tareas" qs_base=qs_base_tareas %}
                 {% else %}
                     <div class="empty-state">
                         <p>No tienes tareas asignadas actualmente.</p>
@@ -705,7 +707,7 @@
     <!-- Mis cotizaciones recientes (panel estirado abajo) -->
     <div class="section-card">
         <div class="section-header">
-            <h5><i class="fas fa-coins"></i> Mis Cotizaciones Recientes</h5>
+            <h5>Mis Cotizaciones Recientes</h5>
             <a href="{% url 'mis_cotizaciones' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 Ver todas
             </a>

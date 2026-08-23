@@ -3,7 +3,7 @@ Views para solicitudes académicas — CRUD completo + gestión de estados.
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Count, Min, Max
+from django.db.models import Count, Min, Max, F
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -14,7 +14,7 @@ from .models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
 from .forms import SolicitudForm, FiltroSolicitudForm
 from .utils import recalcular_estadisticas_tutor
 from accounts.decorators import admin_required, admin_o_tutor_required, tutor_required
-from accounts.utils import es_admin
+from accounts.utils import es_admin, qs_base_sin_pagina
 from documentos.forms import DocumentoSubirForm
 from documentos.models import Documento
 from cotizaciones.forms import CotizacionForm
@@ -135,8 +135,19 @@ def solicitud_lista(request):
                 Q(cliente_nombre__icontains=q)
             )
 
-    solicitudes = solicitudes.order_by('-created_at')
-    paginator = Paginator(solicitudes, 20)
+    # Orden: Admin ve las más recientes primero; el tutor recibe sus tareas
+    # priorizadas (correcciones → asignadas → demás) y por fecha límite.
+    if user_is_admin:
+        solicitudes = solicitudes.order_by('-created_at')
+    else:
+        solicitudes = solicitudes.annotate(
+            prio=SolicitudAcademica.orden_prioridad_tutor()
+        ).order_by(
+            'prio',
+            F('fecha_entrega_cliente').asc(nulls_last=True),
+            '-updated_at',
+        )
+    paginator = Paginator(solicitudes, 5)
     page = request.GET.get('page', 1)
     solicitudes_page = paginator.get_page(page)
     context = {
@@ -144,6 +155,7 @@ def solicitud_lista(request):
         'form_filtro': form_filtro,
         'es_admin': user_is_admin,
         'is_paginated': solicitudes_page.has_other_pages(),
+        'qs_base': qs_base_sin_pagina(request, 'page'),
         'estados_leyenda': list(EstadoSolicitud.objects.order_by('orden').values('etiqueta', 'color_hex')),
     }
     return render(request, 'private/solicitudes/lista.html', context)
@@ -293,9 +305,12 @@ def solicitudes_disponibles(request):
     num_activas = SolicitudAcademica.activas_de_tutor(request.user).count()
     max_activas = SolicitudAcademica.MAX_SOLICITUDES_ACTIVAS_TUTOR
 
+    disponibles_page = Paginator(solicitudes, 5).get_page(request.GET.get('page', 1))
+
     return render(request, 'private/solicitudes/disponibles.html', {
-        'solicitudes': solicitudes,
+        'solicitudes': disponibles_page,
         'form_filtro': form_filtro,
+        'qs_base': qs_base_sin_pagina(request, 'page'),
         'num_solicitudes_activas': num_activas,
         'max_solicitudes_activas': max_activas,
         'puede_cotizar': num_activas < max_activas,

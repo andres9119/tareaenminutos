@@ -10,7 +10,7 @@
         <span>Mis Cotizaciones</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-file-invoice"></i> Mis Cotizaciones</h1>
+        <h1>Mis Cotizaciones</h1>
         <a href="{% url 'solicitudes_disponibles' %}" class="btn-tem btn-primary-tem">
             <i class="fas fa-list"></i> Ver Solicitudes Disponibles
         </a>
@@ -72,11 +72,12 @@
         </div>
     {% else %}
         <div class="alert-tem alert-info-tem">
-            <h4><i class="fas fa-inbox"></i> No has enviado cotizaciones aún</h4>
+            <h4>No has enviado cotizaciones aún</h4>
             <p>Revisa las <a href="{% url 'solicitudes_disponibles' %}" style="color: var(--primary);">solicitudes disponibles</a> y envía tu primera propuesta.</p>
         </div>
     {% endif %}
 </div>
 
+    {% include "private/_paginacion.html" with pagina=cotizaciones param="page" %}
 {% include "private/cotizaciones/_modal_rango.html" %}
 {% endblock %}

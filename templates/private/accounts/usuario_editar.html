@@ -1,0 +1,112 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Editar Usuario - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'usuarios_list' %}">Usuarios</a>
+        <span>›</span>
+        <span>Editar @{{ usuario_editado.username }}</span>
+    </div>
+    <div class="page-header">
+        <h1>Editar Usuario</h1>
+        <div class="page-actions">
+            <a href="{% url 'usuarios_list' %}" class="btn-tem btn-outline-tem">← Volver</a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" data-guard>
+        {% csrf_token %}
+
+        <div class="card-tem" style="margin-bottom: 1.5rem;">
+            <div class="card-body-tem">
+                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Datos del Usuario</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.username.label }}</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<div class="field-error">{{ form.username.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.rol.label }}</label>
+                        {{ form.rol }}
+                        {% if form.rol.errors %}<div class="field-error">{{ form.rol.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ form.password_nueva.label }}</label>
+                        {{ form.password_nueva }}
+                        {% if form.password_nueva.errors %}<div class="field-error">{{ form.password_nueva.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-tem" style="margin-bottom: 1.5rem;">
+            <div class="card-body-tem">
+                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">
+                    Información del Perfil
+                    {% if perfil.get_foto_url %}
+                        <img src="{{ perfil.get_foto_url }}" alt="" class="avatar-mini" style="vertical-align: middle; margin-left: 0.5rem;">
+                    {% endif %}
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ perfil_form.telefono.label }}</label>
+                        {{ perfil_form.telefono }}
+                        {% if perfil_form.telefono.errors %}<div class="field-error">{{ perfil_form.telefono.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ perfil_form.bio.label }}</label>
+                        {{ perfil_form.bio }}
+                        {% if perfil_form.bio.errors %}<div class="field-error">{{ perfil_form.bio.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group-tem">
+                        <label class="form-label-tem">{{ perfil_form.foto.label }}</label>
+                        {{ perfil_form.foto }}
+                        {% if perfil_form.foto.errors %}<div class="field-error">{{ perfil_form.foto.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if form.rol.value == 'Tutor' %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Áreas de Especialidad</h3>
+                <div class="form-group-tem" style="margin-bottom:0;">
+                    {% include "private/accounts/_areas_especialidad.html" with esp=perfil_form es_admin=True %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-top:1.5rem; text-align: right;">
+            <button type="submit" class="btn-tem btn-primary-tem" style="min-width: 150px;">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

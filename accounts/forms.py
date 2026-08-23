@@ -73,6 +73,74 @@ class UsuarioCrearForm(UserCreationForm):
         return user
 
 
+class UsuarioEditarForm(forms.ModelForm):
+    """Formulario para que un Admin edite otro usuario del sistema.
+
+    Permite modificar datos de cuenta (usuario, nombres, correo), cambiar el
+    rol (con los mismos flags que la creación: Administrador => staff+superuser),
+    y fijar una contraseña nueva opcional.
+    """
+    rol = forms.ChoiceField(
+        choices=[('Administrador', 'Administrador'), ('Tutor', 'Tutor')],
+        label='Rol',
+        widget=forms.Select(attrs={'class': 'form-select-tem'})
+    )
+    password_nueva = forms.CharField(
+        required=False,
+        label='Nueva contraseña (opcional)',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control-tem',
+            'placeholder': 'Dejar vacío para conservar la actual',
+            'autocomplete': 'new-password',
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'usuario'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'Nombre'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': 'Apellido'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control-tem', 'placeholder': 'correo@ejemplo.com'}),
+        }
+        labels = {
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+            'email': 'Correo electrónico',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.is_superuser:
+                self.initial['rol'] = 'Administrador'
+            elif self.instance.groups.filter(name='Tutor').exists():
+                self.initial['rol'] = 'Tutor'
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        rol = self.cleaned_data['rol']
+        pwd_nueva = self.cleaned_data.get('password_nueva')
+        if pwd_nueva:
+            user.set_password(pwd_nueva)
+        # Rol único, mismo criterio que UsuarioCrearForm:
+        # Administrador => acceso a /app/ y /admin/; Tutor => sin esos flags.
+        if rol == 'Administrador':
+            user.is_staff = True
+            user.is_superuser = True
+        else:
+            user.is_staff = False
+            user.is_superuser = False
+        if commit:
+            user.save()
+            for grupo_rol in user.groups.filter(name__in=['Administrador', 'Tutor']):
+                user.groups.remove(grupo_rol)
+            group, _ = Group.objects.get_or_create(name=rol)
+            user.groups.add(group)
+        return user
+
+
 class PerfilEditarForm(forms.ModelForm):
     """Formulario para editar el perfil del usuario."""
     first_name = forms.CharField(

@@ -73,7 +73,7 @@
         <span>Solicitudes</span>
     </div>
     <div class="page-header">
-        <h1><i class="fas fa-file-alt"></i> Solicitudes Académicas</h1>
+        <h1>Solicitudes Académicas</h1>
         {% if es_admin %}
             <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-plus"></i> Nueva Solicitud
@@ -181,30 +181,11 @@
         </div>
 
         {% if is_paginated %}
-        <div class="pagination-tem">
-            <span class="page-info">Página {{ solicitudes.number }} de {{ solicitudes.paginator.num_pages }}</span>
-            <div class="page-buttons">
-                {% if solicitudes.has_previous %}
-                    <a href="?page=1{% if form_filtro %}&{{ request.GET.urlencode|cut:page }}{% endif %}" class="btn-tem btn-sm-tem">&laquo;</a>
-                    <a href="?page={{ solicitudes.previous_page_number }}" class="btn-tem btn-sm-tem">&lsaquo;</a>
-                {% endif %}
-                {% for num in solicitudes.paginator.page_range %}
-                    {% if num == solicitudes.number %}
-                        <span class="btn-tem btn-sm-tem btn-active">{{ num }}</span>
-                    {% elif num > solicitudes.number|add:'-3' and num < solicitudes.number|add:'3' %}
-                        <a href="?page={{ num }}" class="btn-tem btn-sm-tem">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-                {% if solicitudes.has_next %}
-                    <a href="?page={{ solicitudes.next_page_number }}" class="btn-tem btn-sm-tem">&rsaquo;</a>
-                    <a href="?page={{ solicitudes.paginator.num_pages }}" class="btn-tem btn-sm-tem">&raquo;</a>
-                {% endif %}
-            </div>
-        </div>
+            {% include "private/_paginacion.html" with pagina=solicitudes param="page" %}
         {% endif %}
     {% else %}
         <div class="alert-tem alert-info-tem">
-            <h4><i class="fas fa-inbox"></i> No hay solicitudes</h4>
+            <h4>No hay solicitudes</h4>
             <p>No se encontraron solicitudes con los filtros seleccionados.</p>
             {% if es_admin %}
                 <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
@@ -214,32 +195,6 @@
         </div>
     {% endif %}
 </div>
-
-<style>
-.pagination-tem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glow);
-    border-top: none;
-    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
-}
-.page-info {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-.page-buttons {
-    display: flex;
-    gap: 0.4rem;
-}
-.btn-active {
-    background: var(--primary) !important;
-    color: white !important;
-    border-color: var(--primary) !important;
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

@@ -5,12 +5,12 @@ Views para accounts — Dashboards, perfiles y gestión de usuarios.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
 from django.core.paginator import Paginator
 from .models import PerfilUsuario, AreaConocimiento
-from .forms import UsuarioCrearForm, PerfilEditarForm, AreaForm
+from .forms import UsuarioCrearForm, UsuarioEditarForm, PerfilEditarForm, AreaForm
 from .decorators import admin_required, admin_o_tutor_required
-from .utils import es_admin
+from .utils import es_admin, qs_base_sin_pagina
 
 
 @admin_o_tutor_required
@@ -47,10 +47,13 @@ def dashboard_admin(request):
         groups__name='Tutor', is_active=True
     ).count()
 
-    # Solicitudes recientes
-    solicitudes_recientes = SolicitudAcademica.objects.select_related(
-        'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
-    ).order_by('-created_at')[:8]
+    # Solicitudes recientes (paginadas, 5 por página)
+    solicitudes_recientes = Paginator(
+        SolicitudAcademica.objects.select_related(
+            'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
+        ).order_by('-created_at'),
+        5,
+    ).get_page(request.GET.get('rec', 1))
 
     # Cotizaciones pendientes de revisión
     cotizaciones_pendientes = Cotizacion.objects.filter(
@@ -67,6 +70,7 @@ def dashboard_admin(request):
         'estados': estados,
         'tutores_activos': tutores_activos,
         'solicitudes_recientes': solicitudes_recientes,
+        'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
         'cotizaciones_pendientes': cotizaciones_pendientes,
         'total_mensajes_contacto': total_mensajes_contacto,
         'mensajes_no_leidos': mensajes_no_leidos,
@@ -80,11 +84,18 @@ def dashboard_tutor(request):
     from solicitudes.models import SolicitudAcademica, EstadoSolicitud
     from cotizaciones.models import Cotizacion
 
-    # Mis solicitudes asignadas
+    # Mis solicitudes asignadas: priorizadas (correcciones → asignadas → demás)
+    # y paginadas a 5 por página (parámetro propio `tareas`).
     mis_solicitudes_qs = SolicitudAcademica.objects.filter(
         tutor_asignado=request.user
-    ).select_related('estado', 'area_conocimiento').order_by('-updated_at')
-    mis_solicitudes = mis_solicitudes_qs[:10]
+    ).select_related('estado', 'area_conocimiento').annotate(
+        prio=SolicitudAcademica.orden_prioridad_tutor()
+    ).order_by(
+        'prio',
+        F('fecha_entrega_cliente').asc(nulls_last=True),
+        '-updated_at',
+    )
+    mis_solicitudes = Paginator(mis_solicitudes_qs, 5).get_page(request.GET.get('tareas', 1))
 
     # Solicitudes disponibles para cotizar (sin tutor, estado nueva/en_cotizacion).
     # Incluye las ya cotizadas por el tutor (marcadas con `ya_cotizo`) para que
@@ -103,7 +114,8 @@ def dashboard_tutor(request):
         num_cotizaciones=Count('cotizaciones'),
         monto_min=Min('cotizaciones__monto'),
         monto_max=Max('cotizaciones__monto'),
-    ).order_by('-created_at')[:6]
+    ).order_by('-created_at')
+    solicitudes_disponibles = Paginator(solicitudes_disponibles, 5).get_page(request.GET.get('disp', 1))
 
     # Mis cotizaciones enviadas
     mis_cotizaciones = Cotizacion.objects.filter(
@@ -157,6 +169,8 @@ def dashboard_tutor(request):
     context = {
         'mis_solicitudes': mis_solicitudes,
         'solicitudes_disponibles': solicitudes_disponibles,
+        'qs_base_tareas': qs_base_sin_pagina(request, 'tareas', 'disp'),
+        'qs_base_disp': qs_base_sin_pagina(request, 'tareas', 'disp'),
         'mis_cotizaciones': mis_cotizaciones,
         'perfil': perfil,
         'en_progreso_count': en_progreso_count,
@@ -210,7 +224,7 @@ def usuarios_list(request):
     paginator = Paginator(usuarios, 20)
     page = request.GET.get('page', 1)
     usuarios_page = paginator.get_page(page)
-    context = {'usuarios': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages(), 'usuario_actual_pk': request.user.pk}
+    context = {'usuarios': usuarios_page, 'pagina': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages(), 'qs_base': qs_base_sin_pagina(request, 'page'), 'usuario_actual_pk': request.user.pk}
     return render(request, 'private/accounts/usuarios_list.html', context)
 
 
@@ -248,6 +262,45 @@ def usuario_crear(request):
         perfil_form = PerfilEditarForm()
 
     return render(request, 'private/accounts/usuario_crear.html', {'form': form, 'perfil_form': perfil_form})
+
+
+@admin_required
+def usuario_editar(request, pk):
+    """Editar los datos de un usuario del sistema (solo Admin)."""
+    user = get_object_or_404(User, pk=pk)
+    if user == request.user:
+        messages.error(request, 'Usa "Mi Perfil" para editar tu propia cuenta.')
+        return redirect('usuarios_list')
+    # Protección: un admin que no sea superuser no puede editar a un superuser.
+    if not request.user.is_superuser and user.is_superuser:
+        messages.error(request, 'No puedes editar un usuario superusuario.')
+        return redirect('usuarios_list')
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        form = UsuarioEditarForm(request.POST, instance=user)
+        perfil_form = PerfilEditarForm(request.POST, request.FILES, instance=perfil, user=user)
+        if form.is_valid() and perfil_form.is_valid():
+            form.save()
+            perfil_form.save()
+            # Sincronizar especialidades (incluye el área nueva si se digitó).
+            especialidades = list(perfil_form.cleaned_data.get('especialidades') or [])
+            nueva = perfil_form.procesar_nueva_especialidad()
+            if nueva and nueva not in especialidades:
+                especialidades.append(nueva)
+            perfil.especialidades.set(especialidades)
+            messages.success(request, f'Usuario @{user.username} actualizado correctamente.')
+            return redirect('usuarios_list')
+    else:
+        form = UsuarioEditarForm(instance=user)
+        perfil_form = PerfilEditarForm(instance=perfil, user=user)
+
+    return render(request, 'private/accounts/usuario_editar.html', {
+        'form': form,
+        'perfil_form': perfil_form,
+        'usuario_editado': user,
+        'perfil': perfil,
+    })
 
 
 @admin_required
