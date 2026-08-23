@@ -479,6 +479,7 @@ footer {
 .messenger-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.1rem; text-decoration: none; color: var(--text-main); border-bottom: 1px solid var(--border-glow); transition: var(--transition-smooth); }
 .messenger-item:hover { background: var(--primary-glow); }
 .messenger-item-unread { background: rgba(6, 170, 68, 0.06); }
+.messenger-item-cerrada { opacity: 0.55; }
 .messenger-item-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
 .messenger-item-info { flex: 1; min-width: 0; }
 .messenger-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
@@ -855,7 +856,7 @@ footer {
         </div>
         <div id="messengerList" class="messenger-list">
             {% for chat in user_chats %}
-            <a href="{% url 'sala_chat' chat.id %}" data-sala="{{ chat.id }}" class="messenger-item {% if chat.no_leidos %}messenger-item-unread{% endif %}">
+            <a href="{% url 'sala_chat' chat.id %}" data-sala="{{ chat.id }}" class="messenger-item {% if chat.no_leidos %}messenger-item-unread{% elif chat.cerrada %}messenger-item-cerrada{% endif %}">
                 <div class="messenger-item-icon">
                     {% if chat.tipo == 'general' %}<i class="fas fa-bullhorn"></i>
                     {% else %}<i class="fas fa-file-alt"></i>{% endif %}
@@ -1183,7 +1184,8 @@ footer {
                             const badge = c.no_leidos
                                 ? '<span class="messenger-item-badge">' + c.no_leidos + '</span>'
                                 : '';
-                            return '<a href="' + base + c.id + '/" data-sala="' + c.id + '" class="messenger-item' + (c.no_leidos ? ' messenger-item-unread' : '') + '">' +
+                            const cls = 'messenger-item' + (c.no_leidos ? ' messenger-item-unread' : '') + ((c.cerrada && !c.no_leidos) ? ' messenger-item-cerrada' : '');
+                            return '<a href="' + base + c.id + '/" data-sala="' + c.id + '" class="' + cls + '">' +
                                 '<div class="messenger-item-icon"><i class="fas ' + icon + '"></i></div>' +
                                 '<div class="messenger-item-info">' +
                                     '<div class="messenger-item-top"><span class="messenger-item-nombre">' + c.nombre + '</span>' + hora + '</div>' +

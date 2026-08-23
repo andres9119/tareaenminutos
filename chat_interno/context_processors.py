@@ -5,16 +5,39 @@ con su último mensaje y el conteo de no leídos.
 """
 
 from datetime import datetime
+from django.db.models import Q, F, Max
 from django.utils import timezone
 from .models import SalaChat
+
+CERRADAS = ('completada', 'cancelada')
+
+
+def _es_admin(user):
+    return user.is_superuser or user.groups.filter(name='Administrador').exists()
+
+
+def _base_salas(user):
+    """Queryset de salas visibles para el usuario (sin evaluar)."""
+    if _es_admin(user):
+        return SalaChat.objects.all()
+    # Tutores: TODAS las salas generales (canal de anuncios) + solicitudes asignadas.
+    return SalaChat.objects.filter(
+        Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=user)
+    ).distinct()
 
 
 def _construir_datos_sala(sala, user):
     ultimo = sala.last_message()
+    cerrada = bool(
+        sala.solicitud
+        and sala.solicitud.estado
+        and sala.solicitud.estado.nombre in CERRADAS
+    )
     return {
         'id': sala.pk,
         'nombre': sala.nombre,
         'tipo': sala.tipo,
+        'cerrada': cerrada,
         'codigo': sala.solicitud.codigo if sala.solicitud else None,
         'titulo': sala.solicitud.titulo if sala.solicitud else None,
         'ultimo_mensaje': ultimo.contenido if ultimo else None,
@@ -26,39 +49,31 @@ def _construir_datos_sala(sala, user):
 
 
 def _salas_con_datos(user, limite=25):
-    if user.is_superuser or user.groups.filter(name='Administrador').exists():
-        salas = list(SalaChat.objects.all())
-    else:
-        # Tutores: salas generales donde participa + salas de solicitudes asignadas a él.
-        salas = _dedup(
-            # Canal General (anuncios): visible para todo el personal,
-            # sin importar si alguna vez entró a la sala.
-            list(SalaChat.objects.filter(solicitud__isnull=True)) + list(
-                SalaChat.objects.filter(
-                    solicitud__isnull=False,
-                    solicitud__tutor_asignado=user,
-                )
-            )
-        )
+    # Trae un grupo amplio y ordena por relevancia para el flotante:
+    # 1) con mensajes sin leer, 2) chats abiertos, 3) actividad reciente.
+    # Así las cientos de salas cerradas no tapan lo importante.
+    pool_size = max(limite * 4, 80)
+    salas = list(_base_salas(user)
+                 .select_related('solicitud', 'solicitud__estado')
+                 .annotate(ultima_act=Max('mensajes__created_at'))
+                 .order_by(F('ultima_act').desc(nulls_last=True), '-created_at')[:pool_size])
 
     datos = [_construir_datos_sala(s, user) for s in salas]
-    # Ordenar por actividad: último mensaje más reciente primero (sin mensajes al final)
     _sent = timezone.make_aware(datetime.min)
-    datos.sort(key=lambda d: d['ultimo_tiempo'] or _sent, reverse=True)
+    datos.sort(key=lambda d: (
+        bool(d['no_leidos']),
+        not d['cerrada'],
+        d['ultimo_tiempo'] or _sent,
+    ), reverse=True)
     return datos[:limite]
-
-
-def _dedup(salas):
-    vistos = {}
-    for s in salas:
-        vistos[s.pk] = s
-    return list(vistos.values())
 
 
 def mensajes_no_leidos_chats(user):
     """Total de mensajes no leídos en todos los chats del usuario."""
-    salas = _salas_con_datos(user, limite=999)
-    return sum(d['no_leidos'] for d in salas)
+    total = 0
+    for s in _base_salas(user):
+        total += s.unread_count(user)
+    return total
 
 
 def messenger(request):

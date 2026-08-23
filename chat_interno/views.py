@@ -4,6 +4,7 @@ Views para chat interno en tiempo real.
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.db.models import Q, Max
 from django.http import JsonResponse
 from .models import SalaChat, MensajeChat
 from solicitudes.models import SolicitudAcademica
@@ -142,17 +143,78 @@ def sala_general(request):
 
 @admin_o_tutor_required
 def mis_chats(request):
-    """Lista de salas de chat en las que participa el usuario."""
+    """Lista de chats con buscador, filtro Activos/Cerradas/Todos y paginación.
+    Pensada para cientos de salas: el flotante muestra lo caliente,
+    aquí se busca y archiva."""
+    from django.core.paginator import Paginator
+    from django.db.models import F
+    from accounts.utils import qs_base_sin_pagina
+
     user_is_admin = es_admin(request.user)
+    q = (request.GET.get('q') or '').strip()
+    filtro = request.GET.get('filtro') or 'activos'
 
     if user_is_admin:
-        salas = SalaChat.objects.all().order_by('-created_at')
+        base = SalaChat.objects.all()
     else:
-        salas = SalaChat.objects.filter(
-            participantes=request.user
-        ).order_by('-created_at')
+        base = SalaChat.objects.filter(
+            Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=request.user)
+        ).distinct()
 
-    context = {'salas': salas, 'es_admin': user_is_admin}
+    CERRADAS = ['completada', 'cancelada']
+    if filtro == 'cerradas':
+        base = base.exclude(solicitud__isnull=True).filter(
+            solicitud__estado__nombre__in=CERRADAS)
+    elif filtro == 'activos':
+        # El General siempre entra; las solicitudes cerradas van al archivo
+        base = base.filter(
+            Q(solicitud__isnull=True) |
+            ~Q(solicitud__estado__nombre__in=CERRADAS))
+
+    if q:
+        base = base.filter(
+            Q(nombre__icontains=q) |
+            Q(solicitud__codigo__icontains=q) |
+            Q(solicitud__titulo__icontains=q) |
+            Q(solicitud__cliente_nombre__icontains=q)
+        )
+
+    salas_qs = (base.select_related('solicitud', 'solicitud__estado')
+                .annotate(ultima_act=Max('mensajes__created_at'))
+                .order_by(F('ultima_act').desc(nulls_last=True), '-created_at'))
+
+    pagina = Paginator(salas_qs, 15).get_page(request.GET.get('page'))
+
+    salas_datos = []
+    for s in pagina.object_list:
+        ultimo = s.last_message()
+        cerrada = bool(s.solicitud and s.solicitud.estado.nombre in CERRADAS)
+        autor_ultimo = ''
+        if ultimo:
+            if ultimo.autor:
+                autor_ultimo = ultimo.autor.get_full_name() or ultimo.autor.username
+            else:
+                autor_ultimo = 'Usuario eliminado'
+        salas_datos.append({
+            'sala': s,
+            'no_leidos': s.unread_count(request.user),
+            'cerrada': cerrada,
+            'estado': (s.solicitud.estado if s.solicitud else None),
+            'codigo': s.solicitud.codigo if s.solicitud else None,
+            'titulo_sol': s.solicitud.titulo if s.solicitud else None,
+            'cliente': (s.solicitud.cliente_nombre if s.solicitud else '') or '',
+            'ultimo': ultimo,
+            'autor_ultimo': autor_ultimo,
+        })
+
+    context = {
+        'salas_datos': salas_datos,
+        'pagina': pagina,
+        'qs_base': qs_base_sin_pagina(request, 'page'),
+        'es_admin': user_is_admin,
+        'q': q,
+        'filtro': filtro,
+    }
     return render(request, 'private/chat_interno/mis_chats.html', context)
 
 
@@ -167,6 +229,7 @@ def datos_messenger(request):
             'id': d['id'],
             'nombre': d['nombre'],
             'tipo': d['tipo'],
+            'cerrada': d.get('cerrada', False),
             'codigo': d['codigo'],
             'titulo': d['titulo'],
             'ultimo_mensaje': d['ultimo_mensaje'],

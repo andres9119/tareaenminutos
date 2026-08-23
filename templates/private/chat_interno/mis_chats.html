@@ -19,13 +19,37 @@
         </div>
     </div>
 
-    {% if salas %}
+    <div class="card-tem" style="margin-bottom: 1rem;">
+        <div class="card-tem-body">
+            <form method="get" style="display:flex; flex-wrap:wrap; gap:0.6rem; align-items:center;">
+                <input type="text" name="q" value="{{ q }}" placeholder="Buscar por código TEM, título o cliente..."
+                       class="form-control-tem" style="flex:1; min-width:220px;">
+                <input type="hidden" name="filtro" value="{{ filtro }}">
+                <button type="submit" class="btn-tem btn-primary-tem"><i class="fas fa-search"></i> Buscar</button>
+            </form>
+            <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.7rem;">
+                <a href="?filtro=activos{% if q %}&q={{ q|urlencode }}{% endif %}"
+                   class="btn-tem btn-sm {% if filtro == 'activos' %}btn-primary-tem{% else %}btn-secondary-tem{% endif %}">
+                    Activos
+                </a>
+                <a href="?filtro=cerradas{% if q %}&q={{ q|urlencode }}{% endif %}"
+                   class="btn-tem btn-sm {% if filtro == 'cerradas' %}btn-primary-tem{% else %}btn-secondary-tem{% endif %}">
+                    Archivo (cerradas)
+                </a>
+                <a href="?filtro=todos{% if q %}&q={{ q|urlencode }}{% endif %}"
+                   class="btn-tem btn-sm {% if filtro == 'todos' %}btn-primary-tem{% else %}btn-secondary-tem{% endif %}">
+                    Todos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if salas_datos %}
     <div class="salas-grid">
-        {% for sala in salas %}
-        {% with ultimo=sala.last_message no_leidos=sala.unread_count %}
-        <a href="{% url 'sala_chat' sala.pk %}" class="sala-card">
+        {% for d in salas_datos %}
+        <a href="{% url 'sala_chat' d.sala.pk %}" class="sala-card {% if d.cerrada %}sala-cerrada{% endif %}">
             <div class="sala-icon">
-                {% if sala.tipo == 'general' %}
+                {% if d.sala.tipo == 'general' %}
                     <i class="fas fa-bullhorn"></i>
                 {% else %}
                     <i class="fas fa-file-alt"></i>
@@ -33,35 +57,45 @@
             </div>
             <div class="sala-info">
                 <div class="sala-titulo">
-                    <h3>{{ sala.nombre }}</h3>
-                    {% if no_leidos %}<span class="badge-no-leidos">{{ no_leidos }}</span>{% endif %}
+                    <h3>{{ d.sala.nombre }}</h3>
+                    {% if d.estado %}
+                        <span class="badge-tem" style="background: {{ d.estado.color_hex }}; font-size:0.65rem;">{{ d.estado.etiqueta }}</span>
+                    {% endif %}
+                    {% if d.no_leidos %}<span class="badge-no-leidos">{{ d.no_leidos }}</span>{% endif %}
                 </div>
-                {% if sala.solicitud %}
-                <p class="sala-codigo">{{ sala.solicitud.codigo }} — {{ sala.solicitud.titulo|truncatechars:50 }}</p>
+                {% if d.codigo %}
+                <p class="sala-codigo">{{ d.codigo }} — {{ d.titulo_sol|truncatechars:50 }}
+                    {% if d.cliente %}<span style="opacity:0.75;">· {{ d.cliente }}</span>{% endif %}
+                </p>
                 {% endif %}
                 <p class="sala-ultimo">
-                    {% if ultimo %}
-                        <span class="ultimo-autor {% if ultimo.autor_id == request.user.pk %}ultimo-propio{% endif %}">
-                            {{ ultimo.autor.get_full_name|default:ultimo.autor.username }}{% if ultimo.autor_id != request.user.pk %}:{% endif %}
+                    {% if d.ultimo %}
+                        <span class="ultimo-autor {% if d.ultimo.autor_id == request.user.pk %}ultimo-propio{% endif %}">
+                            {% if d.ultimo.autor_id != request.user.pk %}{{ d.autor_ultimo }}:{% else %}Tú:{% endif %}
                         </span>
-                        {{ ultimo.contenido|truncatechars:60 }}
+                        {{ d.ultimo.contenido|truncatechars:60 }}
                     {% else %}
                         <span class="sala-vacio">Sin mensajes todavía</span>
                     {% endif %}
                 </p>
             </div>
             <div class="sala-meta">
-                {% if ultimo %}<small>{{ ultimo.created_at|date:"d/m H:i" }}</small>{% endif %}
+                {% if d.ultimo %}<small>{{ d.ultimo.created_at|date:"d/m H:i" }}</small>{% endif %}
                 <i class="fas fa-chevron-right"></i>
             </div>
         </a>
-        {% endwith %}
         {% endfor %}
     </div>
+
+    {% include "private/_paginacion.html" with pagina=pagina param="page" qs_base=qs_base %}
     {% else %}
     <div class="empty-state">
         <i class="fas fa-comment-slash"></i>
-        <p>No tienes chats activos.</p>
+        <p>
+            {% if q %}Sin resultados para "{{ q }}" en este filtro.
+            {% elif filtro == 'cerradas' %}No hay chats archivados aún.
+            {% else %}No tienes chats activos.{% endif %}
+        </p>
     </div>
     {% endif %}
 </div>
@@ -87,6 +121,8 @@
     border-color: var(--border-glow-active);
     transform: translateX(4px);
 }
+.sala-cerrada { opacity: 0.62; }
+.sala-cerrada:hover { opacity: 1; }
 .sala-icon {
     width: 48px;
     height: 48px;
@@ -107,6 +143,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 .sala-info h3 {
     font-family: var(--font-heading);
@@ -147,11 +184,6 @@
 .sala-vacio {
     font-style: italic;
     opacity: 0.6;
-}
-.sala-info small {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    opacity: 0.7;
 }
 .sala-meta {
     display: flex;
