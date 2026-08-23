@@ -180,7 +180,10 @@ def solicitud_detalle(request, pk):
     # Sub-componentes
     documentos = solicitud.documentos.all().order_by('-created_at')
     documentos_entrega = documentos.filter(tipo='entrega')
-    documentos_otros = documentos.exclude(tipo='entrega')
+    # Comprobantes de pago van aparte (modal propio); el resto excluye entrega y comprobante
+    comprobantes_pago = documentos.filter(tipo='comprobante')
+    documentos_otros = documentos.exclude(tipo__in=['entrega', 'comprobante'])
+    puede_subir_comprobante = user_is_admin and solicitud.estado.nombre == 'completada'
     if user_is_admin:
         cotizaciones = solicitud.cotizaciones.select_related('tutor').order_by('monto')
     else:
@@ -225,6 +228,8 @@ def solicitud_detalle(request, pk):
         'documentos': documentos,
         'documentos_entrega': documentos_entrega,
         'documentos_otros': documentos_otros,
+        'comprobantes_pago': comprobantes_pago,
+        'puede_subir_comprobante': puede_subir_comprobante,
         'cotizaciones': cotizaciones,
         'cotizaciones_todas': cotizaciones_todas,
         'max_monto': max_monto,

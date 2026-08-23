@@ -18,6 +18,7 @@ class Notificacion(models.Model):
         ('solicitud_asignada', 'Solicitud Asignada'),
         ('cambio_estado', 'Cambio de Estado'),
         ('entrega_recibida', 'Entrega Recibida'),
+        ('comprobante_pago', 'Comprobante de Pago'),
         ('mensaje_chat', 'Nuevo Mensaje'),
         ('sistema', 'Sistema'),
     ]

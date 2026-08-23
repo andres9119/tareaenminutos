@@ -56,20 +56,74 @@ def documento_descargar(request, pk):
         )
         if not puede_ver:
             raise Http404('No tienes acceso a este documento.')
-        # Los tutores no pueden ver comprobantes de pago
-        if documento.tipo == 'comprobante':
+        # Comprobantes de pago: solo el admin y el tutor ASIGNADO a la solicitud
+        if documento.tipo == 'comprobante' and solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a este tipo de documento.')
 
 
     try:
+        # ?inline=1 muestra el archivo en el navegador (preview de imágenes del
+        # comprobante); sin él se fuerza la descarga como siempre.
+        inline = request.GET.get('inline') == '1'
         response = FileResponse(
             open(documento.archivo.path, 'rb'),
-            as_attachment=True,
+            as_attachment=not inline,
             filename=documento.nombre_original
         )
         return response
     except FileNotFoundError:
         raise Http404('El archivo no existe en el servidor.')
+
+
+@admin_required
+def documento_subir_comprobante(request, solicitud_pk):
+    """Admin carga el comprobante de pago de una tarea completada.
+    El tutor asignado puede verlo/descargarlo desde el detalle."""
+    from notificaciones.utils import crear_notificacion
+
+    solicitud = get_object_or_404(SolicitudAcademica, pk=solicitud_pk)
+
+    if solicitud.estado.nombre != 'completada':
+        messages.error(request, 'El comprobante de pago se carga cuando la tarea está completada.')
+        return redirect('solicitud_detalle', pk=solicitud_pk)
+
+    if request.method == 'POST':
+        data = request.POST.copy()
+        data['tipo'] = 'comprobante'
+        form = DocumentoSubirForm(data, request.FILES)
+        if form.is_valid():
+            documento = form.save(commit=False)
+            documento.solicitud = solicitud
+            documento.subido_por = request.user
+            documento.nombre_original = request.FILES['archivo'].name
+            documento.tamaño_bytes = request.FILES['archivo'].size
+            documento.save()
+
+            # Notificar al tutor asignado (push + persistencia)
+            if solicitud.tutor_asignado:
+                crear_notificacion(
+                    destinatario=solicitud.tutor_asignado,
+                    tipo='comprobante_pago',
+                    titulo='Comprobante de pago disponible',
+                    mensaje=(
+                        f'Se registró el pago de {solicitud.codigo}. '
+                        'Ya puedes ver el comprobante en el detalle de la tarea.'
+                    ),
+                    url_accion=f'/solicitudes/{solicitud.pk}/',
+                    solicitud_id=solicitud.pk,
+                )
+
+            messages.success(
+                request,
+                f'Comprobante "{documento.nombre_original}" cargado correctamente.'
+                + (' El tutor fue notificado.' if solicitud.tutor_asignado else '')
+            )
+        else:
+            for errores in form.errors.values():
+                for e in errores:
+                    messages.error(request, e)
+
+    return redirect('solicitud_detalle', pk=solicitud_pk)
 
 
 @admin_required

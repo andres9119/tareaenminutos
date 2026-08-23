@@ -62,6 +62,22 @@
                             <i class="fas fa-comment-dots"></i> Ver motivo de la corrección
                         </button>
                         {% endif %}
+                        {% if comprobantes_pago %}
+                        <button type="button" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;margin-top:0.75rem;border-color:var(--success);color:var(--success);" onclick="document.getElementById('comprobanteModal').style.display='flex'">
+                            <i class="fas fa-money-check-dollar"></i> Ver comprobante de pago
+                        </button>
+                        {% endif %}
+                        {% if puede_subir_comprobante %}
+                        <form method="post" action="{% url 'documento_subir_comprobante' solicitud.pk %}" enctype="multipart/form-data" style="margin-top:0.9rem;" data-guard data-confirm="¿Confirma cargar este comprobante de pago?">
+                            {% csrf_token %}
+                            <label class="form-label-tem" style="font-size:0.78rem;margin-bottom:0.25rem;">Comprobante de pago</label>
+                            <input type="file" name="archivo" required class="form-control-tem" style="font-size:0.78rem;padding:0.3rem;">
+                            <textarea name="descripcion" rows="2" class="form-control-tem" style="font-size:0.78rem;margin-top:0.4rem;" placeholder="Ej: Nequi $120.000 - 23/08"></textarea>
+                            <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;margin-top:0.4rem;">
+                                <i class="fas fa-upload"></i> Cargar Comprobante
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                     <div class="sidebar-divider"></div>
                     <div class="sidebar-section">
@@ -541,6 +557,40 @@
                 </div>
                 <p style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; margin: 0 0 0.25rem; white-space: pre-line;">{{ item.comentario }}</p>
                 <small style="color: var(--text-muted); font-size: 0.75rem;">Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if comprobantes_pago %}
+<!-- Modal comprobante de pago (visible para admin y tutor asignado) -->
+<div class="modal-overlay" id="comprobanteModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Comprobante de Pago</h3>
+            <button class="modal-close" onclick="document.getElementById('comprobanteModal').style.display='none'">&times;</button>
+        </div>
+        <div style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
+            {% for comp in comprobantes_pago %}
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas {{ comp.icono_extension }} " style="color: var(--success);"></i>
+                    <strong style="color: var(--text-main); font-size: 0.88rem;">{{ comp.nombre_original }}</strong>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">{{ comp.created_at|date:"d/m/Y H:i" }} · {{ comp.tamaño_display }}</small>
+                </div>
+                {% if comp.descripcion %}
+                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 0.5rem;">{{ comp.descripcion }}</p>
+                {% endif %}
+                {% if comp.extension in '.png,.jpg,.jpeg,.webp,.gif' %}
+                <img src="{% url 'documento_descargar' comp.pk %}?inline=1" alt="{{ comp.nombre_original }}"
+                     style="max-width:100%; max-height:320px; border:1px solid var(--border-glow); border-radius:8px; margin-bottom:0.6rem;"
+                     onerror="this.style.display='none'">
+                {% endif %}
+                <a href="{% url 'documento_descargar' comp.pk %}" class="btn-tem btn-outline-tem" style="justify-content:center;display:flex;">
+                    <i class="fas fa-download"></i> Descargar
+                </a>
             </div>
             {% endfor %}
         </div>

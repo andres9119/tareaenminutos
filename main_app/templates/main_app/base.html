@@ -647,6 +647,7 @@ footer {
                                         {% elif n.tipo == 'solicitud_asignada' %}<i class="fas fa-user-check"></i>
                                         {% elif n.tipo == 'cambio_estado' %}<i class="fas fa-exchange-alt"></i>
                                         {% elif n.tipo == 'mensaje_chat' %}<i class="fas fa-comment-dots"></i>
+                            {% elif n.tipo == 'comprobante_pago' %}<i class="fas fa-money-check-dollar"></i>
                                         {% elif n.tipo == 'cotizacion_recibida' %}<i class="fas fa-coins"></i>
                                         {% else %}<i class="fas fa-bell"></i>{% endif %}
                                     </div>
@@ -980,7 +981,7 @@ footer {
                     footer.appendChild(link);
                     dropdown.appendChild(footer);
                 }
-                const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins' };
+                const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins','comprobante_pago':'fa-money-check-dollar' };
                 const icon = iconMap[notif.tipo] || 'fa-bell';
                 const a = document.createElement('a');
                 a.href = notif.url || '/notificaciones/';
