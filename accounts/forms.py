@@ -141,6 +141,52 @@ class UsuarioEditarForm(forms.ModelForm):
         return user
 
 
+class PerfilPropioForm(forms.ModelForm):
+    """Lo que el usuario (tutor) puede editar de su PROPIO perfil:
+    solo correo, teléfono y foto.
+
+    Nombre, apellido, bio y áreas de especialidad los gestiona el Admin
+    desde la edición de usuarios; este formulario ni los muestra ni los guarda.
+    """
+    email = forms.EmailField(
+        required=True, label='Correo electrónico',
+        widget=forms.EmailInput(attrs={'class': 'form-control-tem'})
+    )
+
+    class Meta:
+        model = PerfilUsuario
+        fields = ['telefono', 'foto']
+        widgets = {
+            'telefono': forms.TextInput(attrs={'class': 'form-control-tem', 'placeholder': '+57 300 000 0000'}),
+            'foto': forms.FileInput(attrs={'class': 'form-control-tem'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self._user = user
+        if user:
+            self.fields['email'].initial = user.email
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip()
+        qs = User.objects.filter(email__iexact=email)
+        if self._user:
+            qs = qs.exclude(pk=self._user.pk)
+        if qs.exists():
+            raise forms.ValidationError('Ya existe una cuenta con ese correo.')
+        return email
+
+    def save(self, commit=True):
+        perfil = super().save(commit=False)
+        if self._user:
+            self._user.email = self.cleaned_data['email']
+            self._user.save(update_fields=['email'])
+        if commit:
+            perfil.save()
+        return perfil
+
+
 class PerfilEditarForm(forms.ModelForm):
     """Formulario para editar el perfil del usuario."""
     first_name = forms.CharField(

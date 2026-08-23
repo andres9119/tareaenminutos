@@ -8,7 +8,7 @@ from django.contrib.auth.models import User, Group
 from django.db.models import Q, Count, F
 from django.core.paginator import Paginator
 from .models import PerfilUsuario, AreaConocimiento
-from .forms import UsuarioCrearForm, UsuarioEditarForm, PerfilEditarForm, AreaForm
+from .forms import UsuarioCrearForm, UsuarioEditarForm, PerfilEditarForm, PerfilPropioForm, AreaForm
 from .decorators import admin_required, admin_o_tutor_required
 from .utils import es_admin, qs_base_sin_pagina
 
@@ -187,19 +187,26 @@ def dashboard_tutor(request):
 
 @admin_o_tutor_required
 def perfil_view(request):
-    """Ver y editar el perfil propio."""
+    """Ver y editar el perfil propio.
+
+    El Admin conserva la edición completa (nombre, bio, áreas...). El Tutor
+    solo puede cambiar su correo, teléfono y foto; el resto lo gestiona el
+    Admin desde la edición de usuarios.
+    """
     perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+    es_admin_usuario = es_admin(request.user)
+    FormClass = PerfilEditarForm if es_admin_usuario else PerfilPropioForm
 
     if request.method == 'POST':
-        form = PerfilEditarForm(request.POST, request.FILES, instance=perfil, user=request.user)
+        form = FormClass(request.POST, request.FILES, instance=perfil, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Perfil actualizado correctamente.')
             return redirect('perfil')
     else:
-        form = PerfilEditarForm(instance=perfil, user=request.user)
+        form = FormClass(instance=perfil, user=request.user)
 
-    context = {'form': form, 'perfil': perfil, 'es_admin': perfil.es_admin}
+    context = {'form': form, 'perfil': perfil, 'es_admin': es_admin_usuario}
     return render(request, 'private/accounts/perfil.html', context)
 
 
