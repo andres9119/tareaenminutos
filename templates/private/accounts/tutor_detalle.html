@@ -13,9 +13,9 @@
     <div class="page-header">
         <h1 style="display: flex; align-items: center; gap: 0.7rem;">
             {% if perfil and perfil.foto %}
-                <img src="{{ perfil.foto.url }}" alt="Foto de {{ tutor.username }}" class="avatar-mini avatar-md">
+                <img src="{{ perfil.foto.url }}" alt="Foto de {{ tutor.username }}" class="avatar-hero">
             {% else %}
-                <span class="avatar-mini avatar-md avatar-inicial">{% if tutor.first_name or tutor.last_name %}{{ tutor.first_name|first|upper }}{{ tutor.last_name|first|upper }}{% else %}{{ tutor.username|first|upper }}{% endif %}</span>
+                <span class="avatar-hero avatar-inicial">{% if tutor.first_name or tutor.last_name %}{{ tutor.first_name|first|upper }}{{ tutor.last_name|first|upper }}{% else %}{{ tutor.username|first|upper }}{% endif %}</span>
             {% endif %}
             {{ tutor.get_full_name|default:tutor.username }}
         </h1>
@@ -37,7 +37,7 @@
             </div>
             <div class="card-tem-body profile-info">
                 {% if perfil and perfil.foto %}
-                <img src="{{ perfil.foto.url }}" alt="Foto" class="profile-photo">
+                <img src="{{ perfil.foto.url }}" alt="Foto" class="profile-photo" style="width: 140px; height: 140px;">
                 {% endif %}
                 <div class="profile-details">
                     <p><strong>Usuario:</strong> @{{ tutor.username }}</p>

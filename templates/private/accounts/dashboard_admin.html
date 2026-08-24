@@ -26,6 +26,11 @@
         margin: 0;
     }
 
+    .dashboard-user-info {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
     .dashboard-actions {
         display: flex;
         gap: 1rem;
@@ -274,6 +279,9 @@
     </div>
     <div class="dashboard-header">
         <h1>Panel de Administrador</h1>
+        <div class="dashboard-user-info">
+            <span>¡Hola {{ request.user.get_full_name|default:request.user.username }}!</span>
+        </div>
         <div class="dashboard-actions">
             <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
                 <i class="fas fa-plus"></i> Nueva Solicitud

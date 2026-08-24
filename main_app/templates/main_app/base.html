@@ -45,7 +45,7 @@
       "image": "https://tareaenminutos.com/static/main_app/images/logo_negro.png",
       "@id": "https://tareaenminutos.com/#organization",
       "url": "https://tareaenminutos.com",
-      "telephone": "+573217039617",
+      "telephone": "+573126635066",
       "priceRange": "$$",
       "address": {
         "@type": "PostalAddress",
@@ -445,57 +445,6 @@ footer {
 .whatsapp-float:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 12px 35px rgba(37, 211, 102, 0.5); }
 @keyframes pulse-whatsapp { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.2); opacity: 0; } }
 
-.messenger-float {
-    position: fixed;
-    width: 60px;
-    height: 60px;
-    bottom: 112px;
-    right: 32px;
-    background: linear-gradient(135deg, var(--primary) 0%, #048a38 100%);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    font-size: 26px;
-    box-shadow: 0 8px 30px var(--primary-glow);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 9999;
-    transition: var(--transition-smooth);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-.messenger-float:hover { transform: translateY(-4px) scale(1.06); box-shadow: 0 12px 35px var(--primary-glow); }
-.messenger-badge { position: absolute; top: -4px; right: -4px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: #000; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-base); }
-.hidden { display: none !important; }
-.messenger-panel { position: fixed; bottom: 184px; right: 20px; width: 340px; max-height: 60vh; background: var(--bg-surface-opaque); border: 1px solid var(--border-glow); border-radius: var(--border-radius-lg); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); z-index: 9998; display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: translateY(16px) scale(0.96); pointer-events: none; transform-origin: bottom right; transition: opacity 0.22s ease, transform 0.22s ease; }
-.messenger-panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-.messenger-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; background: linear-gradient(135deg, var(--primary) 0%, #048a38 100%); color: #fff; flex-shrink: 0; }
-.messenger-head h3 { margin: 0; font-family: var(--font-heading); font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; }
-.messenger-head-actions { display: flex; align-items: center; gap: 0.4rem; }
-.messenger-head-actions a, .messenger-head-actions button { background: rgba(255, 255, 255, 0.15); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; transition: var(--transition-smooth); }
-.messenger-head-actions a:hover, .messenger-head-actions button:hover { background: rgba(255, 255, 255, 0.3); }
-.messenger-list { overflow-y: auto; flex: 1; }
-.messenger-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.1rem; text-decoration: none; color: var(--text-main); border-bottom: 1px solid var(--border-glow); transition: var(--transition-smooth); }
-.messenger-item:hover { background: var(--primary-glow); }
-.messenger-item-unread { background: rgba(6, 170, 68, 0.06); }
-.messenger-item-cerrada { opacity: 0.55; }
-.messenger-item-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-.messenger-item-info { flex: 1; min-width: 0; }
-.messenger-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.messenger-item-nombre { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.messenger-item-hora { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; }
-.messenger-item-prev { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-.msg-propio { color: var(--text-muted); font-weight: 600; }
-.msg-ajeno { color: var(--primary); font-weight: 600; }
-.msg-vacio { font-style: italic; opacity: 0.6; }
-.messenger-item-badge { background: var(--primary); color: #fff; border-radius: 999px; font-size: 0.68rem; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.messenger-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
-.messenger-empty i { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; display: block; }
-.messenger-footer { display: block; text-align: center; padding: 0.75rem; background: var(--bg-surface); color: var(--primary); font-weight: 600; font-size: 0.85rem; text-decoration: none; border-top: 1px solid var(--border-glow); flex-shrink: 0; }
-.messenger-footer:hover { background: var(--primary-glow); }
-@media (max-width: 480px) { .messenger-panel { right: 10px; left: 10px; width: auto; bottom: 178px; } }
-
 /* ── Ventanas de chat flotantes (estilo Facebook: forma, no colores) ── */
 #chatWins { position: fixed; bottom: 0; right: 0; z-index: 9997; display: flex; align-items: flex-end; gap: 14px; padding-right: 20px; pointer-events: none; }
 .chatwin {
@@ -695,7 +644,7 @@ footer {
                 <a href="/#servicios">Servicios</a>
                 <a href="/blog/">Blog</a>
                 <a href="/contacto/">Contacto</a>
-                {% if user.is_authenticated %}
+{% if user.is_authenticated %}
                     <div class="notif-container" id="notifContainer">
                         <button type="button" class="notif-bell" id="notifBell" title="Notificaciones" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-bell"></i>
@@ -713,8 +662,8 @@ footer {
                                         {% if n.tipo == 'nueva_solicitud' %}<i class="fas fa-file-alt"></i>
                                         {% elif n.tipo == 'solicitud_asignada' %}<i class="fas fa-user-check"></i>
                                         {% elif n.tipo == 'cambio_estado' %}<i class="fas fa-exchange-alt"></i>
-                                        {% elif n.tipo == 'mensaje_chat' %}<i class="fas fa-comment-dots"></i>
-                            {% elif n.tipo == 'comprobante_pago' %}<i class="fas fa-money-check-dollar"></i>
+                                        {% elif n.tipo == 'mensaje_chat' %><i class="fas fa-comment-dots"></i>
+                                        {% elif n.tipo == 'comprobante_pago' %}<i class="fas fa-money-check-dollar"></i>
                                         {% elif n.tipo == 'cotizacion_recibida' %}<i class="fas fa-coins"></i>
                                         {% else %}<i class="fas fa-bell"></i>{% endif %}
                                     </div>
@@ -736,6 +685,44 @@ footer {
                             {% endif %}
                         </div>
                     </div>
+                    {% if user_chats %}
+                    <div class="notif-container" id="msgContainer">
+                        <button type="button" class="notif-bell" id="msgBell" title="Mensajes" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-comment-dots"></i>
+                            {% if total_chats_unread > 0 %}
+                                <span class="notif-badge" id="msgBadge">{{ total_chats_unread }}</span>
+                            {% else %}
+                                <span class="notif-badge hidden" id="msgBadge">0</span>
+                            {% endif %}
+                        </button>
+                        <div class="notif-dropdown" id="msgDropdown" style="width: 360px;">
+                            {% if user_chats %}
+                                {% for chat in user_chats %}
+                                <a href="{% url 'sala_chat' chat.id %}" class="notif-dropdown-item notif-item-link" data-id="{{ chat.id }}">
+                                    <div class="notif-item-icon {{ chat.tipo }}">
+                                        {% if chat.tipo == 'general' %}<i class="fas fa-bullhorn"></i>
+                                        {% else %}<i class="fas fa-file-alt"></i>{% endif %}
+                                    </div>
+                                    <div class="notif-item-content">
+                                        <strong>{{ chat.nombre }}</strong>
+                                        <p>{% if chat.ultimo_mensaje %}{% if chat.es_propio_ultimo %}Tú: {% elif chat.ultimo_autor %}{{ chat.ultimo_autor }}: {% endif %}{{ chat.ultimo_mensaje|truncatechars:50 }}{% else %}Sin mensajes{% endif %}</p>
+                                        <small>{% if chat.ultimo_tiempo %}{{ chat.ultimo_tiempo|timesince }}{% else %}Nunca{% endif %}</small>
+                                    </div>
+                                    {% if chat.no_leidos %}<span class="notif-badge" style="position:static;margin-left:auto;">{{ chat.no_leidos }}</span>{% endif %}
+                                </a>
+                                {% endfor %}
+                                <div class="notif-dropdown-footer">
+                                    <a href="{% url 'mis_chats' %}">Ver todos los chats</a>
+                                </div>
+                            {% else %}
+                                <div class="notif-dropdown-empty">
+                                    <i class="fas fa-comment-slash"></i>
+                                    <p>No tienes chats aún</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                     <a href="/app/dashboard/" class="nav-panel-btn"><i class="fas fa-chart-line"></i> Mi Panel</a>
                     <a href="/app/perfil/" class="nav-panel-btn nav-perfil-btn"><i class="fas fa-user"></i> Mi Perfil</a>
                     <a href="/logout/" class="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</a>
@@ -817,7 +804,7 @@ footer {
                         </li>
                         <li>
                             <i class="fas fa-phone-alt"></i>
-                            <span>+57 321 703 9617</span>
+                            <span>+57 312 663 5066</span>
                         </li>
                         <li>
                             <i class="fas fa-clock"></i>
@@ -835,57 +822,9 @@ footer {
     </footer>
 
     <!-- Floating WhatsApp button -->
-    <a href="https://wa.me/573217039617?text=Hola,%20necesito%20ayuda%20con%20una%20tarea%20universitaria." target="_blank" aria-label="Contactar por WhatsApp" class="whatsapp-float">
+    <a href="https://wa.me/573126635066?text=Hola,%20necesito%20ayuda%20con%20una%20tarea%20universitaria." target="_blank" aria-label="Contactar por WhatsApp" class="whatsapp-float">
         <i class="fab fa-whatsapp"></i>
     </a>
-
-    {% if user_chats %}
-    <!-- Messenger flotante de chat (usuarios internos) -->
-    <button id="messengerBtn" class="messenger-float" aria-label="Abrir chats" aria-expanded="false">
-        <i class="fas fa-comment-dots"></i>
-        <span id="messengerBadge" class="messenger-badge {% if not total_chats_unread %}hidden{% endif %}">{{ total_chats_unread }}</span>
-    </button>
-
-    <div id="messengerPanel" class="messenger-panel">
-        <div class="messenger-head">
-            <h3><i class="fas fa-comments"></i> Chats</h3>
-            <div class="messenger-head-actions">
-                <a href="{% url 'mis_chats' %}" class="messenger-ver-todos"><i class="fas fa-th-large"></i></a>
-                <button id="messengerClose" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-        <div id="messengerList" class="messenger-list">
-            {% for chat in user_chats %}
-            <a href="{% url 'sala_chat' chat.id %}" data-sala="{{ chat.id }}" class="messenger-item {% if chat.no_leidos %}messenger-item-unread{% elif chat.cerrada %}messenger-item-cerrada{% endif %}">
-                <div class="messenger-item-icon">
-                    {% if chat.tipo == 'general' %}<i class="fas fa-bullhorn"></i>
-                    {% else %}<i class="fas fa-file-alt"></i>{% endif %}
-                </div>
-                <div class="messenger-item-info">
-                    <div class="messenger-item-top">
-                        <span class="messenger-item-nombre">{{ chat.nombre }}</span>
-                        {% if chat.ultimo_tiempo %}<span class="messenger-item-hora">{{ chat.ultimo_tiempo|date:"H:i" }}</span>{% endif %}
-                    </div>
-                    <div class="messenger-item-prev">
-                        {% if chat.ultimo_mensaje %}
-                            <span class="{% if chat.es_propio_ultimo %}msg-propio{% else %}msg-ajeno{% endif %}">
-                                {% if chat.es_propio_ultimo %}Tú:{% elif chat.ultimo_autor %}{{ chat.ultimo_autor }}:{% endif %}
-                            </span>
-                            {{ chat.ultimo_mensaje|truncatechars:40 }}
-                        {% else %}
-                            <span class="msg-vacio">Sin mensajes</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% if chat.no_leidos %}<span class="messenger-item-badge">{{ chat.no_leidos }}</span>{% endif %}
-            </a>
-            {% empty %}
-            <div class="messenger-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún.</p></div>
-            {% endfor %}
-        </div>
-        <a href="{% url 'mis_chats' %}" class="messenger-footer">Ver todos los chats</a>
-    </div>
-    {% endif %}
 
     <!-- Theme Toggle + Mobile Menu + Auto-hide Alerts -->
     <script>
@@ -1133,73 +1072,94 @@ footer {
     {% if user_chats %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const messengerBtn = document.getElementById('messengerBtn');
-            const messengerPanel = document.getElementById('messengerPanel');
-            const messengerClose = document.getElementById('messengerClose');
-            const messengerBadge = document.getElementById('messengerBadge');
+            const msgBell = document.getElementById('msgBell');
+            const msgContainer = document.getElementById('msgContainer');
+            const msgBadge = document.getElementById('msgBadge');
+            const msgDropdown = document.getElementById('msgDropdown');
 
-            function togglePanel(force) {
-                const willOpen = typeof force === 'boolean' ? force : !messengerPanel.classList.contains('open');
-                messengerPanel.classList.toggle('open', willOpen);
-                messengerBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            function getCookie(name) {
+                var value = '; ' + document.cookie;
+                var parts = value.split('; ' + name + '=');
+                if (parts.length === 2) return parts.pop().split(';').shift();
             }
 
-            messengerBtn.addEventListener('click', function() { togglePanel(); });
-            messengerClose.addEventListener('click', function() { togglePanel(false); });
-            document.addEventListener('click', function(e) {
-                if (!messengerPanel.classList.contains('open')) return;
-                if (!messengerPanel.contains(e.target) && !messengerBtn.contains(e.target)) {
-                    togglePanel(false);
-                }
-            });
+            if (msgBell && msgContainer) {
+                msgBell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const open = msgContainer.classList.toggle('open');
+                    msgBell.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!msgContainer.contains(e.target)) {
+                        msgContainer.classList.remove('open');
+                        msgBell.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
 
-            function actualizarChats() {
+            function actualizarMensajes() {
                 fetch('/app/chat/datos/')
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         const total = data.total_no_leidos;
-                        if (total > 0) {
-                            messengerBadge.textContent = total > 99 ? '99+' : total;
-                            messengerBadge.classList.remove('hidden');
-                        } else {
-                            messengerBadge.classList.add('hidden');
+                        if (msgBadge) {
+                            if (total > 0) {
+                                msgBadge.textContent = total > 99 ? '99+' : total;
+                                msgBadge.classList.remove('hidden');
+                            } else {
+                                msgBadge.classList.add('hidden');
+                            }
                         }
-                        const list = document.getElementById('messengerList');
-                        if (!list) return;
-                        if (data.chats.length === 0) {
-                            list.innerHTML = '<div class="messenger-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aun.</p></div>';
-                            return;
+                        if (msgDropdown) {
+                            if (data.chats.length === 0) {
+                                msgDropdown.innerHTML = '<div class="notif-dropdown-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún</p></div>' +
+                                    '<div class="notif-dropdown-footer"><a href="{% url \'mis_chats\' %}">Ver todos los chats</a></div>';
+                                return;
+                            }
+                            const base = '/app/chat/';
+                            msgDropdown.innerHTML = data.chats.map(function(c) {
+                                const icon = c.tipo === 'general' ? 'fa-bullhorn' : 'fa-file-alt';
+                                const prev = c.ultimo_mensaje
+                                    ? '<span class="' + (c.es_propio_ultimo ? 'msg-propio' : 'msg-ajeno') + '">' +
+                                        (c.es_propio_ultimo ? 'Tú: ' : (c.ultimo_autor || '') + ': ') + '</span> ' +
+                                        c.ultimo_mensaje
+                                    : '<span class="msg-vacio">Sin mensajes</span>';
+                                const hora = c.ultimo_tiempo
+                                    ? '<small>' + new Date(c.ultimo_tiempo).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'}) + '</small>'
+                                    : '<small>Nunca</small>';
+                                const badge = c.no_leidos
+                                    ? '<span class="notif-badge" style="position:static;margin-left:auto;">' + c.no_leidos + '</span>'
+                                    : '';
+                                return '<a href="' + base + c.id + '/" class="notif-dropdown-item notif-item-link" data-id="' + c.id + '">' +
+                                    '<div class="notif-item-icon ' + c.tipo + '"><i class="fas ' + icon + '"></i></div>' +
+                                    '<div class="notif-item-content">' +
+                                        '<strong>' + c.nombre + '</strong>' +
+                                        '<p>' + prev + '</p>' +
+                                        hora +
+                                    '</div>' + badge + '</a>';
+                            }).join('');
+                            // Re-attach click handlers for mark-as-read
+                            msgDropdown.querySelectorAll('.notif-item-link').forEach(function(item) {
+                                item.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    var url = item.getAttribute('href');
+                                    var id = item.getAttribute('data-id');
+                                    fetch('/notificaciones/' + id + '/leida/', {
+                                        method: 'POST',
+                                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                                        keepalive: true
+                                    }).then(function() { window.location.href = url; });
+                                });
+                            });
                         }
-                        const base = '/app/chat/';
-                        list.innerHTML = data.chats.map(function(c) {
-                            const icon = c.tipo === 'general' ? 'fa-bullhorn' : 'fa-file-alt';
-                            const prev = c.ultimo_mensaje
-                                ? '<span class="' + (c.es_propio_ultimo ? 'msg-propio' : 'msg-ajeno') + '">' +
-                                    (c.es_propio_ultimo ? 'Tu:' : (c.ultimo_autor || '') + ':') + '</span> ' +
-                                    c.ultimo_mensaje
-                                : '<span class="msg-vacio">Sin mensajes</span>';
-                            const hora = c.ultimo_tiempo
-                                ? '<span class="messenger-item-hora">' + new Date(c.ultimo_tiempo).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'}) + '</span>'
-                                : '';
-                            const badge = c.no_leidos
-                                ? '<span class="messenger-item-badge">' + c.no_leidos + '</span>'
-                                : '';
-                            const cls = 'messenger-item' + (c.no_leidos ? ' messenger-item-unread' : '') + ((c.cerrada && !c.no_leidos) ? ' messenger-item-cerrada' : '');
-                            return '<a href="' + base + c.id + '/" data-sala="' + c.id + '" class="' + cls + '">' +
-                                '<div class="messenger-item-icon"><i class="fas ' + icon + '"></i></div>' +
-                                '<div class="messenger-item-info">' +
-                                    '<div class="messenger-item-top"><span class="messenger-item-nombre">' + c.nombre + '</span>' + hora + '</div>' +
-                                    '<div class="messenger-item-prev">' + prev + '</div>' +
-                                '</div>' + badge + '</a>';
-                        }).join('');
                     })
                     .catch(function() { /* silencioso */ });
             }
 
-            setInterval(actualizarChats, 20000);
+            setInterval(actualizarMensajes, 20000);
 
-            // Exponer para el módulo de ventanas (actualiza badge tras mensajes)
-            window.__actualizarChats = actualizarChats;
+            window.__actualizarChats = actualizarMensajes;
         });
     </script>
 
@@ -1414,17 +1374,6 @@ footer {
                 abiertos.delete(id);
                 persistir();
                 reflow();
-            }
-
-            // Clic en conversaciones del panel → ventana flotante (fallback sin JS: navega)
-            var lista = document.getElementById('messengerList');
-            if (lista) {
-                lista.addEventListener('click', function(e) {
-                    var a = e.target.closest('a.messenger-item[data-sala]');
-                    if (!a) return;
-                    e.preventDefault();
-                    abrir(a.dataset.sala);
-                });
             }
 
             // Reabrir las ventanas guardadas (excepto la sala de la página actual)
