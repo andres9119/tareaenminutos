@@ -279,6 +279,10 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
+# Orígenes de confianza para CSRF (requerido en producción con HTTPS + proxy)
+# Dominios permitidos separados por coma. Ej: https://tareaenminutos.com,https://www.tareaenminutos.com
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()]
+
 # Sesión: expira por inactividad REAL del usuario (10 minutos, pedido del cliente).
 # NO se usa SESSION_SAVE_EVERY_REQUEST: el polling en background del messenger
 # (/app/chat/datos/, /mensajes/) no cuenta como actividad ni renueva la sesión.
