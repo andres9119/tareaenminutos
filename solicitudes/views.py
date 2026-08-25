@@ -185,11 +185,11 @@ def solicitud_detalle(request, pk):
     documentos_otros = documentos.exclude(tipo__in=['entrega', 'comprobante'])
     puede_subir_comprobante = user_is_admin and solicitud.estado.nombre == 'completada'
     if user_is_admin:
-        cotizaciones = solicitud.cotizaciones.select_related('tutor').order_by('monto')
+        cotizaciones = solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto')
     else:
-        cotizaciones = solicitud.cotizaciones.filter(tutor=request.user).select_related('tutor')
+        cotizaciones = solicitud.cotizaciones.filter(tutor=request.user).select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades')
     # Todas las cotizaciones (de todos los tutores) para el gráfico de rangos de precios.
-    cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor').order_by('monto'))
+    cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto'))
     montos = [c.monto for c in cotizaciones_todas if c.monto]
     max_monto = max(montos) if montos else 0
     precios_resumen = None

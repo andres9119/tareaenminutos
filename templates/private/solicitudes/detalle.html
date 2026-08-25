@@ -434,7 +434,23 @@
                     <tbody>
                         {% for cotizacion in cotizaciones %}
                         <tr>
-                            <td>{{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}</td>
+                            <td>
+                                {% if es_admin %}
+                                <a href="#" class="tutor-info-link" data-tutor-id="{{ cotizacion.tutor.pk }}"
+                                   data-tutor-name="{{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}"
+                                   data-tutor-email="{{ cotizacion.tutor.email }}"
+                                   data-tutor-foto="{{ cotizacion.tutor.perfil.get_foto_url }}"
+                                   data-tutor-bio="{{ cotizacion.tutor.perfil.bio|escapejs }}"
+                                   data-tutor-calificacion="{{ cotizacion.tutor.perfil.calificacion_promedio|floatformat:1 }}"
+                                   data-tutor-trabajos="{{ cotizacion.tutor.perfil.trabajos_completados }}"
+                                   data-tutor-disponible="{{ cotizacion.tutor.perfil.disponible|yesno:'Sí,No' }}"
+                                   data-tutor-especialidades="{% for esp in cotizacion.tutor.perfil.especialidades.all %}{{ esp.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                    {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}
+                                </a>
+                                {% else %}
+                                    {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}
+                                {% endif %}
+                            </td>
                             <td>${{ cotizacion.monto|floatformat:0 }}</td>
                             <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
                             <td>{{ cotizacion.fecha_entrega_propuesta|date:"d/m/Y" }}</td>
@@ -1048,5 +1064,244 @@
 }
 details summary { list-style: none; }
 details summary::-webkit-details-marker { display: none; }
+
+/* Modal tutor info */
+.tutor-info-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+.tutor-info-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+.tutor-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modal-fade-in 0.2s ease-out;
+}
+.tutor-modal-box {
+    background: var(--bg-surface-opaque);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--border-radius-lg);
+    padding: 0;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modal-scale-in 0.25s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.tutor-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-glow);
+}
+.tutor-modal-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tutor-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
+}
+.tutor-modal-close:hover {
+    color: var(--text-main);
+    background: var(--bg-base);
+}
+.tutor-modal-body {
+    padding: 1.5rem;
+}
+.tutor-modal-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-glow);
+    margin: 0 auto 1rem;
+    display: block;
+}
+.tutor-modal-name {
+    text-align: center;
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    color: var(--text-main);
+    margin: 0 0 0.25rem;
+}
+.tutor-modal-email {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+.tutor-modal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-base);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-glow);
+}
+.tutor-modal-stat {
+    text-align: center;
+}
+.tutor-modal-stat-value {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.tutor-modal-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.tutor-modal-bio {
+    margin-bottom: 1rem;
+}
+.tutor-modal-bio h5 {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+.tutor-modal-bio p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+.tutor-modal-especialidades h5 {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+.tutor-modal-especialidades .badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.tutor-modal-especialidades .badge-tem {
+    background: var(--primary-glow);
+    color: var(--primary);
+    font-weight: 500;
+}
 </style>
+
+{% if es_admin %}
+<!-- Modal info tutor -->
+<div class="tutor-modal-overlay" id="tutorModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="tutor-modal-box">
+        <div class="tutor-modal-header">
+            <h3><i class="fas fa-user-circle"></i> Información del Tutor</h3>
+            <button class="modal-close tutor-modal-close" onclick="document.getElementById('tutorModal').style.display='none'">&times;</button>
+        </div>
+        <div class="tutor-modal-body">
+            <img id="tutorModalFoto" src="" alt="Foto del tutor" class="tutor-modal-avatar">
+            <h4 id="tutorModalNombre" class="tutor-modal-name"></h4>
+            <p id="tutorModalEmail" class="tutor-modal-email"></p>
+            
+            <div class="tutor-modal-stats">
+                <div class="tutor-modal-stat">
+                    <span id="tutorModalCalificacion" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Calificación</span>
+                </div>
+                <div class="tutor-modal-stat">
+                    <span id="tutorModalTrabajos" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Trabajos</span>
+                </div>
+                <div class="tutor-modal-stat">
+                    <span id="tutorModalDisponible" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Disponible</span>
+                </div>
+            </div>
+            
+            <div class="tutor-modal-bio">
+                <h5>Descripción</h5>
+                <p id="tutorModalBio">—</p>
+            </div>
+            
+            <div class="tutor-modal-especialidades">
+                <h5>Áreas de Especialidad</h5>
+                <div id="tutorModalEspecialidades" class="badge-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal info tutor (solo admin)
+    document.querySelectorAll('.tutor-info-link').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var modal = document.getElementById('tutorModal');
+            if (!modal) return;
+            
+            document.getElementById('tutorModalFoto').src = this.dataset.tutorFoto || '';
+            document.getElementById('tutorModalNombre').textContent = this.dataset.tutorName || '';
+            document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
+            document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
+            document.getElementById('tutorModalTrabajos').textContent = this.dataset.tutorTrabajos || '—';
+            document.getElementById('tutorModalDisponible').textContent = this.dataset.tutorDisponible || '—';
+            document.getElementById('tutorModalBio').textContent = this.dataset.tutorBio || 'Sin descripción';
+            
+            // Especialidades
+            var especialidades = (this.dataset.tutorEspecialidades || '').split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
+            var contenedor = document.getElementById('tutorModalEspecialidades');
+            contenedor.innerHTML = '';
+            if (especialidades.length) {
+                especialidades.forEach(function(esp) {
+                    var span = document.createElement('span');
+                    span.className = 'badge-tem';
+                    span.textContent = esp;
+                    contenedor.appendChild(span);
+                });
+            } else {
+                contenedor.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Sin áreas asignadas</span>';
+            }
+            
+            modal.style.display = 'flex';
+        });
+    });
+    
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.tutor-modal-overlay').forEach(function(m) { m.style.display = 'none'; });
+            document.querySelectorAll('.modal-overlay').forEach(function(m) { m.style.display = 'none'; });
+        }
+    });
+});
+</script>
 {% endblock %}
