@@ -1144,13 +1144,17 @@ footer {
                             msgDropdown.querySelectorAll('.notif-item-link').forEach(function(item) {
                                 item.addEventListener('click', function(e) {
                                     e.preventDefault();
-                                    var url = item.getAttribute('href');
                                     var id = item.getAttribute('data-id');
+                                    // Abrir ventana flotante de chat en lugar de navegar
+                                    if (window.abrirChat) {
+                                        window.abrirChat(id);
+                                    }
+                                    // Marcar como leído en background
                                     fetch('/notificaciones/' + id + '/leida/', {
                                         method: 'POST',
                                         headers: { 'X-CSRFToken': getCookie('csrftoken') },
                                         keepalive: true
-                                    }).then(function() { window.location.href = url; });
+                                    });
                                 });
                             });
                         }
@@ -1337,6 +1341,7 @@ footer {
             }
 
             async function abrir(id) {
+                window.abrirChat = abrir; // exponer globalmente para el dropdown de mensajes
                 id = parseInt(id, 10);
                 if (abiertos.has(id)) {
                     var sx = abiertos.get(id);
