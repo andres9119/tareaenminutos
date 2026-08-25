@@ -1408,6 +1408,7 @@ footer {
             if (!forms.length) return;
 
             var sucio = false;
+            var enviado = false;
 
             function campoModificado(el) {
                 if (!el.name || el.disabled) return false;
@@ -1421,8 +1422,8 @@ footer {
             }
 
             function hayDatosSinGuardar() {
+                if (enviado) return false;
                 if (sucio) return true;
-                /* Respaldo: detecta datos tras volver con el boton atras (bfcache) */
                 return forms.some(function (form) {
                     return Array.prototype.some.call(form.elements, campoModificado);
                 });
@@ -1432,10 +1433,6 @@ footer {
                 form.addEventListener('input', function () { sucio = true; }, true);
                 form.addEventListener('change', function () { sucio = true; }, true);
                 form.addEventListener('reset', function () { sucio = false; });
-                /* Confirmacion antes de enviar. La validacion nativa bloquea
-                   el submit antes de este handler, asi que solo se pregunta
-                   cuando el formulario esta listo para partir. Si se cancela,
-                   no se envia y los datos siguen marcados como sin guardar. */
                 var mensajeConfirm = form.getAttribute('data-confirm') ||
                     '¿Confirma que desea enviar este formulario?';
                 form.addEventListener('submit', function (e) {
@@ -1443,7 +1440,7 @@ footer {
                         e.preventDefault();
                         return;
                     }
-                    sucio = false;
+                    enviado = true;
                 }, true);
             });
 
