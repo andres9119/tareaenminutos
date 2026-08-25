@@ -218,6 +218,11 @@
         border-collapse: collapse;
     }
 
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .table-tem th {
         text-align: left;
         padding: 0.75rem 1rem;
@@ -282,6 +287,27 @@
         .btn-tem {
             width: 100%;
             justify-content: center;
+        }
+        .breadcrumb {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-container {
+            padding: 1rem;
+        }
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .breadcrumb {
+            font-size: 0.75rem;
         }
     }
 </style>
@@ -379,7 +405,8 @@
         </div>
         <div class="section-body">
             {% if solicitudes_recientes %}
-                <table class="table-tem">
+                <div class="table-responsive">
+                    <table class="table-tem">
                     <thead>
                         <tr>
                             <th>Código</th>
@@ -417,6 +444,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 {% include "private/_paginacion.html" with pagina=solicitudes_recientes param="rec" qs_base=qs_base_rec %}
             {% else %}
                 <div class="empty-state">
