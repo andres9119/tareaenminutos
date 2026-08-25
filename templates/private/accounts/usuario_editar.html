@@ -18,95 +18,145 @@
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" data-guard>
-        {% csrf_token %}
-
-        <div class="card-tem" style="margin-bottom: 1.5rem;">
-            <div class="card-body-tem">
-                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Datos del Usuario</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
-
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.first_name.label }}</label>
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors }}</div>{% endif %}
-                    </div>
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.last_name.label }}</label>
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors }}</div>{% endif %}
-                    </div>
-
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.username.label }}</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}<div class="field-error">{{ form.username.errors }}</div>{% endif %}
-                    </div>
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.email.label }}</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
-                    </div>
-
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.rol.label }}</label>
-                        {{ form.rol }}
-                        {% if form.rol.errors %}<div class="field-error">{{ form.rol.errors }}</div>{% endif %}
-                    </div>
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ form.password_nueva.label }}</label>
-                        {{ form.password_nueva }}
-                        {% if form.password_nueva.errors %}<div class="field-error">{{ form.password_nueva.errors }}</div>{% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-tem" style="margin-bottom: 1.5rem;">
-            <div class="card-body-tem">
-                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">
-                    Información del Perfil
+    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem;">
+        <!-- Panel izquierdo: datos básicos del usuario -->
+        <div>
+            <div class="card-tem" style="text-align: center;">
+                <div class="card-body-tem">
                     {% if perfil.get_foto_url %}
-                        <img src="{{ perfil.get_foto_url }}" alt="" class="avatar-hero" style="vertical-align: middle; margin-left: 0.5rem;">
+                        <img src="{{ perfil.get_foto_url }}" alt="Foto de perfil" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+                    {% else %}
+                        <div style="width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 1rem; background: var(--primary-glow); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--primary);">
+                            <i class="fas fa-user"></i>
+                        </div>
                     {% endif %}
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
+                    <h4 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 0.25rem;">{{ usuario_editado.get_full_name|default:usuario_editado.username }}</h4>
+                    <p style="color: var(--text-muted); margin-bottom: 0.75rem;">{{ usuario_editado.email }}</p>
+                    {% if perfil.es_admin %}
+                        <span class="badge-tem" style="background: var(--primary); color: #ffffff;">Administrador</span>
+                    {% elif perfil.es_tutor %}
+                        <span class="badge-tem" style="background: var(--success); color: #ffffff;">Tutor</span>
+                    {% endif %}
 
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ perfil_form.telefono.label }}</label>
-                        {{ perfil_form.telefono }}
-                        {% if perfil_form.telefono.errors %}<div class="field-error">{{ perfil_form.telefono.errors }}</div>{% endif %}
-                    </div>
-
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ perfil_form.bio.label }}</label>
-                        {{ perfil_form.bio }}
-                        {% if perfil_form.bio.errors %}<div class="field-error">{{ perfil_form.bio.errors }}</div>{% endif %}
-                    </div>
-
-                    <div class="form-group-tem">
-                        <label class="form-label-tem">{{ perfil_form.foto.label }}</label>
-                        {{ perfil_form.foto }}
-                        {% if perfil_form.foto.errors %}<div class="field-error">{{ perfil_form.foto.errors }}</div>{% endif %}
+                    <hr style="border: none; border-top: 1px solid var(--border-glow); margin: 1rem 0;">
+                    <div style="text-align: left;">
+                        <div class="form-group-tem" style="margin-bottom: 0.5rem;">
+                            <label class="form-label-tem">Usuario</label>
+                            <p style="margin: 0; color: var(--text-main); font-weight: 500;">@{{ usuario_editado.username }}</p>
+                        </div>
+                        <div class="form-group-tem" style="margin-bottom: 0.5rem;">
+                            <label class="form-label-tem">Nombre</label>
+                            <p style="margin: 0; color: var(--text-main); font-weight: 500;">{{ usuario_editado.first_name|default:"Sin registrar" }}</p>
+                        </div>
+                        <div class="form-group-tem" style="margin-bottom: 0.5rem;">
+                            <label class="form-label-tem">Apellido</label>
+                            <p style="margin: 0; color: var(--text-main); font-weight: 500;">{{ usuario_editado.last_name|default:"Sin registrar" }}</p>
+                        </div>
+                        <div class="form-group-tem" style="margin-bottom: 0;">
+                            <label class="form-label-tem">Áreas de especialidad</label>
+                            {% if perfil.especialidades.exists %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                    {% for area in perfil.especialidades.all %}
+                                        <span class="badge-tem" style="background: var(--primary-glow); color: var(--text-main); font-weight: 500;">{{ area.nombre }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p style="margin: 0; color: var(--text-muted);">Sin áreas asignadas aún</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {% if form.rol.value == 'Tutor' %}
-        <div class="card-tem">
-            <div class="card-body-tem">
-                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Áreas de Especialidad</h3>
-                <div class="form-group-tem" style="margin-bottom:0;">
-                    {% include "private/accounts/_areas_especialidad.html" with esp=perfil_form es_admin=True %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
+        <!-- Panel derecho: formulario de edición -->
+        <div>
+            <form method="post" enctype="multipart/form-data" data-guard>
+                {% csrf_token %}
 
-        <div style="margin-top:1.5rem; text-align: right;">
-            <button type="submit" class="btn-tem btn-primary-tem" style="min-width: 150px;">Guardar Cambios</button>
+                <div class="card-tem" style="margin-bottom: 1.5rem;">
+                    <div class="card-body-tem">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Datos del Usuario</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}<div class="field-error">{{ form.first_name.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}<div class="field-error">{{ form.last_name.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.username.label }}</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}<div class="field-error">{{ form.username.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.rol.label }}</label>
+                                {{ form.rol }}
+                                {% if form.rol.errors %}<div class="field-error">{{ form.rol.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ form.password_nueva.label }}</label>
+                                {{ form.password_nueva }}
+                                {% if form.password_nueva.errors %}<div class="field-error">{{ form.password_nueva.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-tem" style="margin-bottom: 1.5rem;">
+                    <div class="card-body-tem">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Información del Perfil</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.5rem;">
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ perfil_form.telefono.label }}</label>
+                                {{ perfil_form.telefono }}
+                                {% if perfil_form.telefono.errors %}<div class="field-error">{{ perfil_form.telefono.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ perfil_form.bio.label }}</label>
+                                {{ perfil_form.bio }}
+                                {% if perfil_form.bio.errors %}<div class="field-error">{{ perfil_form.bio.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group-tem">
+                                <label class="form-label-tem">{{ perfil_form.foto.label }}</label>
+                                {{ perfil_form.foto }}
+                                {% if perfil_form.foto.errors %}<div class="field-error">{{ perfil_form.foto.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if form.rol.value == 'Tutor' %}
+                <div class="card-tem">
+                    <div class="card-body-tem">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);">Áreas de Especialidad</h3>
+                        <div class="form-group-tem" style="margin-bottom:0;">
+                            {% include "private/accounts/_areas_especialidad.html" with esp=perfil_form es_admin=True %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-top:1.5rem; text-align: right;">
+                    <button type="submit" class="btn-tem btn-primary-tem" style="min-width: 150px;">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
