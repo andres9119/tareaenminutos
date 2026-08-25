@@ -1,0 +1,167 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Usuarios Online - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <a href="{% url 'usuarios_list' %}">Usuarios</a>
+        <span>›</span>
+        <span>Usuarios Online</span>
+    </div>
+    <div class="page-header">
+        <h1>Usuarios Conectados Ahora</h1>
+        <div class="page-actions">
+            <a href="{% url 'usuarios_list' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-arrow-left"></i> Volver a Usuarios
+            </a>
+        </div>
+    </div>
+
+    {% if usuarios_online %}
+    <div class="card-tem">
+        <div class="card-body-tem" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios_online %}
+                        <tr>
+                            <td>
+                                <span class="avatar-user-cell">
+                                    {% if u.perfil_foto %}
+                                        <img src="{{ u.perfil_foto }}" alt="Foto de {{ u.username }}" class="avatar-mini">
+                                    {% else %}
+                                        <span class="avatar-mini avatar-inicial">{{ u.full_name|first|upper }}</span>
+                                    {% endif %}
+                                    <strong>{{ u.username }}</strong>
+                                </span>
+                            </td>
+                            <td>{{ u.full_name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                {% for g in u.groups %}
+                                    <span class="badge-tem" style="background: {% if g == 'Administrador' %}var(--primary){% else %}var(--success){% endif %}; color: white;">{{ g }}</span>
+                                {% empty %}
+                                    <span class="text-muted-tem">—</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <span class="status-badge online">
+                                    <span class="status-dot"></span> En línea
+                                </td>
+                            </td>
+                            <td>
+                                {% if u.perfil_es_tutor %}
+                                    <a href="{% url 'sala_general' %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" target="_blank">
+                                        <i class="fas fa-comment"></i> Chat General
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'sala_general' %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" target="_blank">
+                                        <i class="fas fa-comment"></i> Chat General
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert-tem alert-info-tem">
+        <h4>No hay usuarios conectados</h4>
+        <p>Ningún usuario tiene una sesión WebSocket activa en este momento.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .avatar-user-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .avatar-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .avatar-inicial {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary-glow);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge.online {
+        color: var(--success);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .text-muted-tem {
+        color: var(--text-muted);
+    }
+
+    .btn-tem.btn-outline-tem {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid var(--border-glow);
+    }
+
+    .btn-tem.btn-outline-tem:hover {
+        background: var(--primary-glow);
+        border-color: var(--primary);
+    }
+</style>
+{% endblock %}

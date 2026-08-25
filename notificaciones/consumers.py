@@ -3,7 +3,9 @@ Notification Consumer — WebSocket para notificaciones en tiempo real.
 """
 
 import json
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
+from accounts.presence import mark_online, mark_offline, heartbeat
 
 
 class NotificacionConsumer(AsyncWebsocketConsumer):
@@ -11,10 +13,22 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.user = self.scope['user']
+        self._heartbeat_task = None
 
         if not self.user.is_authenticated:
             await self.close()
             return
+
+        # Marcar usuario como online
+        user_info = {
+            'username': self.user.username,
+            'full_name': self.user.get_full_name() or self.user.username,
+            'is_staff': self.user.is_staff,
+        }
+        await mark_online(self.user.id, user_info)
+
+        # Iniciar heartbeat
+        self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
 
         # Canal personal del usuario
         self.group_name = f"user_{self.user.id}_notif"
@@ -23,6 +37,17 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        # Cancelar heartbeat
+        if self._heartbeat_task:
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+
+        # Marcar offline
+        await mark_offline(self.user.id)
+
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
@@ -54,3 +79,12 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
                 pass
 
         await _marcar()
+
+    async def _heartbeat_loop(self):
+        """Renovar TTL de presencia cada 30 segundos."""
+        try:
+            while True:
+                await asyncio.sleep(30)
+                await heartbeat(self.user.id)
+        except asyncio.CancelledError:
+            pass

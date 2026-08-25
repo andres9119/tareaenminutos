@@ -17,4 +17,5 @@ urlpatterns = [
     path('areas/crear/', views.area_crear, name='area_crear'),
     path('areas/<int:pk>/editar/', views.area_editar, name='area_editar'),
     path('areas/<int:pk>/eliminar/', views.area_eliminar, name='area_eliminar'),
+    path('usuarios/online/', views.usuarios_online, name='usuarios_online'),
 ]

@@ -455,3 +455,32 @@ def area_eliminar(request, pk):
         messages.success(request, f'Área "{area.nombre}" eliminada.')
         return redirect('areas_list')
     return redirect('areas_list')
+
+
+# ─── Usuarios Online (Admin) ──────────────────────────────────────────────────
+
+@admin_required
+def usuarios_online(request):
+    """Lista de usuarios conectados en tiempo real (solo Admin)."""
+    from accounts.presence import get_online_users_sync
+    
+    online = get_online_users_sync()
+    
+    # Enriquecer con datos del modelo User
+    from django.contrib.auth.models import User
+    user_ids = [u['id'] for u in online]
+    users_map = {u.id: u for u in User.objects.filter(id__in=user_ids).select_related('perfil')}
+    
+    for u in online:
+        user_obj = users_map.get(u['id'])
+        if user_obj:
+            u['username'] = user_obj.username
+            u['full_name'] = user_obj.get_full_name() or user_obj.username
+            u['email'] = user_obj.email
+            u['is_staff'] = user_obj.is_staff
+            u['groups'] = [g.name for g in user_obj.groups.all()]
+            u['perfil_foto'] = user_obj.perfil.foto.url if hasattr(user_obj, 'perfil') and user_obj.perfil.foto else None
+            u['perfil_es_tutor'] = hasattr(user_obj, 'perfil') and user_obj.groups.filter(name='Tutor').exists()
+    
+    context = {'usuarios_online': online}
+    return render(request, 'private/accounts/usuarios_online.html', context)

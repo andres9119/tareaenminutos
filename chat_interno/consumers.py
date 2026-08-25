@@ -3,9 +3,11 @@ Chat Consumer — Django Channels WebSocket para chat en tiempo real.
 """
 
 import json
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
+from accounts.presence import mark_online, mark_offline, heartbeat
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -15,6 +17,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.sala_id = self.scope['url_route']['kwargs']['sala_id']
         self.group_name = f"chat_{self.sala_id}"
         self.user = self.scope['user']
+        self._heartbeat_task = None
 
         # Rechazar conexiones de usuarios no autenticados
         if not self.user.is_authenticated:
@@ -26,6 +29,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not tiene_acceso:
             await self.close()
             return
+
+        # Marcar usuario como online
+        user_info = {
+            'username': self.user.username,
+            'full_name': self.user.get_full_name() or self.user.username,
+            'is_staff': self.user.is_staff,
+        }
+        await mark_online(self.user.id, user_info)
+
+        # Iniciar heartbeat para renovar TTL
+        self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
 
         # Unirse al grupo del canal
         await self.channel_layer.group_add(self.group_name, self.channel_name)
@@ -40,6 +54,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def disconnect(self, close_code):
+        # Cancelar heartbeat
+        if self._heartbeat_task:
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Marcar offline solo si no tiene otras conexiones activas
+        # (simplificación: marcamos offline al desconectar de esta sala)
+        await mark_offline(self.user.id)
+        
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
@@ -155,3 +181,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return [m.to_dict() for m in reversed(list(mensajes))]
         except SalaChat.DoesNotExist:
             return []
+
+    async def _heartbeat_loop(self):
+        """Renovar TTL de presencia cada 30 segundos."""
+        try:
+            while True:
+                await asyncio.sleep(30)
+                await heartbeat(self.user.id)
+        except asyncio.CancelledError:
+            pass
