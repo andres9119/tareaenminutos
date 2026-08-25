@@ -341,7 +341,7 @@
             <h2 class="text-primary">{{ total_solicitudes }}</h2>
         </div>
         <div class="kpi-card">
-            <h5>Tutores Activos</h5>
+            <h5>Tutores Registrados</h5>
             <h2>{{ tutores_activos }}</h2>
         </div>
         <div class="kpi-card">
@@ -457,8 +457,8 @@
     <!-- Información del sistema -->
     <div class="action-grid">
         <div class="action-card">
-            <h5>Tutores Activos</h5>
-            <p>{{ tutores_activos }} tutores disponibles en el sistema</p>
+            <h5>Tutores Registrados</h5>
+            <p>{{ tutores_activos }} tutores registrados en el sistema</p>
             <a href="{% url 'usuarios_list' %}?rol=Tutor" class="btn-tem btn-outline-tem">
                 Gestionar Tutores
             </a>
