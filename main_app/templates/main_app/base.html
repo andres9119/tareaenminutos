@@ -1113,8 +1113,9 @@ footer {
                         }
                         if (msgDropdown) {
                             if (data.chats.length === 0) {
+                                var misChatsUrl = "{% url 'mis_chats' %}";
                                 msgDropdown.innerHTML = '<div class="notif-dropdown-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún</p></div>' +
-                                    '<div class="notif-dropdown-footer"><a href="{% url \'mis_chats\' %}">Ver todos los chats</a></div>';
+                                    '<div class="notif-dropdown-footer"><a href="' + misChatsUrl + '">Ver todos los chats</a></div>';
                                 return;
                             }
                             const base = '/app/chat/';
