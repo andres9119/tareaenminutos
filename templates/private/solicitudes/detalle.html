@@ -528,7 +528,7 @@
                     <div class="timeline-content">
                         <strong>{{ item.estado_nuevo.etiqueta }}</strong>
                         <small>{{ item.created_at|date:"d/m/Y H:i" }}</small>
-                        <p>Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</p>
+                        <p>Por: {% if item.cambiado_por %}{{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}{% else %}Usuario eliminado{% endif %}</p>
                     </div>
                 </div>
                 {% endfor %}
@@ -556,7 +556,7 @@
                     <small style="color: var(--text-muted); font-size: 0.78rem;">{{ item.created_at|date:"d/m/Y H:i" }}</small>
                 </div>
                 <p style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; margin: 0 0 0.25rem; white-space: pre-line;">{{ item.comentario }}</p>
-                <small style="color: var(--text-muted); font-size: 0.75rem;">Por: {{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}</small>
+                <small style="color: var(--text-muted); font-size: 0.75rem;">Por: {% if item.cambiado_por %}{{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}{% else %}Usuario eliminado{% endif %}</small>
             </div>
             {% endfor %}
         </div>
