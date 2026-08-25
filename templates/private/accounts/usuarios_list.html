@@ -2,6 +2,15 @@
 
 {% block title %}Usuarios - TEM{% endblock %}
 
+{% block extra_css %}
+<style>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-tem">
     <div class="breadcrumb">
@@ -44,7 +53,8 @@
     {% if usuarios %}
     <div class="card-tem">
         <div class="card-body-tem" style="padding: 0;">
-            <table class="table-tem">
+            <div class="table-responsive">
+                <table class="table-tem">
                 <thead>
                     <tr>
                         <th>Usuario</th>
@@ -99,6 +109,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
     {% else %}
