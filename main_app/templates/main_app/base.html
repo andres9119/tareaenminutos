@@ -1109,11 +1109,17 @@ footer {
                 });
             }
 
+            var prevNoLeidos = 0;
+
             function actualizarMensajes() {
                 fetch('/app/chat/datos/')
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         const total = data.total_no_leidos;
+                        if (total > prevNoLeidos) {
+                            sonidoChat();
+                        }
+                        prevNoLeidos = total;
                         if (msgBadge) {
                             if (total > 0) {
                                 msgBadge.textContent = total > 99 ? '99+' : total;
