@@ -1126,7 +1126,7 @@ footer {
                 });
             }
 
-            var prevNoLeidos = 0;
+            var prevNoLeidos = msgBadge && !msgBadge.classList.contains('hidden') ? (parseInt(msgBadge.textContent) || 0) : 0;
 
             function actualizarMensajes() {
                 fetch('/app/chat/datos/')
