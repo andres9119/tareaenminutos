@@ -112,6 +112,16 @@
 <style>
     .modal-tem { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2000; display: flex; align-items: center; justify-content: center; }
     .modal-box-tem { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--border-radius-sm); padding: 1.5rem; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+    @media (max-width: 600px) {
+        .table-tem thead th:nth-child(1),
+        .table-tem tbody td:nth-child(1),
+        .table-tem thead th:nth-child(3),
+        .table-tem tbody td:nth-child(3),
+        .table-tem thead th:nth-child(4),
+        .table-tem tbody td:nth-child(4) {
+            display: none;
+        }
+    }
 </style>
 
 <script>
