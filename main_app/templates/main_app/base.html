@@ -1020,6 +1020,7 @@ footer {
                     var AC = window.AudioContext || window.webkitAudioContext;
                     if (!AC) return;
                     var ac = new AC();
+                    ac.resume();
                     var t = ac.currentTime;
                     var step = dur || 0.18;
                     (freqs || [880]).forEach(function(f, i) {
@@ -1215,8 +1216,9 @@ footer {
                     var AC = window.AudioContext || window.webkitAudioContext;
                     if (!AC) return;
                     var ac = new AC();
+                    ac.resume();
                     var t = ac.currentTime;
-                    // Burbuja: 3 tonos ascendentes rápidos con fade suave
+                    // Burbuja: 3 tonos ascendentes rapidos con fade suave
                     [520, 660, 880].forEach(function(f, i) {
                         var o = ac.createOscillator(), g = ac.createGain();
                         o.connect(g); g.connect(ac.destination);
