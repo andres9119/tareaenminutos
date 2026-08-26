@@ -20,8 +20,8 @@ def notificar_mensaje_chat(sender, instance, created, **kwargs):
     if sala.solicitud_id:
         destinatarios = sala.participantes.all()
     elif sala.tipo == 'directa':
-        # Chat directo: notifica solo al otro participante
-        destinatarios = sala.participantes.exclude(pk=autor.pk if autor else None)
+        # Chat directo: no crea notificación (el mensaje ya llega por el icono de mensajes y ventana flotante)
+        return
     else:
         # Canal General (anuncios): notifica a TODO el personal activo,
         # aunque nunca haya abierto la sala.
