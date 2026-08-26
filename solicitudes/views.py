@@ -169,13 +169,13 @@ def solicitud_detalle(request, pk):
     if user_is_admin:
         solicitud = get_object_or_404(SolicitudAcademica, pk=pk)
     else:
-        # Tutor solo puede ver solicitudes disponibles o asignadas a él
+        # Tutor puede ver: asignadas a él, abiertas (para cotizar), o donde ya cotizó
         from .models import EstadoSolicitud as ES
         estados_abiertos = ES.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
-        solicitud = get_object_or_404(
-            SolicitudAcademica,
-            Q(pk=pk) & (Q(tutor_asignado=request.user) | Q(estado__in=estados_abiertos))
-        )
+        base = SolicitudAcademica.objects.filter(
+            Q(pk=pk) & (Q(tutor_asignado=request.user) | Q(estado__in=estados_abiertos) | Q(cotizaciones__tutor=request.user))
+        ).distinct()
+        solicitud = get_object_or_404(base, pk=pk)
 
     # Sub-componentes
     documentos = solicitud.documentos.all().order_by('-created_at')
