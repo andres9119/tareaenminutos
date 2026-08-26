@@ -45,6 +45,7 @@ class Documento(models.Model):
     archivo = models.FileField(
         upload_to=documento_upload_path,
         storage=settings.PRIVATE_STORAGE,
+        max_length=500,
         verbose_name='Archivo'
     )
     nombre_original = models.CharField(
