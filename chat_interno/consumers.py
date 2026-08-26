@@ -135,6 +135,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Admins tienen acceso total
             if self.user.is_staff or self.user.groups.filter(name='Administrador').exists():
                 return True
+            # Salas directas: solo participantes
+            if sala.tipo == 'directa':
+                return sala.participantes.filter(pk=self.user.pk).exists()
             # Salas de solicitud: solo el tutor asignado (las abiertas no dan acceso)
             if sala.solicitud:
                 return sala.solicitud.tutor_asignado == self.user
@@ -150,13 +153,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def puede_escribir(self):
         """Canal General = anuncios: solo admins escriben.
-        Las salas de solicitud son de doble vía (tutor asignado ya validado)."""
+        Salas de solicitud y directas son de doble vía."""
         from chat_interno.models import SalaChat
         try:
             sala = SalaChat.objects.get(pk=self.sala_id)
         except SalaChat.DoesNotExist:
             return False
-        if sala.solicitud_id:
+        if sala.solicitud_id or sala.tipo == 'directa':
             return True
         return self.user.is_staff or self.user.groups.filter(name='Administrador').exists()
 

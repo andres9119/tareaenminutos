@@ -1130,7 +1130,7 @@ footer {
                             }
                             const base = '/app/chat/';
                             msgDropdown.innerHTML = data.chats.map(function(c) {
-                                const icon = c.tipo === 'general' ? 'fa-bullhorn' : 'fa-file-alt';
+                                const icon = c.tipo === 'general' ? 'fa-bullhorn' : c.tipo === 'directa' ? 'fa-user' : 'fa-file-alt';
                                 const prev = c.ultimo_mensaje
                                     ? '<span class="' + (c.es_propio_ultimo ? 'msg-propio' : 'msg-ajeno') + '">' +
                                         (c.es_propio_ultimo ? 'Tú: ' : (c.ultimo_autor || '') + ': ') + '</span> ' +
@@ -1294,7 +1294,7 @@ footer {
             function construirDOM(id, data) {
                 var el = document.createElement('div');
                 el.className = 'chatwin';
-                var icono = data.tipo === 'general' ? 'fa-bullhorn' : 'fa-file-alt';
+                var icono = data.tipo === 'general' ? 'fa-bullhorn' : data.tipo === 'directa' ? 'fa-user' : 'fa-file-alt';
                 var entrada = data.puede_escribir
                     ? '<textarea rows="1" placeholder="Escribe un mensaje..."></textarea>' +
                       '<button class="cw-send" title="Enviar"><i class="fas fa-paper-plane"></i></button>'

@@ -63,15 +63,9 @@
                                 </td>
                             </td>
                             <td>
-                                {% if u.perfil_es_tutor %}
-                                    <a href="{% url 'sala_general' %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" target="_blank">
-                                        <i class="fas fa-comment"></i> Chat General
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'sala_general' %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" target="_blank">
-                                        <i class="fas fa-comment"></i> Chat General
-                                    </a>
-                                {% endif %}
+                                <a href="{% url 'iniciar_chat_directo' u.id %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                    <i class="fas fa-comment"></i> Chat Directo
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

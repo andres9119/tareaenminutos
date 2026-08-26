@@ -17,6 +17,7 @@ class SalaChat(models.Model):
     TIPO_SALA = [
         ('general', 'General'),
         ('solicitud', 'Por Solicitud'),
+        ('directa', 'Chat Directo'),
     ]
 
     nombre = models.CharField(max_length=200, verbose_name='Nombre de la Sala')
@@ -42,6 +43,9 @@ class SalaChat(models.Model):
     def __str__(self):
         if self.solicitud:
             return f"Chat - {self.solicitud.codigo}"
+        if self.tipo == 'directa':
+            nombres = [u.get_full_name() or u.username for u in self.participantes.all()[:2]]
+            return f"Chat Directo - {' y '.join(nombres)}" if nombres else "Chat Directo"
         return f"Chat General"
 
     @property
@@ -58,6 +62,12 @@ class SalaChat(models.Model):
     def unread_count(self, user):
         """Mensajes no leídos para un usuario (excluye los que él escribió)."""
         return self.mensajes.exclude(autor=user).exclude(leido_por=user).count()
+
+    def get_otro_participante(self, user):
+        """Para chats directos: devuelve el otro usuario. Si no es directa, None."""
+        if self.tipo != 'directa':
+            return None
+        return self.participantes.exclude(pk=user.pk).first()
 
 
 class MensajeChat(models.Model):

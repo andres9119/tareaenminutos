@@ -24,7 +24,11 @@ def sala_chat(request, pk):
     if not user_is_admin:
         # Salas de solicitud: solo el tutor asignado.
         # Salas generales (canal de anuncios): todo el personal interno.
-        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+        # Salas directas: solo participantes.
+        if sala.tipo == 'directa':
+            if not sala.participantes.filter(pk=request.user.pk).exists():
+                raise Http404('No tienes acceso a esta sala.')
+        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a esta sala.')
 
     # Agregar usuario como participante si aún no está
@@ -80,8 +84,8 @@ def sala_chat(request, pk):
         'entradas': entradas,
         'es_admin': user_is_admin,
         'user_id': request.user.pk,
-        # Canal General = anuncios: solo admins escriben; salas de solicitud son de doble vía
-        'puede_escribir': user_is_admin or bool(sala.solicitud_id),
+        # Canal General = anuncios: solo admins escriben; salas de solicitud/directa son de doble vía
+        'puede_escribir': user_is_admin or bool(sala.solicitud_id) or sala.tipo == 'directa',
     }
     return render(request, 'private/chat_interno/sala.html', context)
 
@@ -96,7 +100,10 @@ def chat_mensajes_json(request, pk):
 
     sala = get_object_or_404(SalaChat, pk=pk)
     if not user_is_admin:
-        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+        if sala.tipo == 'directa':
+            if not sala.participantes.filter(pk=request.user.pk).exists():
+                raise Http404('No tienes acceso a esta sala.')
+        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a esta sala.')
 
     sala.participantes.add(request.user)
@@ -125,9 +132,36 @@ def chat_mensajes_json(request, pk):
         'id': sala.pk,
         'nombre': sala.nombre,
         'tipo': sala.tipo,
-        'puede_escribir': user_is_admin or bool(sala.solicitud_id),
+        'puede_escribir': user_is_admin or bool(sala.solicitud_id) or sala.tipo == 'directa',
         'mensajes': datos,
     })
+
+
+@admin_o_tutor_required
+def iniciar_chat_directo(request, user_id):
+    """Crea o reutiliza un chat directo entre el usuario actual y el usuario indicado."""
+    from django.contrib.auth.models import User
+    from django.db.models import Q
+    from django.http import Http404
+
+    otro = get_object_or_404(User, pk=user_id, is_active=True)
+    if otro == request.user:
+        raise Http404('No puedes chatear contigo mismo.')
+
+    # Buscar sala directa existente entre ambos usuarios
+    sala = SalaChat.objects.filter(
+        tipo='directa',
+        participantes=request.user
+    ).filter(
+        participantes=otro
+    ).first()
+
+    if not sala:
+        nombre = f"Chat: {request.user.get_full_name() or request.user.username} - {otro.get_full_name() or otro.username}"
+        sala = SalaChat.objects.create(tipo='directa', nombre=nombre)
+        sala.participantes.add(request.user, otro)
+
+    return redirect('sala_chat', pk=sala.pk)
 
 
 @admin_o_tutor_required
@@ -158,7 +192,8 @@ def mis_chats(request):
         base = SalaChat.objects.all()
     else:
         base = SalaChat.objects.filter(
-            Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=request.user)
+            Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=request.user) |
+            Q(tipo='directa', participantes=request.user)
         ).distinct()
 
     CERRADAS = ['completada', 'cancelada']

@@ -20,9 +20,10 @@ def _base_salas(user):
     """Queryset de salas visibles para el usuario (sin evaluar)."""
     if _es_admin(user):
         return SalaChat.objects.all()
-    # Tutores: TODAS las salas generales (canal de anuncios) + solicitudes asignadas.
+    # Tutores: TODAS las salas generales (canal de anuncios) + solicitudes asignadas + chats directos en los que participa.
     return SalaChat.objects.filter(
-        Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=user)
+        Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=user) |
+        Q(tipo='directa', participantes=user)
     ).distinct()
 
 
@@ -33,9 +34,13 @@ def _construir_datos_sala(sala, user):
         and sala.solicitud.estado
         and sala.solicitud.estado.nombre in CERRADAS
     )
+    nombre = sala.nombre
+    if sala.tipo == 'directa':
+        otro = sala.get_otro_participante(user)
+        nombre = (otro.get_full_name() or otro.username) if otro else 'Chat Directo'
     return {
         'id': sala.pk,
-        'nombre': sala.nombre,
+        'nombre': nombre,
         'tipo': sala.tipo,
         'cerrada': cerrada,
         'codigo': sala.solicitud.codigo if sala.solicitud else None,
