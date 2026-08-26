@@ -1038,7 +1038,7 @@ footer {
                     setTimeout(function() { ac.close(); }, 1500);
                 } catch (e) {}
             }
-            function playNotifSound() { playTone([880, 1174.66], 0.18); }
+            function playNotifSound() { playTone([880, 1174.66, 1318.51], 0.14); }
 
             function connectNotif() {
                 notifSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/notificaciones/');
@@ -1215,17 +1215,19 @@ footer {
                     var AC = window.AudioContext || window.webkitAudioContext;
                     if (!AC) return;
                     var ac = new AC();
-                    [660, 880].forEach(function(f, i) {
+                    var t = ac.currentTime;
+                    // Burbuja: 3 tonos ascendentes rápidos con fade suave
+                    [520, 660, 880].forEach(function(f, i) {
                         var o = ac.createOscillator(), g = ac.createGain();
                         o.connect(g); g.connect(ac.destination);
                         o.frequency.value = f; o.type = 'sine';
-                        var t = ac.currentTime + i * 0.12;
-                        g.gain.setValueAtTime(0.0001, t);
-                        g.gain.exponentialRampToValueAtTime(0.1, t + 0.03);
-                        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-                        o.start(t); o.stop(t + 0.15);
+                        var st = t + i * 0.07;
+                        g.gain.setValueAtTime(0.0001, st);
+                        g.gain.exponentialRampToValueAtTime(0.15, st + 0.02);
+                        g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
+                        o.start(st); o.stop(st + 0.12);
                     });
-                    setTimeout(function() { ac.close(); }, 800);
+                    setTimeout(function() { ac.close(); }, 600);
                 } catch (e) {}
             }
 
