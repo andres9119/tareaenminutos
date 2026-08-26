@@ -5,7 +5,7 @@ Views para accounts — Dashboards, perfiles y gestión de usuarios.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Min, Max
 from django.core.paginator import Paginator
 from .models import PerfilUsuario, AreaConocimiento
 from .forms import UsuarioCrearForm, UsuarioEditarForm, PerfilEditarForm, PerfilPropioForm, AreaForm
@@ -118,9 +118,21 @@ def dashboard_tutor(request):
     solicitudes_disponibles = Paginator(solicitudes_disponibles, 5).get_page(request.GET.get('disp', 1))
 
     # Mis cotizaciones enviadas
-    mis_cotizaciones = Cotizacion.objects.filter(
+    mis_cotizaciones = list(Cotizacion.objects.filter(
         tutor=request.user
-    ).select_related('solicitud').order_by('-created_at')[:5]
+    ).select_related('solicitud').order_by('-created_at')[:5])
+    # Agregados de cotizaciones por solicitud (para el modal "Ver" rango)
+    if mis_cotizaciones:
+        sol_ids = {c.solicitud_id for c in mis_cotizaciones}
+        agg = Cotizacion.objects.filter(solicitud_id__in=sol_ids).values(
+            'solicitud_id'
+        ).annotate(n=Count('id'), mn=Min('monto'), mx=Max('monto'))
+        agg_map = {f['solicitud_id']: f for f in agg}
+        for c in mis_cotizaciones:
+            a = agg_map.get(c.solicitud_id)
+            c.sol_num = a['n'] if a else 0
+            c.sol_min = a['mn'] if a else None
+            c.sol_max = a['mx'] if a else None
 
     # Estadísticas del tutor
     perfil = getattr(request.user, 'perfil', None)

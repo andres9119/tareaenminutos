@@ -708,34 +708,44 @@
             {% if mis_cotizaciones %}
                 <div class="table-scroll">
                     <table class="table-tem">
-                        <thead>
+                    <thead>
+                        <tr>
+                            <th>Solicitud</th>
+                            <th>Monto</th>
+                            <th>Tiempo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Cotizaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cotizacion in mis_cotizaciones %}
                             <tr>
-                                <th>Solicitud</th>
-                                <th>Monto</th>
-                                <th>Tiempo</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
+                                <td><strong>{{ cotizacion.solicitud.codigo }}</strong></td>
+                                <td>${{ cotizacion.monto|floatformat:0 }}</td>
+                                <td>{{ cotizacion.tiempo_estimado_dias }} dias</td>
+                                <td>
+                                    {% if cotizacion.estado == 'pendiente' %}
+                                        <span class="badge-tem badge-warning">Pendiente</span>
+                                    {% elif cotizacion.estado == 'aceptada' %}
+                                        <span class="badge-tem badge-success">Aceptada</span>
+                                    {% elif cotizacion.estado == 'rechazada' %}
+                                        <span class="badge-tem badge-danger">Rechazada</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    <button type="button" class="btn-ver-rango"
+                                        data-codigo="{{ cotizacion.solicitud.codigo }}"
+                                        data-num="{{ cotizacion.sol_num }}"
+                                        data-min="{{ cotizacion.sol_min|floatformat:0 }}"
+                                        data-max="{{ cotizacion.sol_max|floatformat:0 }}">
+                                        <i class="fas fa-chart-line"></i> Ver
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for cotizacion in mis_cotizaciones %}
-                                <tr>
-                                    <td><strong>{{ cotizacion.solicitud.codigo }}</strong></td>
-                                    <td>${{ cotizacion.monto|floatformat:0 }}</td>
-                                    <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
-                                    <td>
-                                        {% if cotizacion.estado == 'pendiente' %}
-                                            <span class="badge-tem badge-warning">Pendiente</span>
-                                        {% elif cotizacion.estado == 'aceptada' %}
-                                            <span class="badge-tem badge-success">Aceptada</span>
-                                        {% elif cotizacion.estado == 'rechazada' %}
-                                            <span class="badge-tem badge-danger">Rechazada</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
+                        {% endfor %}
+                    </tbody>
                     </table>
                 </div>
             {% else %}

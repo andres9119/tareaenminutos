@@ -143,7 +143,7 @@ def cotizacion_aceptar(request, pk):
             tipo='cotizacion_rechazada',
             titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
             mensaje=f'El administrador seleccionó otra propuesta para "{cotizacion.solicitud.titulo}". ¡Sigue participando!',
-            url_accion=reverse('solicitudes_disponibles'),
+            url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
             solicitud_id=cotizacion.solicitud.pk,
         )
 
@@ -164,7 +164,7 @@ def cotizacion_rechazar(request, pk):
         tipo='cotizacion_rechazada',
         titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
         mensaje=f'El administrador descartó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". ¡Sigue participando!',
-        url_accion=reverse('solicitudes_disponibles'),
+        url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
         solicitud_id=cotizacion.solicitud.pk,
     )
 
