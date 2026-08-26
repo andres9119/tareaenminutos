@@ -157,6 +157,16 @@
         color: var(--primary);
         font-weight: 500;
     }
+    @media (max-width: 768px) {
+        .table-tem thead th:nth-child(1),
+        .table-tem tbody td:nth-child(1),
+        .table-tem thead th:nth-child(5),
+        .table-tem tbody td:nth-child(5),
+        .table-tem thead th:nth-child(6),
+        .table-tem tbody td:nth-child(6) {
+            display: none;
+        }
+    }
 </style>
 {% endblock %}
 
