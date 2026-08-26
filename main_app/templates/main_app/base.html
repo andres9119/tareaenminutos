@@ -446,7 +446,7 @@ footer {
 @keyframes pulse-whatsapp { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.2); opacity: 0; } }
 
 /* ── Ventanas de chat flotantes (estilo Facebook: forma, no colores) ── */
-#chatWins { position: fixed; bottom: 0; right: 0; z-index: 9997; display: flex; align-items: flex-end; gap: 14px; padding-right: 110px; pointer-events: none; }
+#chatWins { position: fixed; bottom: 0; right: 110px; z-index: 9997; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 6px; pointer-events: none; max-height: 100vh; overflow: hidden; }
 .chatwin {
     pointer-events: auto;
     width: 328px; height: 430px;
@@ -506,7 +506,7 @@ footer {
 .cw-send:hover { filter: brightness(1.1); }
 .cw-readonly-note { flex: 1; text-align: center; color: var(--text-muted); font-size: 0.74rem; padding: 0.35rem 0; }
 @media (max-width: 640px) {
-    #chatWins { left: 0; padding: 0 10px; }
+    #chatWins { left: 0; right: 0; padding: 0 10px; flex-direction: column-reverse; }
     .chatwin { width: calc(100vw - 20px); height: 68vh; }
     .chatwin.cw-hide-mobile { display: none; }
 }
@@ -1192,6 +1192,7 @@ footer {
             var userId = JSON.parse(document.getElementById('cw-user-id').textContent);
             var MAX = 3;
             var abiertos = new Map(); // id -> {data, ws, el, min}
+            var pendientes = new Set(); // ids en proceso de abrir (evita duplicados)
 
             function lsGet(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch (e) { return def; } }
             function persistir() {
@@ -1303,7 +1304,7 @@ footer {
                         '<div class="cw-head-icon"><i class="fas ' + icono + '"></i></div>' +
                         '<span class="cw-head-nombre">' + esc(data.nombre) + '</span>' +
                         '<div class="cw-head-actions">' +
-                            '<a href="/app/chat/' + id + '/" title="Abrir página completa" onclick="event.stopPropagation()"><i class="fas fa-expand"></i></a>' +
+                            '<a href="/app/chat/' + id + '/" title="Abrir página completa"><i class="fas fa-expand"></i></a>' +
                             '<button class="cw-min" title="Minimizar"><i class="fas fa-minus"></i></button>' +
                             '<button class="cw-close" title="Cerrar"><i class="fas fa-times"></i></button>' +
                         '</div>' +
@@ -1314,7 +1315,10 @@ footer {
 
                 el.querySelector('.cw-min').addEventListener('click', function(e) { e.stopPropagation(); minimizar(id); });
                 el.querySelector('.cw-close').addEventListener('click', function(e) { e.stopPropagation(); cerrar(id); });
-                el.querySelector('.cw-head').addEventListener('click', function() { minimizar(id); });
+                el.querySelector('.cw-head').addEventListener('click', function(e) {
+                    if (e.target.closest('.cw-head-actions')) return;
+                    minimizar(id);
+                });
 
                 var ta = el.querySelector('textarea');
                 if (ta) {
@@ -1342,35 +1346,54 @@ footer {
 
             function reflow() {
                 var wins = Array.from(cont.querySelectorAll('.chatwin'));
-                // En móvil solo la última ventana queda visible
                 if (window.innerWidth <= 640) {
                     wins.forEach(function(w, i) { w.classList.toggle('cw-hide-mobile', i !== wins.length - 1); });
                 } else {
                     cont.querySelectorAll('.chatwin').forEach(function(w) { w.classList.remove('cw-hide-mobile'); });
+                    var vh = window.innerHeight;
+                    var cumulative = 0;
+                    wins.forEach(function(w, i) {
+                        var wh = w.classList.contains('cw-min') ? 44 : 430;
+                        if (cumulative + wh > vh) {
+                            w.style.visibility = 'hidden';
+                            w.style.pointerEvents = 'none';
+                        } else {
+                            w.style.visibility = '';
+                            w.style.pointerEvents = '';
+                        }
+                        cumulative += wh + 6;
+                    });
                 }
             }
 
             async function abrir(id) {
                 id = parseInt(id, 10);
-                if (abiertos.has(id)) {
-                    var sx = abiertos.get(id);
-                    if (sx.min) minimizar(id);
+                if (abiertos.has(id) || pendientes.has(id)) {
+                    if (abiertos.has(id)) {
+                        var sx = abiertos.get(id);
+                        if (sx.min) minimizar(id);
+                    }
                     return;
                 }
-                if (abiertos.size >= MAX) {
-                    var masVieja = abiertos.keys().next().value;
-                    cerrar(masVieja);
+                pendientes.add(id);
+                try {
+                    if (abiertos.size >= MAX) {
+                        var masVieja = abiertos.keys().next().value;
+                        cerrar(masVieja);
+                    }
+                    var r = await fetch('/app/chat/' + id + '/mensajes/');
+                    if (!r.ok) return;
+                    var data = await r.json();
+                    var st = { data: data, min: false, ws: null };
+                    st.el = construirDOM(id, data);
+                    abiertos.set(id, st);
+                    renderHistorial(st);
+                    conectar(st, id);
+                    persistir();
+                    reflow();
+                } finally {
+                    pendientes.delete(id);
                 }
-                var r = await fetch('/app/chat/' + id + '/mensajes/');
-                if (!r.ok) return;
-                var data = await r.json();
-                var st = { data: data, min: false, ws: null };
-                st.el = construirDOM(id, data);
-                abiertos.set(id, st);
-                renderHistorial(st);
-                conectar(st, id);
-                persistir();
-                reflow();
             }
             window.abrirChat = abrir;
 
