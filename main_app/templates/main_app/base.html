@@ -1172,7 +1172,7 @@ footer {
                     .catch(function() { /* silencioso */ });
             }
 
-            setInterval(actualizarMensajes, 20000);
+            setInterval(actualizarMensajes, 10000);
 
             window.__actualizarChats = actualizarMensajes;
         });
@@ -1330,6 +1330,7 @@ footer {
                         s.ws.send(JSON.stringify({ 'message': t }));
                         ta.value = '';
                         ta.style.height = 'auto';
+                        if (window.__actualizarChats) window.__actualizarChats();
                     }
                     btn.addEventListener('click', enviar);
                     ta.addEventListener('keydown', function(e) {
