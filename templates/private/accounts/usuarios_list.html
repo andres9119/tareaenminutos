@@ -102,7 +102,7 @@
     }
     .tutor-modal-stats {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -309,10 +309,6 @@
                     <span id="tutorModalTrabajos" class="tutor-modal-stat-value">—</span>
                     <span class="tutor-modal-stat-label">Trabajos</span>
                 </div>
-                <div class="tutor-modal-stat">
-                    <span id="tutorModalDisponible" class="tutor-modal-stat-value">—</span>
-                    <span class="tutor-modal-stat-label">Disponible</span>
-                </div>
             </div>
             <div class="tutor-modal-bio">
                 <h5>Descripción</h5>
@@ -338,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
             document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
             document.getElementById('tutorModalTrabajos').textContent = this.dataset.tutorTrabajos || '—';
-            document.getElementById('tutorModalDisponible').textContent = this.dataset.tutorDisponible || '—';
             document.getElementById('tutorModalBio').textContent = this.dataset.tutorBio || 'Sin descripción';
             var especialidades = (this.dataset.tutorEspecialidades || '').split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
             var contenedor = document.getElementById('tutorModalEspecialidades');
