@@ -228,7 +228,7 @@ def usuarios_list(request):
     q = request.GET.get('q', '')
     rol = request.GET.get('rol', '')
 
-    usuarios = User.objects.filter(is_active=True).select_related('perfil').prefetch_related('groups').order_by('-date_joined')
+    usuarios = User.objects.filter(is_active=True).select_related('perfil').prefetch_related('groups', 'perfil__especialidades').order_by('-date_joined')
 
     if q:
         usuarios = usuarios.filter(
