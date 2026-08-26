@@ -1185,6 +1185,29 @@ footer {
         });
     </script>
 
+    <script>
+        function sonidoChat() {
+            try {
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                var ac = new AC();
+                ac.resume();
+                var t = ac.currentTime;
+                [520, 660, 880].forEach(function(f, i) {
+                    var o = ac.createOscillator(), g = ac.createGain();
+                    o.connect(g); g.connect(ac.destination);
+                    o.frequency.value = f; o.type = 'sine';
+                    var st = t + i * 0.07;
+                    g.gain.setValueAtTime(0.0001, st);
+                    g.gain.exponentialRampToValueAtTime(0.15, st + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
+                    o.start(st); o.stop(st + 0.12);
+                });
+                setTimeout(function() { ac.close(); }, 600);
+            } catch (e) {}
+        }
+    </script>
+
     {{ user.pk|json_script:"cw-user-id" }}
     <script>
         /* Ventanas de chat flotantes (estilo Facebook: solo la forma de mostrarse).
@@ -1215,28 +1238,6 @@ footer {
                 var d = document.createElement('div');
                 d.textContent = s == null ? '' : String(s);
                 return d.innerHTML;
-            }
-
-            function sonidoChat() {
-                try {
-                    var AC = window.AudioContext || window.webkitAudioContext;
-                    if (!AC) return;
-                    var ac = new AC();
-                    ac.resume();
-                    var t = ac.currentTime;
-                    // Burbuja: 3 tonos ascendentes rapidos con fade suave
-                    [520, 660, 880].forEach(function(f, i) {
-                        var o = ac.createOscillator(), g = ac.createGain();
-                        o.connect(g); g.connect(ac.destination);
-                        o.frequency.value = f; o.type = 'sine';
-                        var st = t + i * 0.07;
-                        g.gain.setValueAtTime(0.0001, st);
-                        g.gain.exponentialRampToValueAtTime(0.15, st + 0.02);
-                        g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
-                        o.start(st); o.stop(st + 0.12);
-                    });
-                    setTimeout(function() { ac.close(); }, 600);
-                } catch (e) {}
             }
 
             function burbujaHTML(m) {
