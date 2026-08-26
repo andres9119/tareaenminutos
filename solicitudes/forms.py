@@ -63,9 +63,10 @@ class SolicitudForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make form fields non-required by default so admin can decide which to fill.
+        # Campos obligatorios de la solicitud
+        campos_obligatorios = {'titulo', 'descripcion', 'area_conocimiento', 'nivel_academico', 'tipo_entrega', 'materia'}
         for name, field in self.fields.items():
-            field.required = False
+            field.required = name in campos_obligatorios
 
         # Preserve input format for date field if provided
         self.fields['fecha_entrega_cliente'].input_formats = ['%Y-%m-%d']
@@ -78,7 +79,7 @@ class SolicitudForm(forms.ModelForm):
             }[name])
             base = [c for c in constantes if c[0] != self.VALOR_OTRO and c[0] != 'otro']
             self.fields[name] = forms.ChoiceField(
-                required=False,
+                required=True,
                 choices=[('', '---------')] + base + [(self.VALOR_OTRO, 'Otro...')],
                 widget=forms.Select(attrs={'class': 'form-select-tem'})
             )
@@ -86,7 +87,7 @@ class SolicitudForm(forms.ModelForm):
 
         # área de conocimiento: convertir a ChoiceField con opción "Otro..."
         self.fields['area_conocimiento'] = forms.ChoiceField(
-            required=False,
+            required=True,
             choices=[('', '---------')]
             + [(a.pk, a.nombre) for a in AreaConocimiento.objects.filter(activa=True).order_by('nombre')]
             + [(self.VALOR_OTRO, 'Otro...')],

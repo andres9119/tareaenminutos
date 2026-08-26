@@ -85,7 +85,7 @@
 
                 <div class="form-group-tem">
                     <label for="{{ form.titulo.id_for_label }}" class="form-label-tem">
-                        {{ form.titulo.label }}
+                        {{ form.titulo.label }} <span class="text-danger">*</span>
                     </label>
                     {{ form.titulo }}
                     {% if form.titulo.errors %}
@@ -95,7 +95,7 @@
 
                 <div class="form-group-tem">
                     <label for="{{ form.descripcion.id_for_label }}" class="form-label-tem">
-                        {{ form.descripcion.label }}
+                        {{ form.descripcion.label }} <span class="text-danger">*</span>
                     </label>
                     {{ form.descripcion }}
                     {% if form.descripcion.errors %}
@@ -106,7 +106,7 @@
                 <div class="form-grid">
                     <div class="form-group-tem">
                         <label for="{{ form.area_conocimiento.id_for_label }}" class="form-label-tem">
-                            {{ form.area_conocimiento.label }}
+                            {{ form.area_conocimiento.label }} <span class="text-danger">*</span>
                         </label>
                         {{ form.area_conocimiento }}
                         {{ form.area_conocimiento_otro }}
@@ -116,7 +116,7 @@
                     </div>
                     <div class="form-group-tem">
                         <label for="{{ form.nivel_academico.id_for_label }}" class="form-label-tem">
-                            {{ form.nivel_academico.label }}
+                            {{ form.nivel_academico.label }} <span class="text-danger">*</span>
                         </label>
                         {{ form.nivel_academico }}
                         {{ form.nivel_academico_otro }}
@@ -129,7 +129,7 @@
                 <div class="form-grid">
                     <div class="form-group-tem">
                         <label for="{{ form.tipo_entrega.id_for_label }}" class="form-label-tem">
-                            {{ form.tipo_entrega.label }}
+                            {{ form.tipo_entrega.label }} <span class="text-danger">*</span>
                         </label>
                         {{ form.tipo_entrega }}
                         {{ form.tipo_entrega_otro }}
@@ -139,7 +139,7 @@
                     </div>
                     <div class="form-group-tem">
                         <label for="{{ form.materia.id_for_label }}" class="form-label-tem">
-                            {{ form.materia.label }}
+                            {{ form.materia.label }} <span class="text-danger">*</span>
                         </label>
                         {{ form.materia }}
                     </div>
