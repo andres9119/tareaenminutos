@@ -1096,6 +1096,16 @@ footer {
                         msgBell.setAttribute('aria-expanded', 'false');
                     }
                 });
+                msgDropdown.addEventListener('click', function(e) {
+                    var item = e.target.closest('.notif-item-link');
+                    if (!item) return;
+                    e.preventDefault();
+                    var id = item.getAttribute('data-id');
+                    if (id && window.abrirChat) {
+                        window.abrirChat(id);
+                    }
+                    msgContainer.classList.remove('open');
+                });
             }
 
             function actualizarMensajes() {
@@ -1341,7 +1351,6 @@ footer {
             }
 
             async function abrir(id) {
-                window.abrirChat = abrir; // exponer globalmente para el dropdown de mensajes
                 id = parseInt(id, 10);
                 if (abiertos.has(id)) {
                     var sx = abiertos.get(id);
@@ -1363,6 +1372,7 @@ footer {
                 persistir();
                 reflow();
             }
+            window.abrirChat = abrir;
 
             function minimizar(id) {
                 var st = abiertos.get(id);
