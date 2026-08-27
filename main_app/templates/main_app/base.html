@@ -365,6 +365,29 @@ nav.nav-links a:hover::after { width: 100%; }
 }
 .nav-panel-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(6, 170, 68, 0.35); }
 .nav-panel-btn::after { display: none !important; }
+
+/* Variante discreta para "Reportar": sin fondo verde, apenas contorno */
+.nav-report-btn {
+    background: transparent;
+    color: var(--text-muted) !important;
+    padding: 0.4rem 0.7rem !important;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600 !important;
+    border: 1px solid var(--border-glow);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: none;
+    font-size: 0.85rem;
+}
+.nav-report-btn:hover {
+    color: var(--text-main) !important;
+    background: var(--primary-glow);
+    border-color: var(--border-glow-active);
+    transform: none;
+    box-shadow: none;
+}
+.nav-report-btn::after { display: none !important; }
 .nav-logout-btn { color: var(--highlight) !important; font-weight: 600 !important; }
 .nav-logout-btn:hover { color: var(--highlight-hover) !important; text-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
 .nav-logout-btn::after { background: var(--highlight) !important; }
@@ -743,7 +766,7 @@ footer {
                     {% endif %}
                     <a href="/app/dashboard/" class="nav-panel-btn"><i class="fas fa-chart-line"></i> Mi Panel</a>
                     <a href="/app/perfil/" class="nav-panel-btn nav-perfil-btn"><i class="fas fa-user"></i> Mi Perfil</a>
-                    <a href="/tickets/reportar/" class="nav-panel-btn" title="Reportar un incidente" style="padding: 0.45rem 0.7rem; font-size: 0.85rem;"><i class="fas fa-bug"></i> Reportar</a>
+                    <a href="/tickets/reportar/" class="nav-report-btn" title="Reportar un incidente"><i class="fas fa-bug"></i> Reportar</a>
                     <a href="/logout/" class="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</a>
                 {% else %}
                     <a href="/login/" class="nav-login-btn"><i class="fas fa-sign-in-alt"></i> Acceso tutores</a>

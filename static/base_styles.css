@@ -351,6 +351,29 @@ nav.nav-links a:hover::after {
     box-shadow: none;
 }
 
+/* Variante discreta para "Reportar": sin fondo verde, apenas contorno */
+.nav-report-btn {
+    background: transparent;
+    color: var(--text-muted) !important;
+    padding: 0.4rem 0.7rem !important;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600 !important;
+    border: 1px solid var(--border-glow);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: none;
+    font-size: 0.85rem;
+}
+.nav-report-btn:hover {
+    color: var(--text-main) !important;
+    background: var(--primary-glow);
+    border-color: var(--border-glow-active);
+    transform: none;
+    box-shadow: none;
+}
+.nav-report-btn::after { display: none !important; }
+
 
 .nav-logout-btn {
     color: var(--highlight) !important;
