@@ -73,6 +73,12 @@ class PerfilUsuario(models.Model):
     def nombre_completo(self):
         return self.user.get_full_name() or self.user.username
 
+    @property
+    def trabajos_asignados(self):
+        """Solicitudes activas asignadas al tutor (no terminadas)."""
+        from solicitudes.models import SolicitudAcademica
+        return SolicitudAcademica.activas_de_tutor(self.user).count()
+
     def get_foto_url(self):
         """Retorna URL de foto o placeholder."""
         if self.foto:

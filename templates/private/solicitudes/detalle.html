@@ -448,8 +448,8 @@
                                    data-tutor-foto="{{ cotizacion.tutor.perfil.get_foto_url }}"
                                    data-tutor-bio="{{ cotizacion.tutor.perfil.bio|escapejs }}"
                                    data-tutor-calificacion="{{ cotizacion.tutor.perfil.calificacion_promedio|floatformat:1 }}"
-                                   data-tutor-trabajos="{{ cotizacion.tutor.perfil.trabajos_completados }}"
-                                   data-tutor-disponible="{{ cotizacion.tutor.perfil.disponible|yesno:'Sí,No' }}"
+                                   data-tutor-completados="{{ cotizacion.tutor.perfil.trabajos_completados }}"
+                                   data-tutor-asignadas="{{ cotizacion.tutor.perfil.trabajos_asignados }}"
                                    data-tutor-especialidades="{% for esp in cotizacion.tutor.perfil.especialidades.all %}{{ esp.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}">
                                     {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}
                                 </a>
@@ -1254,12 +1254,12 @@ details summary::-webkit-details-marker { display: none; }
                     <span class="tutor-modal-stat-label">Calificación</span>
                 </div>
                 <div class="tutor-modal-stat">
-                    <span id="tutorModalTrabajos" class="tutor-modal-stat-value">—</span>
-                    <span class="tutor-modal-stat-label">Trabajos</span>
+                    <span id="tutorModalCompletados" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Trabajos Completados</span>
                 </div>
                 <div class="tutor-modal-stat">
-                    <span id="tutorModalDisponible" class="tutor-modal-stat-value">—</span>
-                    <span class="tutor-modal-stat-label">Disponible</span>
+                    <span id="tutorModalAsignadas" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Trabajos Asignados</span>
                 </div>
             </div>
             
@@ -1290,8 +1290,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tutorModalNombre').textContent = this.dataset.tutorName || '';
             document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
             document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
-            document.getElementById('tutorModalTrabajos').textContent = this.dataset.tutorTrabajos || '—';
-            document.getElementById('tutorModalDisponible').textContent = this.dataset.tutorDisponible || '—';
+            document.getElementById('tutorModalCompletados').textContent = this.dataset.tutorCompletados || '—';
+            document.getElementById('tutorModalAsignadas').textContent = this.dataset.tutorAsignadas || '—';
             document.getElementById('tutorModalBio').textContent = this.dataset.tutorBio || 'Sin descripción';
             
             // Especialidades

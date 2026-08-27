@@ -238,7 +238,8 @@
                                    data-tutor-email="{{ user.email }}"
                                    data-tutor-foto="{% if user.perfil and user.perfil.foto %}{{ user.perfil.foto.url }}{% endif %}"
                                    data-tutor-calificacion="{{ user.perfil.calificacion_promedio|default:'—' }}"
-                                   data-tutor-trabajos="{{ user.perfil.trabajos_completados|default:'0' }}"
+                                   data-tutor-completados="{{ user.perfil.trabajos_completados|default:'0' }}"
+                                   data-tutor-asignadas="{{ user.perfil.trabajos_asignados|default:'0' }}"
                                    data-tutor-bio="{{ user.perfil.bio|default:'' }}"
                                    data-tutor-especialidades="{% for a in user.perfil.especialidades.all %}{% if not forloop.first %}, {% endif %}{{ a.nombre }}{% endfor %}">
                                     {{ user.get_full_name|default:user.username }}
@@ -306,8 +307,12 @@
                     <span class="tutor-modal-stat-label">Calificación</span>
                 </div>
                 <div class="tutor-modal-stat">
-                    <span id="tutorModalTrabajos" class="tutor-modal-stat-value">—</span>
-                    <span class="tutor-modal-stat-label">Trabajos</span>
+                    <span id="tutorModalCompletados" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Trabajos Completados</span>
+                </div>
+                <div class="tutor-modal-stat">
+                    <span id="tutorModalAsignadas" class="tutor-modal-stat-value">—</span>
+                    <span class="tutor-modal-stat-label">Trabajos Asignados</span>
                 </div>
             </div>
             <div class="tutor-modal-bio">
@@ -333,7 +338,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tutorModalNombre').textContent = this.dataset.tutorName || '';
             document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
             document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
-            document.getElementById('tutorModalTrabajos').textContent = this.dataset.tutorTrabajos || '—';
+            document.getElementById('tutorModalCompletados').textContent = this.dataset.tutorCompletados || '—';
+            document.getElementById('tutorModalAsignadas').textContent = this.dataset.tutorAsignadas || '—';
             document.getElementById('tutorModalBio').textContent = this.dataset.tutorBio || 'Sin descripción';
             var especialidades = (this.dataset.tutorEspecialidades || '').split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
             var contenedor = document.getElementById('tutorModalEspecialidades');
