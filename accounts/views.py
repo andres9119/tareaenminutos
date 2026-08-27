@@ -55,6 +55,18 @@ def dashboard_admin(request):
         5,
     ).get_page(request.GET.get('rec', 1))
 
+    # Solicitudes asignadas activas, próximas a vencer primero (paginadas, 5)
+    solicitudes_asignadas = Paginator(
+        SolicitudAcademica.objects.select_related(
+            'estado', 'area_conocimiento', 'tutor_asignado'
+        ).filter(tutor_asignado__isnull=False).exclude(
+            estado__nombre__in=SolicitudAcademica.ESTADOS_CERRADOS_TUTOR
+        ).order_by(
+            F('fecha_entrega_cliente').asc(nulls_last=True), '-updated_at'
+        ),
+        5,
+    ).get_page(request.GET.get('asig', 1))
+
     # Cotizaciones pendientes de revisión
     cotizaciones_pendientes = Cotizacion.objects.filter(
         estado='pendiente'
@@ -74,6 +86,8 @@ def dashboard_admin(request):
         'tutores_activos': tutores_activos,
         'solicitudes_recientes': solicitudes_recientes,
         'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
+        'solicitudes_asignadas': solicitudes_asignadas,
+        'qs_base_asig': qs_base_sin_pagina(request, 'asig'),
         'cotizaciones_pendientes': cotizaciones_pendientes,
         'total_mensajes_contacto': total_mensajes_contacto,
         'mensajes_no_leidos': mensajes_no_leidos,

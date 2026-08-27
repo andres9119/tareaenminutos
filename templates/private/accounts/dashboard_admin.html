@@ -368,31 +368,64 @@
         </div>
     </div>
 
-    <!-- Acciones rápidas -->
-    <div class="action-grid">
-        <div class="action-card">
-            <h5>Gestión de Solicitudes</h5>
-            <p>Administra todas las solicitudes académicas del sistema.</p>
-            <div class="action-buttons">
-                <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem">
-                    Ver Todas
-                </a>
-                <a href="{% url 'solicitud_crear' %}" class="btn-tem btn-primary-tem">
-                    + Crear Nueva
-                </a>
-            </div>
+    <!-- Solicitudes asignadas próximas a vencer -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5>Solicitudes Asignadas por Vencer</h5>
+            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                Ver todas
+            </a>
         </div>
-        <div class="action-card">
-            <h5>Cotizaciones</h5>
-            <p>{{ cotizaciones_pendientes }} cotizaciones pendientes de revisión</p>
-            <div class="action-buttons">
-                <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem">
-                    Ver Todas
-                </a>
-                <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="btn-tem btn-primary-tem">
-                    Revisar Pendientes
-                </a>
-            </div>
+        <div class="section-body">
+            {% if solicitudes_asignadas %}
+                <div class="table-responsive">
+                    <table class="table-tem">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Título</th>
+                                <th>Tutor</th>
+                                <th>Fecha Límite</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitud in solicitudes_asignadas %}
+                                <tr>
+                                    <td><strong>{{ solicitud.codigo }}</strong></td>
+                                    <td>{{ solicitud.titulo|truncatechars:40 }}</td>
+                                    <td>
+                                        {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                        {% if solicitud.fecha_entrega_cliente %}
+                                            {% if solicitud.dias_para_entrega != None and solicitud.dias_para_entrega < 0 %}
+                                                <span style="color: var(--highlight); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (vencida)</span>
+                                            {% elif solicitud.dias_para_entrega == 0 %}
+                                                <span style="color: var(--secondary); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (¡hoy!)</span>
+                                            {% else %}
+                                                {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted-tem">Sin fecha</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                            Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "private/_paginacion.html" with pagina=solicitudes_asignadas param="asig" qs_base=qs_base_asig %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No hay solicitudes asignadas en curso.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -457,6 +490,18 @@
 
     <!-- Información del sistema -->
     <div class="action-grid">
+        <div class="action-card">
+            <h5>Cotizaciones</h5>
+            <p>{{ cotizaciones_pendientes }} cotizaciones pendientes de revisión</p>
+            <div class="action-buttons">
+                <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem">
+                    Ver Todas
+                </a>
+                <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="btn-tem btn-primary-tem">
+                    Revisar Pendientes
+                </a>
+            </div>
+        </div>
         <div class="action-card">
             <h5>Tutores Registrados</h5>
             <p>{{ tutores_activos }} tutores registrados en el sistema</p>
