@@ -185,7 +185,7 @@
                                 <option value="{{ value }}">{{ label }}</option>
                                 {% endfor %}
                             </select>
-                            <input type="text" name="descripcion" placeholder="Descripción (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />
+                            <input type="text" name="doc_descripcion" placeholder="Descripción (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />
                             <input type="file" name="archivo" class="form-control-tem" style="flex: 3 1 200px; min-width: 200px;" />
                             <button type="button" class="btn-tem btn-danger-tem doc-remove" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                 <i class="fas fa-trash-alt"></i>
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         return '<div class="doc-row" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">' +
             '<select name="tipo" class="form-select-tem" style="flex: 1 1 140px; min-width: 140px;">' + options + '</select>' +
-            '<input type="text" name="descripcion" placeholder="Descripcion (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />' +
+            '<input type="text" name="doc_descripcion" placeholder="Descripcion (opcional)" class="form-control-tem" style="flex: 2 1 160px; min-width: 160px;" />' +
             '<input type="file" name="archivo" class="form-control-tem" style="flex: 3 1 200px; min-width: 200px;" />' +
             '<button type="button" class="btn-tem btn-danger-tem doc-remove" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="fas fa-trash-alt"></i></button>' +
         '</div>';
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.remove();
         } else {
             row.querySelector('input[name="archivo"]').value = '';
-            row.querySelector('input[name="descripcion"]').value = '';
+            row.querySelector('input[name="doc_descripcion"]').value = '';
         }
     });
 });

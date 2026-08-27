@@ -89,7 +89,7 @@ def _procesar_doc_forms(request):
     """Construye un DocumentoSubirForm por archivo subido en el formulario de creación."""
     archivos = request.FILES.getlist('archivo')
     tipos = request.POST.getlist('tipo')
-    descripciones = request.POST.getlist('descripcion')
+    descripciones = request.POST.getlist('doc_descripcion')
     tipos_validos = {t for t, _ in Documento.TIPO_DOCUMENTO}
     doc_forms = []
     for i, f in enumerate(archivos):

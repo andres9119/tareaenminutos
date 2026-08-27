@@ -64,7 +64,7 @@ class SolicitudForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Campos obligatorios de la solicitud
-        campos_obligatorios = {'titulo', 'nivel_academico', 'tipo_entrega', 'materia'}
+        campos_obligatorios = {'titulo', 'descripcion', 'area_conocimiento', 'nivel_academico', 'tipo_entrega', 'materia'}
         for name, field in self.fields.items():
             field.required = name in campos_obligatorios
 
