@@ -78,16 +78,27 @@
                             </td>
                             <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
                             <td>
-                                <form id="cambio-estado-{{ ticket.pk }}" method="post" action="{% url 'ticket_cambiar_estado' ticket.pk %}" style="display:inline-flex; gap:0.4rem; align-items:center;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="solucion" id="campo-solucion-{{ ticket.pk }}" value="">
-                                    <select id="select-estado-{{ ticket.pk }}" name="estado" class="form-control-tem" style="padding:0.3rem 0.5rem; font-size:0.8rem;">
-                                        {% for value, label in ticket.ESTADO_CHOICES %}
-                                        <option value="{{ value }}" {% if value == ticket.estado %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn-tem btn-primary-tem" style="padding:0.35rem 0.75rem; font-size:0.8rem;" onclick="return abrirModalEstado({{ ticket.pk }}, {% if ticket.estado == 'resuelto' %}true{% else %}false{% endif %}, this.form);">Guardar</button>
-                                </form>
+                                <div style="display:inline-flex; gap:0.4rem; align-items:center;">
+                                    <button type="button" class="btn-tem btn-outline-tem" style="padding:0.35rem 0.75rem; font-size:0.8rem;"
+                                        onclick="abrirDetalle(this)"
+                                        data-titulo="{{ ticket.titulo }}"
+                                        data-descripcion="{{ ticket.descripcion }}"
+                                        data-seccion="{{ ticket.seccion|default:'—' }}"
+                                        data-autor="{% if ticket.creado_por %}{{ ticket.creado_por.get_full_name|default:ticket.creado_por.username }}{% else %}Usuario eliminado{% endif %}"
+                                        data-fecha="{{ ticket.created_at|date:'d/m/Y H:i' }}"
+                                        data-estado="{{ ticket.get_estado_display }}"
+                                        data-numero="{{ ticket.pk }}"><i class="fas fa-eye"></i> Ver</button>
+                                    <form id="cambio-estado-{{ ticket.pk }}" method="post" action="{% url 'ticket_cambiar_estado' ticket.pk %}" style="display:inline-flex; gap:0.4rem; align-items:center;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="solucion" id="campo-solucion-{{ ticket.pk }}" value="">
+                                        <select id="select-estado-{{ ticket.pk }}" name="estado" class="form-control-tem" style="padding:0.3rem 0.5rem; font-size:0.8rem;">
+                                            {% for value, label in ticket.ESTADO_CHOICES %}
+                                            <option value="{{ value }}" {% if value == ticket.estado %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn-tem btn-primary-tem" style="padding:0.35rem 0.75rem; font-size:0.8rem;" onclick="return abrirModalEstado({{ ticket.pk }}, {% if ticket.estado == 'resuelto' %}true{% else %}false{% endif %}, this.form);">Guardar</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -101,6 +112,31 @@
             <p>No se han reportado errores aún.</p>
         </div>
     {% endif %}
+</div>
+
+<!-- Modal de detalles del incidente -->
+<div id="detalleModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)cerrarDetalle()">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3 id="detalle-titulo"></h3>
+        </div>
+        <div class="modal-body" style="font-size:0.92rem; line-height:1.5;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem 1rem; margin-bottom:1rem;">
+                <div><span style="color:var(--text-muted);">Número:</span> <strong id="detalle-numero"></strong></div>
+                <div><span style="color:var(--text-muted);">Fecha:</span> <strong id="detalle-fecha"></strong></div>
+                <div><span style="color:var(--text-muted);">Reportado por:</span> <strong id="detalle-autor"></strong></div>
+                <div><span style="color:var(--text-muted);">Sección:</span> <strong id="detalle-seccion"></strong></div>
+                <div><span style="color:var(--text-muted);">Estado:</span> <strong id="detalle-estado"></strong></div>
+            </div>
+            <div>
+                <div style="color:var(--text-muted); margin-bottom:0.3rem;">Descripción:</div>
+                <div id="detalle-descripcion" style="white-space:pre-line; background:var(--primary-glow); border:1px solid var(--border-glow); border-radius:var(--border-radius-sm); padding:0.75rem;"></div>
+            </div>
+        </div>
+        <div class="modal-actions" style="display:flex; justify-content:flex-end; margin-top:1rem;">
+            <button type="button" class="btn-tem btn-outline-tem" onclick="cerrarDetalle()">Cerrar</button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal para registrar la solución -->
@@ -126,6 +162,21 @@
 {% block extra_js %}
 <script>
     var modalEstado = null, formEstado = null;
+
+    window.abrirDetalle = function(btn) {
+        document.getElementById('detalle-titulo').textContent = btn.dataset.titulo || '';
+        document.getElementById('detalle-numero').textContent = btn.dataset.numero || '';
+        document.getElementById('detalle-fecha').textContent = btn.dataset.fecha || '';
+        document.getElementById('detalle-autor').textContent = btn.dataset.autor || '';
+        document.getElementById('detalle-seccion').textContent = btn.dataset.seccion || '—';
+        document.getElementById('detalle-estado').textContent = btn.dataset.estado || '';
+        document.getElementById('detalle-descripcion').textContent = btn.dataset.descripcion || '—';
+        document.getElementById('detalleModal').style.display = 'flex';
+    };
+
+    window.cerrarDetalle = function() {
+        document.getElementById('detalleModal').style.display = 'none';
+    };
 
     window.abrirModalEstado = function(pk, esResuelto, form) {
         var sel = document.getElementById('select-estado-' + pk);
@@ -156,7 +207,10 @@
     };
 
     window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { cerrarModalEstado(); }
+        if (e.key === 'Escape') {
+            cerrarModalEstado();
+            cerrarDetalle();
+        }
     });
 </script>
 {% endblock %}
