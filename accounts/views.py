@@ -47,13 +47,22 @@ def dashboard_admin(request):
         groups__name='Tutor', is_active=True
     ).count()
 
-    # Solicitudes recientes (paginadas, 5 por página)
-    solicitudes_recientes = Paginator(
-        SolicitudAcademica.objects.select_related(
-            'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
-        ).order_by('-created_at'),
-        5,
-    ).get_page(request.GET.get('rec', 1))
+    # Solicitudes recientes (paginadas, 5 por página, filtrables por estado)
+    estado_reci = request.GET.get('estado_reci', '')
+    etiqueta_reci = None
+    rec_queryset = SolicitudAcademica.objects.select_related(
+        'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
+    )
+    if estado_reci:
+        est_filtro = EstadoSolicitud.objects.filter(nombre=estado_reci).first()
+        if est_filtro is None:
+            estado_reci = ''
+        else:
+            etiqueta_reci = est_filtro.etiqueta
+            rec_queryset = rec_queryset.filter(estado__nombre=estado_reci)
+    solicitudes_recientes = Paginator(rec_queryset.order_by('-created_at'), 5).get_page(
+        request.GET.get('rec', 1)
+    )
 
     # Solicitudes asignadas activas, próximas a vencer primero (paginadas, 5)
     solicitudes_asignadas = Paginator(
@@ -86,6 +95,8 @@ def dashboard_admin(request):
         'tutores_activos': tutores_activos,
         'solicitudes_recientes': solicitudes_recientes,
         'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
+        'estado_reci': estado_reci,
+        'etiqueta_reci': etiqueta_reci,
         'solicitudes_asignadas': solicitudes_asignadas,
         'qs_base_asig': qs_base_sin_pagina(request, 'asig'),
         'cotizaciones_pendientes': cotizaciones_pendientes,

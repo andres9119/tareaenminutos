@@ -130,12 +130,31 @@
     }
 
     .estado-item {
+        border-bottom: 1px solid var(--border-glow);
+        font-size: 0.82rem;
+    }
+
+    .estado-item a {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.6rem 0;
-        border-bottom: 1px solid var(--border-glow);
-        font-size: 0.82rem;
+        padding: 0.6rem;
+        text-decoration: none;
+        color: inherit;
+        border-radius: var(--border-radius-sm);
+        transition: var(--transition-smooth);
+    }
+
+    .estado-item a:hover {
+        background: var(--primary-glow);
+        color: var(--primary);
+    }
+
+    .estado-item.active a {
+        background: var(--primary-glow);
+        color: var(--primary);
+        font-weight: 600;
+        border: 1px solid var(--border-glow-active);
     }
 
     .estado-item .estado-nombre {
@@ -359,9 +378,11 @@
         <div class="section-body">
             <div class="estados-resumen">
                 {% for est in estados %}
-                <div class="estado-item">
-                    <span class="estado-nombre">{{ est.etiqueta }}</span>
-                    <span class="estado-cantidad">{{ est.cantidad }}</span>
+                <div class="estado-item{% if estado_reci == est.nombre %} active{% endif %}">
+                    <a href="?estado_reci={{ est.nombre }}" title="Ver solo {{ est.etiqueta }}">
+                        <span class="estado-nombre">{{ est.etiqueta }}</span>
+                        <span class="estado-cantidad">{{ est.cantidad }}</span>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -432,8 +453,8 @@
     <!-- Solicitudes recientes -->
     <div class="section-card">
         <div class="section-header">
-            <h5>Solicitudes Recientes</h5>
-            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <h5>Solicitudes Recientes{% if etiqueta_reci %} · {{ etiqueta_reci }}{% endif %}</h5>
+            <a href="{% if estado_reci %}?{% else %}{% url 'solicitud_lista' %}{% endif %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 Ver todas
             </a>
         </div>
