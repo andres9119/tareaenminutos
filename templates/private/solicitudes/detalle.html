@@ -699,6 +699,7 @@
 @media (max-width: 900px) {
     .detail-grid { grid-template-columns: 1fr; }
 }
+.detail-main, .detail-sidebar { min-width: 0; }
 .card-tem {
     background: var(--bg-surface);
     border: 1px solid var(--border-glow);
@@ -729,6 +730,10 @@
 .detail-desc {
     color: var(--text-muted);
     line-height: 1.7;
+}
+.detail-desc p {
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 .detail-divider {
     height: 1px;
