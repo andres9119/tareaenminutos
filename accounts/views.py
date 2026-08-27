@@ -38,7 +38,7 @@ def dashboard_admin(request):
     )
     # Estado por estado para las tarjetas
     estados = list(EstadoSolicitud.objects.order_by('orden').values('id', 'nombre', 'etiqueta', 'color_hex'))
-    estados_filtro_ocultos = {'cotizada', 'en_disputa'}
+    estados_filtro_ocultos = {'cotizada', 'en_disputa', 'en_progreso', 'cancelada'}
     estados = [est for est in estados if est['nombre'] not in estados_filtro_ocultos]
     conteo_map = {r['estado__nombre']: r['cantidad'] for r in conteo_por_estado}
     for est in estados:
