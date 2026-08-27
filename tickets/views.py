@@ -63,7 +63,11 @@ def ticket_cambiar_estado(request, pk):
     if nuevo_estado != ticket.estado:
         estado_anterior = ticket.get_estado_display()
         ticket.estado = nuevo_estado
-        ticket.save(update_fields=['estado', 'updated_at'])
+        if nuevo_estado == 'resuelto':
+            solucion = (request.POST.get('solucion') or '').strip()
+            if solucion:
+                ticket.solucion = solucion
+        ticket.save(update_fields=['estado', 'solucion', 'updated_at'])
         messages.success(
             request,
             f'Ticket "{ticket.titulo}" cambiado de {estado_anterior} a {ticket.get_estado_display()}.'

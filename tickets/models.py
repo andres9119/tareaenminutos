@@ -13,6 +13,7 @@ class TicketReporte(models.Model):
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
     seccion = models.CharField(max_length=200, blank=True, help_text='Sección de la plataforma donde ocurrió')
+    solucion = models.TextField(blank=True, default='', help_text='Solución aplicada al resolver el incidente (solo visible en admin)')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='abierto')
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
