@@ -136,6 +136,12 @@
         display: none;
     }
 
+    .section-subtitle {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        margin: 0.25rem 0 0.75rem 0;
+    }
+
     .estado-item {
         flex: 1 1 15%;
         min-width: 145px;
@@ -435,8 +441,8 @@
             <span class="kpi-chip-label">Tutores Registrados</span>
             <span class="kpi-chip-value">{{ tutores_activos }}</span>
         </a>
-        <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="kpi-chip" title="Ver cotizaciones pendientes">
-            <span class="kpi-chip-label">Cotizaciones Pendientes</span>
+        <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="kpi-chip" title="Cotizaciones presentadas por los tutores y pendientes de tu decisión">
+            <span class="kpi-chip-label">Cotizaciones por Revisar</span>
             <span class="kpi-chip-value">{{ cotizaciones_pendientes }}</span>
         </a>
     </div>
@@ -446,6 +452,7 @@
         <div class="section-header">
             <h5>Solicitudes por estado</h5>
         </div>
+        <p class="section-subtitle">Número de solicitudes en cada fase del flujo. Clic en una fase para filtrar la tabla.</p>
         <div class="section-body">
             <select class="filtro-estado-select" aria-label="Filtrar solicitudes por estado">
                 <option value="" data-href="?"{% if not estado_reci %} selected{% endif %}>Todos los estados</option>
