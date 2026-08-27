@@ -379,6 +379,15 @@ def usuario_eliminar(request, pk):
         messages.error(request, 'No puedes eliminar un usuario superusuario.')
         return redirect('usuarios_list')
     username = user.username
+    # Si es tutor, reponer sus tareas activas a cotización antes de borrarlo
+    # (evita solicitudes 'asignada'/activa sin tutor = estado inválido).
+    if user.groups.filter(name='Tutor').exists():
+        from solicitudes.models import SolicitudAcademica
+        from solicitudes.utils import reponer_activas_sin_tutor
+        reponer_activas_sin_tutor(
+            scope=SolicitudAcademica.objects.filter(tutor_asignado=user),
+            cambiado_por=request.user,
+        )
     user.delete()
     messages.success(request, f'Usuario @{username} eliminado definitivamente de la base de datos.')
     return redirect('usuarios_list')
