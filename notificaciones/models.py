@@ -20,6 +20,8 @@ class Notificacion(models.Model):
         ('entrega_recibida', 'Entrega Recibida'),
         ('comprobante_pago', 'Comprobante de Pago'),
         ('mensaje_chat', 'Nuevo Mensaje'),
+        ('ticket_reportado', 'Incidente Reportado'),
+        ('ticket_resuelto', 'Incidente Gestionado'),
         ('sistema', 'Sistema'),
     ]
 

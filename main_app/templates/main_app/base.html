@@ -681,6 +681,8 @@ footer {
                                         {% elif n.tipo == 'mensaje_chat' %><i class="fas fa-comment-dots"></i>
                                         {% elif n.tipo == 'comprobante_pago' %}<i class="fas fa-money-check-dollar"></i>
                                         {% elif n.tipo == 'cotizacion_recibida' %}<i class="fas fa-coins"></i>
+                                        {% elif n.tipo == 'ticket_reportado' %}<i class="fas fa-bug"></i>
+                                        {% elif n.tipo == 'ticket_resuelto' %}<i class="fas fa-check-circle"></i>
                                         {% else %}<i class="fas fa-bell"></i>{% endif %}
                                     </div>
                                     <div class="notif-item-content">
@@ -741,7 +743,7 @@ footer {
                     {% endif %}
                     <a href="/app/dashboard/" class="nav-panel-btn"><i class="fas fa-chart-line"></i> Mi Panel</a>
                     <a href="/app/perfil/" class="nav-panel-btn nav-perfil-btn"><i class="fas fa-user"></i> Mi Perfil</a>
-                    <a href="/tickets/reportar/" class="nav-panel-btn" title="Reportar error" style="padding: 0.45rem 0.7rem; font-size: 0.85rem;"><i class="fas fa-bug"></i></a>
+                    <a href="/tickets/reportar/" class="nav-panel-btn" title="Reportar un incidente" style="padding: 0.45rem 0.7rem; font-size: 0.85rem;"><i class="fas fa-bug"></i> Reportar</a>
                     <a href="/logout/" class="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</a>
                 {% else %}
                     <a href="/login/" class="nav-login-btn"><i class="fas fa-sign-in-alt"></i> Acceso tutores</a>
@@ -1004,7 +1006,7 @@ footer {
                     footer.appendChild(link);
                     dropdown.appendChild(footer);
                 }
-                const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins','comprobante_pago':'fa-money-check-dollar' };
+                const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins','comprobante_pago':'fa-money-check-dollar','ticket_reportado':'fa-bug','ticket_resuelto':'fa-check-circle' };
                 const icon = iconMap[notif.tipo] || 'fa-bell';
                 const a = document.createElement('a');
                 a.href = notif.url || '/notificaciones/';

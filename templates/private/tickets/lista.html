@@ -26,15 +26,16 @@
                             <th>Reportado por</th>
                             <th>Estado</th>
                             <th>Fecha</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for ticket in tickets %}
                         <tr>
                             <td>{{ ticket.pk }}</td>
-                            <td>{{ ticket.titulo }}</td>
+                            <td><strong>{{ ticket.titulo }}</strong></td>
                             <td>{{ ticket.seccion|default:"—" }}</td>
-                            <td>{{ ticket.creado_por.get_full_name|default:ticket.creado_por.username|default:"—" }}</td>
+                            <td>{% if ticket.creado_por %}{{ ticket.creado_por.get_full_name|default:ticket.creado_por.username }}{% else %}Usuario eliminado{% endif %}</td>
                             <td>
                                 {% if ticket.estado == 'abierto' %}
                                     <span class="badge-tem" style="background: var(--secondary); color: white;">Abierto</span>
@@ -47,6 +48,17 @@
                                 {% endif %}
                             </td>
                             <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'ticket_cambiar_estado' ticket.pk %}" style="display:inline-flex; gap:0.4rem; align-items:center;">
+                                    {% csrf_token %}
+                                    <select name="estado" class="form-control-tem" style="padding:0.3rem 0.5rem; font-size:0.8rem;">
+                                        {% for value, label in ticket.ESTADO_CHOICES %}
+                                        <option value="{{ value }}" {% if value == ticket.estado %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn-tem btn-primary-tem" style="padding:0.35rem 0.75rem; font-size:0.8rem;">Guardar</button>
+                                </form>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

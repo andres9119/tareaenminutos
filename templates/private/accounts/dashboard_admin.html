@@ -485,6 +485,13 @@
                 <i class="fas fa-newspaper"></i> Gestionar Blog
             </a>
         </div>
+        <div class="action-card">
+            <h5>Tickets de Reporte</h5>
+            <p>{{ tickets_abiertos }} incidentes abiertos o en progreso por atender</p>
+            <a href="{% url 'ticket_lista' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-bug"></i> Ver Incidentes
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -12,6 +12,8 @@ TIPO_A_ENVIAR = {
     'cotizacion_rechazada',
     'solicitud_asignada',
     'cambio_estado',
+    'ticket_reportado',
+    'ticket_resuelto',
 }
 
 

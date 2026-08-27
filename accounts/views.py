@@ -64,6 +64,9 @@ def dashboard_admin(request):
     total_mensajes_contacto = ContactMessage.objects.count()
     mensajes_no_leidos = ContactMessage.objects.filter(read=False).count()
 
+    from tickets.models import TicketReporte
+    tickets_abiertos = TicketReporte.objects.filter(estado__in=['abierto', 'en_progreso']).count()
+
     context = {
         'total_solicitudes': total_solicitudes,
         'total_por_estados': total_por_estados,
@@ -74,6 +77,7 @@ def dashboard_admin(request):
         'cotizaciones_pendientes': cotizaciones_pendientes,
         'total_mensajes_contacto': total_mensajes_contacto,
         'mensajes_no_leidos': mensajes_no_leidos,
+        'tickets_abiertos': tickets_abiertos,
     }
     return render(request, 'private/accounts/dashboard_admin.html', context)
 
