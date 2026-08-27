@@ -320,18 +320,28 @@
             min-width: 0;
         }
         .action-card {
-            padding: 1rem;
+            padding: 0.8rem;
         }
         .action-card h5 {
-            font-size: 0.95rem;
-            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
         }
         .action-card p {
+            display: none;
+        }
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .action-card .action-buttons .btn-tem,
+        .action-card > .btn-tem {
+            padding: 0.4rem 0.5rem;
             font-size: 0.78rem;
-            margin-bottom: 0.6rem;
         }
         .action-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
         .dashboard-header {
             flex-direction: column;
