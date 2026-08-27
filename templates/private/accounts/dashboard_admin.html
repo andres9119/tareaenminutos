@@ -132,6 +132,10 @@
         gap: 0.5rem;
     }
 
+    .filtro-estado-select {
+        display: none;
+    }
+
     .estado-item {
         flex: 1 1 15%;
         min-width: 145px;
@@ -297,12 +301,34 @@
         .kpi-grid {
             flex-direction: column;
         }
+        .filtro-estado-select {
+            display: block;
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border-glow);
+            border-radius: var(--border-radius-sm);
+            background: var(--bg-surface);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
         .estados-resumen {
-            flex-direction: column;
+            display: none;
         }
         .estado-item {
             flex: 1 1 auto;
             min-width: 0;
+        }
+        .action-card {
+            padding: 1rem;
+        }
+        .action-card h5 {
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+        }
+        .action-card p {
+            font-size: 0.78rem;
+            margin-bottom: 0.6rem;
         }
         .action-grid {
             grid-template-columns: 1fr;
@@ -385,6 +411,12 @@
             <h5>Solicitudes por estado</h5>
         </div>
         <div class="section-body">
+            <select class="filtro-estado-select" aria-label="Filtrar solicitudes por estado">
+                <option value="" data-href="?"{% if not estado_reci %} selected{% endif %}>Todos los estados</option>
+                {% for est in estados %}
+                <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{{ est.etiqueta }}</option>
+                {% endfor %}
+            </select>
             <div class="estados-resumen">
                 {% for est in estados %}
                 <div class="estado-item{% if estado_reci == est.nombre %} active{% endif %}">
@@ -569,4 +601,18 @@
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script>
+(function () {
+    var sel = document.querySelector('.filtro-estado-select');
+    if (!sel) return;
+    sel.addEventListener('change', function () {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.dataset.href) {
+            window.location.href = opt.dataset.href;
+        }
+    });
+})();
+</script>
+{% endblock %}
 {% endblock %}
