@@ -29,7 +29,12 @@
             <div class="card-tem">
                 <div class="card-tem-body">
                     <h2 class="detail-title">{{ solicitud.titulo }}</h2>
-                    <p class="detail-desc">{{ solicitud.descripcion }}</p>
+                    {% if solicitud.descripcion %}
+                    <div class="detail-desc">
+                        <strong>Descripción:</strong>
+                        <p style="white-space: pre-line; margin: 0.3rem 0 0;">{{ solicitud.descripcion }}</p>
+                    </div>
+                    {% endif %}
                     <div class="detail-divider"></div>
                     <div class="detail-fields">
                         <div class="field-group">
