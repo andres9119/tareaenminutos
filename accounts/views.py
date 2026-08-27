@@ -25,6 +25,7 @@ def dashboard_redirect(request):
 def dashboard_admin(request):
     """Panel principal del Administrador con métricas y resumen."""
     from solicitudes.models import SolicitudAcademica, EstadoSolicitud
+    from solicitudes.utils import ESTADOS_CON_TUTOR
     from cotizaciones.models import Cotizacion
 
     # KPIs principales
@@ -49,34 +50,36 @@ def dashboard_admin(request):
         groups__name='Tutor', is_active=True
     ).count()
 
-    # Solicitudes recientes (paginadas, 5 por página, filtrables por estado)
+    # Solicitudes recientes (paginadas, 5 por página, filtrables)
     estado_reci = request.GET.get('estado_reci', '')
     etiqueta_reci = None
     rec_queryset = SolicitudAcademica.objects.select_related(
         'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
     )
-    if estado_reci:
+    rec_orden = ('-created_at',)
+    if estado_reci == 'asignadas':
+        etiqueta_reci = 'Asignados por Vencer'
+        rec_queryset = rec_queryset.filter(
+            tutor_asignado__isnull=False,
+            estado__nombre__in=ESTADOS_CON_TUTOR,
+        )
+        rec_orden = (F('fecha_entrega_cliente').asc(nulls_last=True), '-updated_at')
+    elif estado_reci:
         est_filtro = EstadoSolicitud.objects.filter(nombre=estado_reci).first()
         if est_filtro is None:
             estado_reci = ''
         else:
             etiqueta_reci = est_filtro.etiqueta
             rec_queryset = rec_queryset.filter(estado__nombre=estado_reci)
-    solicitudes_recientes = Paginator(rec_queryset.order_by('-created_at'), 5).get_page(
+    solicitudes_recientes = Paginator(rec_queryset.order_by(*rec_orden), 5).get_page(
         request.GET.get('rec', 1)
     )
 
-    # Solicitudes asignadas activas, próximas a vencer primero (paginadas, 5)
-    solicitudes_asignadas = Paginator(
-        SolicitudAcademica.objects.select_related(
-            'estado', 'area_conocimiento', 'tutor_asignado'
-        ).filter(tutor_asignado__isnull=False).exclude(
-            estado__nombre__in=SolicitudAcademica.ESTADOS_CERRADOS_TUTOR
-        ).order_by(
-            F('fecha_entrega_cliente').asc(nulls_last=True), '-updated_at'
-        ),
-        5,
-    ).get_page(request.GET.get('asig', 1))
+    # Conteo de trabajos activos asignados (para el filtro 'asignadas')
+    trabajos_asignados_count = SolicitudAcademica.objects.filter(
+        tutor_asignado__isnull=False,
+        estado__nombre__in=ESTADOS_CON_TUTOR,
+    ).count()
 
     # Cotizaciones pendientes de revisión
     cotizaciones_pendientes = Cotizacion.objects.filter(
@@ -99,8 +102,7 @@ def dashboard_admin(request):
         'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
         'estado_reci': estado_reci,
         'etiqueta_reci': etiqueta_reci,
-        'solicitudes_asignadas': solicitudes_asignadas,
-        'qs_base_asig': qs_base_sin_pagina(request, 'asig'),
+        'trabajos_asignados_count': trabajos_asignados_count,
         'cotizaciones_pendientes': cotizaciones_pendientes,
         'total_mensajes_contacto': total_mensajes_contacto,
         'mensajes_no_leidos': mensajes_no_leidos,

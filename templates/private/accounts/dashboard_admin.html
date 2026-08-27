@@ -451,6 +451,7 @@
                 {% for est in estados %}
                 <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{{ est.etiqueta }}</option>
                 {% endfor %}
+                <option value="asignadas" data-href="?estado_reci=asignadas"{% if estado_reci == 'asignadas' %} selected{% endif %}>Asignados por Vencer</option>
             </select>
             <div class="estados-resumen">
                 {% for est in estados %}
@@ -461,6 +462,12 @@
                     </a>
                 </div>
                 {% endfor %}
+                <div class="estado-item{% if estado_reci == 'asignadas' %} active{% endif %}">
+                    <a href="?estado_reci=asignadas" title="Trabajos activos asignados, próximos a vencer primero">
+                        <span class="estado-nombre">Asignados por Vencer</span>
+                        <span class="estado-cantidad">{{ trabajos_asignados_count }}</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -483,6 +490,7 @@
                             <th>Título</th>
                             <th>Cliente</th>
                             <th>Estado</th>
+                            {% if estado_reci == 'asignadas' %}<th>Fecha Límite</th>{% endif %}
                             <th>Tutor</th>
                             <th>Acciones</th>
                         </tr>
@@ -498,6 +506,21 @@
                                         {{ solicitud.estado.etiqueta }}
                                     </span>
                                 </td>
+                                {% if estado_reci == 'asignadas' %}
+                                <td style="white-space: nowrap;">
+                                    {% if solicitud.fecha_entrega_cliente %}
+                                        {% if solicitud.dias_para_entrega != None and solicitud.dias_para_entrega < 0 %}
+                                            <span style="color: var(--highlight); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (vencida)</span>
+                                        {% elif solicitud.dias_para_entrega == 0 %}
+                                            <span style="color: var(--secondary); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (¡hoy!)</span>
+                                        {% else %}
+                                            {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted-tem">Sin fecha</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
                                 <td>
                                     {% if solicitud.tutor_asignado %}
                                         {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
@@ -519,67 +542,6 @@
             {% else %}
                 <div class="empty-state">
                     <p>No hay solicitudes recientes.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Solicitudes asignadas próximas a vencer -->
-    <div class="section-card">
-        <div class="section-header">
-            <h5>Trabajos Asignados por Vencer</h5>
-            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-outline-tem" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                Ver todas
-            </a>
-        </div>
-        <div class="section-body">
-            {% if solicitudes_asignadas %}
-                <div class="table-responsive">
-                    <table class="table-tem">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Título</th>
-                                <th>Tutor</th>
-                                <th>Fecha Límite</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for solicitud in solicitudes_asignadas %}
-                                <tr>
-                                    <td><strong>{{ solicitud.codigo }}</strong></td>
-                                    <td>{{ solicitud.titulo|truncatechars:40 }}</td>
-                                    <td>
-                                        {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}
-                                    </td>
-                                    <td style="white-space: nowrap;">
-                                        {% if solicitud.fecha_entrega_cliente %}
-                                            {% if solicitud.dias_para_entrega != None and solicitud.dias_para_entrega < 0 %}
-                                                <span style="color: var(--highlight); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (vencida)</span>
-                                            {% elif solicitud.dias_para_entrega == 0 %}
-                                                <span style="color: var(--secondary); font-weight: 600;">{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }} (¡hoy!)</span>
-                                            {% else %}
-                                                {{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted-tem">Sin fecha</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                            Ver
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% include "private/_paginacion.html" with pagina=solicitudes_asignadas param="asig" qs_base=qs_base_asig %}
-            {% else %}
-                <div class="empty-state">
-                    <p>No hay solicitudes asignadas en curso.</p>
                 </div>
             {% endif %}
         </div>
