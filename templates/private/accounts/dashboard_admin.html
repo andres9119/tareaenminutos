@@ -182,8 +182,8 @@
 
     .action-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
         margin-bottom: 2rem;
     }
 
@@ -191,7 +191,7 @@
         background: var(--bg-surface);
         border: 1px solid var(--border-glow);
         border-radius: var(--border-radius-lg);
-        padding: 1.5rem;
+        padding: 1.25rem;
         transition: var(--transition-smooth);
     }
 
@@ -201,7 +201,7 @@
 
     .action-card h5 {
         font-family: var(--font-heading);
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: var(--text-main);
         margin: 0 0 0.75rem 0;
     }
@@ -551,32 +551,6 @@
     <!-- Información del sistema -->
     <div class="action-grid">
         <div class="action-card">
-            <h5>Cotizaciones</h5>
-            <p>{{ cotizaciones_pendientes }} cotizaciones pendientes de revisión</p>
-            <div class="action-buttons">
-                <a href="{% url 'cotizaciones_lista' %}" class="btn-tem btn-outline-tem">
-                    Ver Todas
-                </a>
-                <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="btn-tem btn-primary-tem">
-                    Revisar Pendientes
-                </a>
-            </div>
-        </div>
-        <div class="action-card">
-            <h5>Tutores Registrados</h5>
-            <p>{{ tutores_activos }} tutores registrados en el sistema</p>
-            <a href="{% url 'usuarios_list' %}?rol=Tutor" class="btn-tem btn-outline-tem">
-                Gestionar Tutores
-            </a>
-        </div>
-        <div class="action-card">
-            <h5>Reportes</h5>
-            <p>Accede a estadísticas y reportes detallados</p>
-            <a href="{% url 'perfil' %}" class="btn-tem btn-outline-tem">
-                Mi Perfil
-            </a>
-        </div>
-        <div class="action-card">
             <h5>Mensajes de Contacto</h5>
             <p>{{ total_mensajes_contacto }} mensajes recibidos ({{ mensajes_no_leidos }} sin leer)</p>
             <a href="{% url 'contact_mensajes_list' %}" class="btn-tem btn-outline-tem">
@@ -584,7 +558,7 @@
             </a>
         </div>
         <div class="action-card">
-            <h5>Blog</h5>
+            <h5>Gestionar Blog</h5>
             <p>Crea y edita artículos del blog con bloques de contenido</p>
             <a href="{% url 'blog_admin_list' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-newspaper"></i> Gestionar Blog
