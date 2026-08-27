@@ -538,7 +538,7 @@
             <div class="section-body" style="padding: 0.6rem 1.25rem;">
                 {% if proximas_entregas %}
                     {% for solicitud in proximas_entregas %}
-                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="entrega-item">
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}?origen=tutor&origen_txt=Mis%20Tareas" class="entrega-item">
                         <div class="entrega-info">
                             <div class="entrega-titulo"><strong>{{ solicitud.codigo }}</strong> · {{ solicitud.titulo|truncatechars:38 }}</div>
                             <div class="entrega-meta">{{ solicitud.area_conocimiento.nombre|default:"Sin área" }} · {{ solicitud.estado.etiqueta }}</div>
@@ -678,7 +678,7 @@
                                         </td>
                                         <td>{{ solicitud.fecha_entrega_cliente|date:"d/m/Y" }}</td>
                                         <td>
-                                            <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                            <a href="{% url 'solicitud_detalle' solicitud.pk %}?origen=tutor&origen_txt=Mis%20Tareas" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                                 Ver
                                             </a>
                                         </td>

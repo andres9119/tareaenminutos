@@ -540,7 +540,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                    <a href="{% url 'solicitud_detalle' solicitud.pk %}?origen=panel{% if estado_reci %}&origen_estado={{ estado_reci|urlencode }}&origen_txt={{ etiqueta_reci|urlencode }}{% else %}&origen_txt=Solicitudes%20Recientes{% endif %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                         Ver
                                     </a>
                                 </td>

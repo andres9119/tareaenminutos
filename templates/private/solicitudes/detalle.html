@@ -6,14 +6,19 @@
     <div class="breadcrumb">
         <a href="/app/dashboard/">Panel</a>
         <span>›</span>
-        <a href="{% url 'solicitud_lista' %}">Solicitudes</a>
-        <span>›</span>
+        {% if breadcrumb_extra %}
+            <a href="{{ breadcrumb_extra.url }}">{{ breadcrumb_extra.etiqueta }}</a>
+            <span>›</span>
+        {% else %}
+            <a href="{% url 'solicitud_lista' %}">Solicitudes</a>
+            <span>›</span>
+        {% endif %}
         <span>{{ solicitud.codigo }}</span>
     </div>
     <div class="page-header">
         <h1>{{ solicitud.codigo }}</h1>
         <div class="page-actions">
-            <a href="{% url 'solicitud_lista' %}" class="btn-tem btn-secondary-tem" onclick="if (history.length > 1) { event.preventDefault(); history.back(); }">
+            <a href="{% if breadcrumb_extra %}{{ breadcrumb_extra.url }}{% else %}{% url 'solicitud_lista' %}{% endif %}" class="btn-tem btn-secondary-tem" onclick="if (history.length > 1) { event.preventDefault(); history.back(); }">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
             {% if es_admin %}

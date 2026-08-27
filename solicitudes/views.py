@@ -223,6 +223,22 @@ def solicitud_detalle(request, pk):
             groups__name='Tutor', is_active=True
         ).select_related('perfil').order_by('first_name')
 
+    # Breadcrumb dinámico según el origen (panel admin/tutor con o sin filtro)
+    breadcrumb_extra = None
+    origen = request.GET.get('origen')
+    if origen == 'panel':
+        etiqueta = request.GET.get('origen_txt') or 'Solicitudes Recientes'
+        estado_f = request.GET.get('origen_estado')
+        url_origen = reverse('dashboard_admin')
+        if estado_f:
+            url_origen = url_origen + '?estado_reci=' + estado_f
+        breadcrumb_extra = {'etiqueta': etiqueta, 'url': url_origen}
+    elif origen == 'tutor':
+        breadcrumb_extra = {
+            'etiqueta': request.GET.get('origen_txt') or 'Mis Tareas',
+            'url': reverse('dashboard_tutor'),
+        }
+
     context = {
         'solicitud': solicitud,
         'documentos': documentos,
@@ -242,6 +258,7 @@ def solicitud_detalle(request, pk):
         'cotizacion_propia': cotizacion_propia,
         'tutores_disponibles': tutores_disponibles,
         'es_admin': user_is_admin,
+        'breadcrumb_extra': breadcrumb_extra,
     }
     return render(request, 'private/solicitudes/detalle.html', context)
 
