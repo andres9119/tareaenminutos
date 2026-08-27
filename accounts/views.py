@@ -38,10 +38,12 @@ def dashboard_admin(request):
     )
     # Estado por estado para las tarjetas
     estados = list(EstadoSolicitud.objects.order_by('orden').values('id', 'nombre', 'etiqueta', 'color_hex'))
+    estados_filtro_ocultos = {'cotizada', 'en_disputa'}
+    estados = [est for est in estados if est['nombre'] not in estados_filtro_ocultos]
     conteo_map = {r['estado__nombre']: r['cantidad'] for r in conteo_por_estado}
     for est in estados:
         est['cantidad'] = conteo_map.get(est['nombre'], 0)
-    total_por_estados = sum(est['cantidad'] for est in estados)
+    total_por_estados = sum(conteo_map.values())
 
     tutores_activos = User.objects.filter(
         groups__name='Tutor', is_active=True
