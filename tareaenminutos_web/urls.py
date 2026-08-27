@@ -22,6 +22,7 @@ urlpatterns = [
     path('notificaciones/', include('notificaciones.urls')),
     path('app/chat/', include('chat_interno.urls')),
     path('reportes/', include('reportes.urls')),
+    path('tickets/', include('tickets.urls')),
 ]
 
 # ─── Servir archivos multimedia (imágenes subidas, documentos) ─────────────────

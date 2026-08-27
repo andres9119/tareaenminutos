@@ -1,0 +1,63 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Tickets de Reporte - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Tickets de Reporte</span>
+    </div>
+
+    <div class="page-header">
+        <h1>Tickets de Reporte</h1>
+    </div>
+
+    {% if tickets %}
+        <div class="card-tem">
+            <div class="card-body-tem">
+                <table class="table-tem">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Título</th>
+                            <th>Sección</th>
+                            <th>Reportado por</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td>{{ ticket.pk }}</td>
+                            <td>{{ ticket.titulo }}</td>
+                            <td>{{ ticket.seccion|default:"—" }}</td>
+                            <td>{{ ticket.creado_por.get_full_name|default:ticket.creado_por.username|default:"—" }}</td>
+                            <td>
+                                {% if ticket.estado == 'abierto' %}
+                                    <span class="badge-tem" style="background: var(--secondary); color: white;">Abierto</span>
+                                {% elif ticket.estado == 'en_progreso' %}
+                                    <span class="badge-tem" style="background: var(--primary); color: white;">En Progreso</span>
+                                {% elif ticket.estado == 'resuelto' %}
+                                    <span class="badge-tem" style="background: var(--success); color: white;">Resuelto</span>
+                                {% elif ticket.estado == 'cerrado' %}
+                                    <span class="badge-tem" style="background: var(--text-muted); color: white;">Cerrado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert-tem alert-info-tem">
+            <h4>No hay tickets</h4>
+            <p>No se han reportado errores aún.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -55,8 +55,8 @@ def _construir_datos_sala(sala, user):
 
 def _salas_con_datos(user, limite=25):
     # Trae un grupo amplio y ordena por relevancia para el flotante:
-    # 1) con mensajes sin leer, 2) chats abiertos, 3) actividad reciente.
-    # Así las cientos de salas cerradas no tapan lo importante.
+    # 1) Canal General siempre primero, 2) con mensajes sin leer,
+    # 3) chats abiertos, 4) actividad reciente.
     pool_size = max(limite * 4, 80)
     salas = list(_base_salas(user)
                  .select_related('solicitud', 'solicitud__estado')
@@ -64,13 +64,27 @@ def _salas_con_datos(user, limite=25):
                  .order_by(F('ultima_act').desc(nulls_last=True), '-created_at')[:pool_size])
 
     datos = [_construir_datos_sala(s, user) for s in salas]
+
+    # Separar el canal general para siempre ponerlo primero
+    general = None
+    resto = []
+    for d in datos:
+        if general is None and d['tipo'] == 'general':
+            general = d
+        else:
+            resto.append(d)
+
     _sent = timezone.make_aware(datetime.min)
-    datos.sort(key=lambda d: (
+    resto.sort(key=lambda d: (
         bool(d['no_leidos']),
         not d['cerrada'],
         d['ultimo_tiempo'] or _sent,
     ), reverse=True)
-    return datos[:limite]
+
+    resultado = resto[:limite - 1] if general else resto[:limite]
+    if general:
+        resultado.insert(0, general)
+    return resultado
 
 
 def mensajes_no_leidos_chats(user):

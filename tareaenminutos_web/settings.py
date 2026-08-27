@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'notificaciones',
     'chat_interno',
     'reportes',
+    'tickets',
 
     # Django Channels (WebSockets) — daphne MUST be before staticfiles
     'daphne',

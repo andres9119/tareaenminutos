@@ -432,6 +432,7 @@
                             <th>Monto</th>
                             <th>Tiempo</th>
                             <th>Fecha Propuesta</th>
+                            <th>Propuesta</th>
                             <th>Estado</th>
                             {% if es_admin %}<th>Acciones</th>{% endif %}
                         </tr>
@@ -459,6 +460,13 @@
                             <td>${{ cotizacion.monto|floatformat:0 }}</td>
                             <td>{{ cotizacion.tiempo_estimado_dias }} días</td>
                             <td>{{ cotizacion.fecha_entrega_propuesta|date:"d/m/Y" }}</td>
+                            <td style="max-width: 250px;">
+                                {% if cotizacion.descripcion_propuesta %}
+                                    <small>{{ cotizacion.descripcion_propuesta|truncatechars:80 }}</small>
+                                {% else %}
+                                    <small class="text-muted">—</small>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if cotizacion.estado == 'pendiente' %}
                                     <span class="badge-tem badge-warning">Pendiente</span>

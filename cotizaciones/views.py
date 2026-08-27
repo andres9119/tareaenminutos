@@ -208,16 +208,17 @@ def mis_cotizaciones(request):
 
 @admin_required
 def cotizaciones_lista(request):
-    """Lista de todas las cotizaciones del sistema (solo Admin)."""
+    """Lista de cotizaciones agrupadas por solicitud (solo Admin)."""
     from datetime import datetime
+    from itertools import groupby
     estado = request.GET.get('estado', '')
     fecha_desde = request.GET.get('fecha_desde', '')
     fecha_hasta = request.GET.get('fecha_hasta', '')
-    
+
     cotizaciones = Cotizacion.objects.select_related(
         'solicitud', 'solicitud__estado', 'tutor', 'tutor__perfil'
-    ).order_by('-created_at')
-    
+    ).order_by('solicitud__codigo', '-created_at')
+
     if estado:
         cotizaciones = cotizaciones.filter(estado=estado)
     if fecha_desde:
@@ -230,17 +231,27 @@ def cotizaciones_lista(request):
             cotizaciones = cotizaciones.filter(created_at__date__lte=datetime.strptime(fecha_hasta, '%Y-%m-%d'))
         except ValueError:
             pass
-    
-    paginator = Paginator(cotizaciones, 20)
+
+    # Agrupar por solicitud
+    grupos = []
+    for codigo, cotizaciones_grupo in groupby(cotizaciones, key=lambda c: c.solicitud):
+        grupo_list = list(cotizaciones_grupo)
+        grupos.append({
+            'solicitud': grupo_list[0].solicitud,
+            'cotizaciones': grupo_list,
+        })
+
+    paginator = Paginator(grupos, 10)
     page = request.GET.get('page', 1)
-    cotizaciones_page = paginator.get_page(page)
+    grupos_page = paginator.get_page(page)
+
     context = {
-        'cotizaciones': cotizaciones_page,
-        'pagina': cotizaciones_page,
+        'grupos': grupos_page,
+        'pagina': grupos_page,
         'qs_base': qs_base_sin_pagina(request, 'page'),
         'estado': estado,
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
-        'is_paginated': cotizaciones_page.has_other_pages(),
+        'is_paginated': grupos_page.has_other_pages(),
     }
     return render(request, 'private/cotizaciones/lista.html', context)

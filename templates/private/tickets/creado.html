@@ -1,0 +1,22 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Reporte Enviado - TEM{% endblock %}
+
+{% block content %}
+<div class="container-tem">
+    <div class="breadcrumb">
+        <a href="/app/dashboard/">Panel</a>
+        <span>›</span>
+        <span>Reportar Error</span>
+    </div>
+
+    <div class="card-tem">
+        <div class="card-tem-body" style="text-align: center; padding: 3rem;">
+            <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+            <h2>Reporte enviado correctamente</h2>
+            <p style="color: var(--text-muted); margin: 1rem 0 2rem;">Nuestro equipo revisará tu reporte y trabajará en la solución.</p>
+            <a href="/app/dashboard/" class="btn-tem btn-primary-tem">Volver al Panel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
