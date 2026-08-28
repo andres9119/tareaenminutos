@@ -176,9 +176,14 @@
     }
 
     .estado-item.active a {
-        background: var(--primary-glow);
-        color: var(--primary);
+        background: var(--primary);
+        color: #fff;
         font-weight: 600;
+    }
+
+    .estado-item.active a:hover {
+        background: color-mix(in srgb, var(--primary), black 12%);
+        color: #fff;
     }
 
     .estado-item .estado-nombre {
