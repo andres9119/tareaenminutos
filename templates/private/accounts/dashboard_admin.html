@@ -165,14 +165,15 @@
         align-items: center;
         padding: 0.65rem;
         text-decoration: none;
-        color: inherit;
         border-radius: var(--border-radius-sm);
         transition: var(--transition-smooth);
+        background: var(--primary-glow);
+        color: var(--primary);
         font-weight: 600;
     }
 
     .estado-item a:hover {
-        background: var(--primary-glow);
+        background: color-mix(in srgb, var(--primary-glow), black 12%);
         color: var(--primary);
     }
 
