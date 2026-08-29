@@ -22,6 +22,57 @@ def dashboard_redirect(request):
     return redirect('dashboard_tutor')
 
 
+def _solicitudes_recientes(request, por_pagina=5):
+    """Calcula el queryset paginado de 'Solicitudes recientes' del panel admin.
+
+    Comparte la lógica entre el dashboard (render completo) y el endpoint
+    AJAX que refresca solo la tabla. Devuelve (estado_reci, etiqueta_reci, page).
+    """
+    from solicitudes.models import SolicitudAcademica, EstadoSolicitud
+    from solicitudes.utils import ESTADOS_CON_TUTOR
+
+    estado_reci = request.GET.get('estado_reci', '')
+    etiqueta_reci = None
+    qs = SolicitudAcademica.objects.select_related(
+        'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
+    )
+    rec_orden = ('-created_at',)
+    if estado_reci == 'asignadas':
+        etiqueta_reci = 'Asignados por Vencer'
+        qs = qs.filter(
+            tutor_asignado__isnull=False,
+            estado__nombre__in=ESTADOS_CON_TUTOR,
+        )
+        rec_orden = (F('fecha_entrega_cliente').asc(nulls_last=True), '-updated_at')
+    elif estado_reci:
+        est_filtro = EstadoSolicitud.objects.filter(nombre=estado_reci).first()
+        if est_filtro is None:
+            estado_reci = ''
+        else:
+            etiqueta_reci = est_filtro.etiqueta
+            qs = qs.filter(estado__nombre=estado_reci)
+    page = Paginator(qs.order_by(*rec_orden), por_pagina).get_page(
+        request.GET.get('rec', 1)
+    )
+    return estado_reci, etiqueta_reci, page
+
+
+@admin_required
+def dashboard_recientes_fragment(request):
+    """Devuelve (solo AJAX) el fragmento HTML de la tabla de Solicitudes
+    Recientes según el filtro `estado_reci` para actualizar sin recargar."""
+    if not _es_ajax(request):
+        return redirect('dashboard_admin')
+    estado_reci, etiqueta_reci, page = _solicitudes_recientes(request)
+    context = {
+        'solicitudes_recientes': page,
+        'estado_reci': estado_reci,
+        'etiqueta_reci': etiqueta_reci,
+        'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
+    }
+    return render(request, 'private/accounts/_recientes_fragment.html', context)
+
+
 @admin_required
 def dashboard_admin(request):
     """Panel principal del Administrador con métricas y resumen."""
@@ -52,29 +103,7 @@ def dashboard_admin(request):
     ).count()
 
     # Solicitudes recientes (paginadas, 5 por página, filtrables)
-    estado_reci = request.GET.get('estado_reci', '')
-    etiqueta_reci = None
-    rec_queryset = SolicitudAcademica.objects.select_related(
-        'estado', 'area_conocimiento', 'tutor_asignado', 'creado_por'
-    )
-    rec_orden = ('-created_at',)
-    if estado_reci == 'asignadas':
-        etiqueta_reci = 'Asignados por Vencer'
-        rec_queryset = rec_queryset.filter(
-            tutor_asignado__isnull=False,
-            estado__nombre__in=ESTADOS_CON_TUTOR,
-        )
-        rec_orden = (F('fecha_entrega_cliente').asc(nulls_last=True), '-updated_at')
-    elif estado_reci:
-        est_filtro = EstadoSolicitud.objects.filter(nombre=estado_reci).first()
-        if est_filtro is None:
-            estado_reci = ''
-        else:
-            etiqueta_reci = est_filtro.etiqueta
-            rec_queryset = rec_queryset.filter(estado__nombre=estado_reci)
-    solicitudes_recientes = Paginator(rec_queryset.order_by(*rec_orden), 5).get_page(
-        request.GET.get('rec', 1)
-    )
+    estado_reci, etiqueta_reci, solicitudes_recientes = _solicitudes_recientes(request)
 
     # Conteo de trabajos activos asignados (para el filtro 'asignadas')
     trabajos_asignados_count = SolicitudAcademica.objects.filter(

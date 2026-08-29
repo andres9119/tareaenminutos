@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.dashboard_redirect, name='dashboard_redirect'),
     path('dashboard/', views.dashboard_redirect, name='dashboard'),
     path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
+    path('dashboard/admin/recientes/', views.dashboard_recientes_fragment, name='dashboard_recientes_fragment'),
     path('dashboard/tutor/', views.dashboard_tutor, name='dashboard_tutor'),
     path('perfil/', views.perfil_view, name='perfil'),
     path('usuarios/', views.usuarios_list, name='usuarios_list'),
