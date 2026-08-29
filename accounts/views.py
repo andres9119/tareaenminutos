@@ -129,9 +129,9 @@ def dashboard_admin(request):
             'estado_color_hex': p.estado.color_hex if p.estado else '#06aa44',
             'url': reverse('solicitud_detalle', args=[p.pk]),
         })
-    # Versión paginada de la lista (8 por página, parámetro propio `pe`); el
+    # Versión paginada de la lista (5 por página, parámetro propio `pe`); el
     # calendario sigue usando la lista completa vía json_script.
-    proximas_entregas_page = Paginator(proximas_entregas, 8).get_page(
+    proximas_entregas_page = Paginator(proximas_entregas, 5).get_page(
         request.GET.get('pe', 1)
     )
 

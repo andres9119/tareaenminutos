@@ -128,73 +128,20 @@
         font-size: 1.15rem;
     }
 
-    .estados-resumen {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+    .filtro-estado-wrap {
+        margin-bottom: 0.75rem;
+        max-width: 360px;
     }
 
     .filtro-estado-select {
-        display: none;
-    }
-
-    .section-subtitle {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        margin: 0.25rem 0 0.75rem 0;
-        padding: 0 1.25rem;
-        text-align: left !important;
         display: block;
         width: 100%;
-    }
-
-    .estado-item {
-        flex: 1 1 15%;
-        min-width: 145px;
-        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
         border: 1px solid var(--border-glow);
         border-radius: var(--border-radius-sm);
         background: var(--bg-surface);
-        overflow: hidden;
-    }
-
-    .estado-item a {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.65rem;
-        text-decoration: none;
-        border-radius: var(--border-radius-sm);
-        transition: var(--transition-smooth);
-        background: var(--bg-surface);
         color: var(--text-main);
-        font-weight: 600;
-    }
-
-    .estado-item a:hover {
-        background: var(--primary-glow);
-        color: var(--primary);
-    }
-
-    .estado-item.active a {
-        background: var(--primary);
-        color: #fff;
-        font-weight: 600;
-    }
-
-    .estado-item.active a .estado-nombre,
-    .estado-item.active a .estado-cantidad {
-        color: #fff;
-    }
-
-    .estado-item .estado-nombre {
-        color: var(--text-muted);
-    }
-
-    .estado-item .estado-cantidad {
-        color: var(--text-main);
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
+        font-size: 0.9rem;
     }
 
     .action-grid {
@@ -319,23 +266,8 @@
         .kpi-grid {
             flex-direction: column;
         }
-        .filtro-estado-select {
-            display: block;
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid var(--border-glow);
-            border-radius: var(--border-radius-sm);
-            background: var(--bg-surface);
-            color: var(--text-main);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        .estados-resumen {
-            display: none;
-        }
-        .estado-item {
-            flex: 1 1 auto;
-            min-width: 0;
+        .filtro-estado-wrap {
+            max-width: 100%;
         }
         .action-card {
             padding: 0.8rem;
@@ -605,16 +537,6 @@
     }
 
     /* ══ Filas y paneles tipo tutor ══ */
-    .stats-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.25rem;
-        align-items: start;
-        margin-bottom: 1.25rem;
-    }
-    .stats-row .section-card {
-        margin-bottom: 0;
-    }
     .panels-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -682,11 +604,9 @@
     }
 
     @media (max-width: 1200px) {
-        .stats-row,
         .panels-grid {
             grid-template-columns: 1fr;
         }
-        .stats-row .section-card,
         .panels-grid .section-card {
             margin-bottom: 1.25rem;
         }
@@ -752,64 +672,30 @@
         </a>
     </div>
 
-    <!-- Fila de estado + cotizaciones -->
-    <div class="stats-row">
-        <div class="section-card">
-            <div class="section-header">
-                <h5>Solicitudes por estado</h5>
-            </div>
-            <p class="section-subtitle">Número de solicitudes en cada fase del flujo. Clic en una fase para filtrar la tabla.</p>
-            <div class="section-body" style="padding-top: 0.25rem;">
-                <select class="filtro-estado-select" aria-label="Filtrar solicitudes por estado">
-                    <option value="" data-href="?"{% if not estado_reci %} selected{% endif %}>Todos los estados</option>
-                    {% for est in estados %}
-                    <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{% if est.nombre == 'nueva' %}Sin asignar{% else %}{{ est.etiqueta }}{% endif %}</option>
-                    {% endfor %}
-                    <option value="asignadas" data-href="?estado_reci=asignadas"{% if estado_reci == 'asignadas' %} selected{% endif %}>Asignados por Vencer</option>
-                </select>
-                <div class="estados-resumen">
-                    {% for est in estados %}
-                    <div class="estado-item{% if estado_reci == est.nombre %} active{% endif %}">
-                        <a href="?estado_reci={{ est.nombre }}" title="Ver solo {{ est.etiqueta }}">
-                            <span class="estado-nombre">{% if est.nombre == 'nueva' %}Sin asignar{% else %}{{ est.etiqueta }}{% endif %}</span>
-                            <span class="estado-cantidad">{{ est.cantidad }}</span>
-                        </a>
-                    </div>
-                    {% endfor %}
-                    <div class="estado-item{% if estado_reci == 'asignadas' %} active{% endif %}">
-                        <a href="?estado_reci=asignadas" title="Trabajos activos asignados, próximos a vencer primero">
-                            <span class="estado-nombre">Asignados por Vencer</span>
-                            <span class="estado-cantidad">{{ trabajos_asignados_count }}</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- Cotizaciones por revisar (pendientes de decisión del admin) -->
+    <div class="section-card" style="margin-top: 1.25rem;">
+        <div class="section-header">
+            <h5>Cotizaciones por revisar</h5>
+            <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.7rem; font-size: 0.8rem;">Ver todas</a>
         </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <h5>Cotizaciones por revisar</h5>
-                <a href="{% url 'cotizaciones_lista' %}?estado=pendiente" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.7rem; font-size: 0.8rem;">Ver todas</a>
-            </div>
-            <div class="section-body" style="padding: 0.6rem 1.25rem;">
-                {% if cotizaciones_recientes %}
-                    <div class="cotiz-list">
-                        {% for c in cotizaciones_recientes %}
-                        <a class="cotiz-item" href="{{ c.url }}">
-                            <div class="cotiz-info">
-                                <div class="cotiz-titulo"><strong>{{ c.codigo }}</strong> · {{ c.tutor_nombre }}</div>
-                                <div class="cotiz-meta">{{ c.tiempo_dias }} día{{ c.tiempo_dias|pluralize }} estimado</div>
-                            </div>
-                            <div class="cotiz-monto">${{ c.monto|floatformat:0 }}</div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <p>No hay cotizaciones pendientes por revisar.</p>
-                    </div>
-                {% endif %}
-            </div>
+        <div class="section-body" style="padding: 0.6rem 1.25rem;">
+            {% if cotizaciones_recientes %}
+                <div class="cotiz-list">
+                    {% for c in cotizaciones_recientes %}
+                    <a class="cotiz-item" href="{{ c.url }}">
+                        <div class="cotiz-info">
+                            <div class="cotiz-titulo"><strong>{{ c.codigo }}</strong> · {{ c.tutor_nombre }}</div>
+                            <div class="cotiz-meta">{{ c.tiempo_dias }} día{{ c.tiempo_dias|pluralize }} estimado</div>
+                        </div>
+                        <div class="cotiz-monto">${{ c.monto|floatformat:0 }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>No hay cotizaciones pendientes por revisar.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -861,6 +747,15 @@
             </a>
         </div>
         <div class="section-body">
+            <div class="filtro-estado-wrap">
+                <select class="filtro-estado-select" aria-label="Filtrar solicitudes por estado">
+                    <option value="" data-href="?"{% if not estado_reci %} selected{% endif %}>Todos los estados</option>
+                    {% for est in estados %}
+                    <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{% if est.nombre == 'nueva' %}Sin asignar{% else %}{{ est.etiqueta }}{% endif %}</option>
+                    {% endfor %}
+                    <option value="asignadas" data-href="?estado_reci=asignadas"{% if estado_reci == 'asignadas' %} selected{% endif %}>Asignados por Vencer</option>
+                </select>
+            </div>
             {% if solicitudes_recientes %}
                 <div class="table-responsive">
                     <table class="table-tem">
