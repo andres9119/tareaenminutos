@@ -121,13 +121,16 @@ def dashboard_admin(request):
     for c in Cotizacion.objects.filter(estado='pendiente').select_related('solicitud', 'tutor') \
             .order_by('-created_at')[:6]:
         tutor = c.tutor
+        sol = c.solicitud
         cotizaciones_recientes.append({
-            'codigo': c.solicitud.codigo,
-            'solicitud_pk': c.solicitud.pk,
+            'codigo': sol.codigo,
+            'solicitud_pk': sol.pk,
+            'solicitud_titulo': sol.titulo or '',
+            'fecha_entrega': sol.fecha_entrega_cliente.strftime('%d/%m/%Y') if sol.fecha_entrega_cliente else 'Sin fecha',
             'monto': c.monto,
             'tiempo_dias': c.tiempo_estimado_dias,
             'tutor_nombre': f"{tutor.get_full_name() or tutor.username}" if tutor else 'Sin asignar',
-            'url': reverse('solicitud_detalle', args=[c.solicitud.pk]),
+            'url': reverse('solicitud_detalle', args=[sol.pk]),
         })
 
     from main_app.models import ContactMessage

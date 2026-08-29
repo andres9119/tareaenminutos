@@ -414,13 +414,13 @@
         gap: 0.6rem;
     }
     .delivery-item {
-        padding: 0.65rem 0.9rem;
+        padding: 0.5rem 0.85rem;
         background: var(--bg-surface);
         border: 1px solid var(--border-glow);
         border-radius: var(--border-radius-md);
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        gap: 0.12rem;
         text-decoration: none;
         color: var(--text-main);
         transition: var(--transition-smooth);
@@ -429,13 +429,19 @@
         border-color: var(--primary);
         box-shadow: var(--shadow-sm);
     }
-    .delivery-item span {
+    .delivery-line {
+        display: block;
         font-size: 0.88rem;
+        line-height: 1.35;
     }
     .delivery-title {
         display: flex;
         align-items: center;
         gap: 0.4rem;
+    }
+    .delivery-sub {
+        color: var(--text-muted);
+        font-size: 0.82rem;
     }
     .delivery-dot {
         width: 9px;
@@ -561,39 +567,16 @@
         font-size: 0.82rem;
     }
 
-    /* Mini-lista de cotizaciones por revisar */
-    .cotiz-list {
-        display: flex;
-        flex-direction: column;
-    }
-    .cotiz-item {
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
-        padding: 0.6rem 0.25rem;
-        border-bottom: 1px solid var(--border-glow);
+    /* Tabla de cotizaciones por revisar */
+    .cotiz-link {
+        color: var(--primary);
         text-decoration: none;
-        transition: var(--transition-smooth);
     }
-    .cotiz-item:last-child {
-        border-bottom: none;
+    .cotiz-link:hover {
+        text-decoration: underline;
     }
-    .cotiz-item:hover {
-        background: var(--primary-glow);
-    }
-    .cotiz-info {
-        flex: 1;
-        min-width: 0;
-    }
-    .cotiz-titulo {
-        color: var(--text-main);
-        font-weight: 600;
-        font-size: 0.88rem;
-    }
-    .cotiz-meta {
-        color: var(--text-muted);
-        font-size: 0.78rem;
-        margin-top: 0.12rem;
+    .cotiz-table {
+        margin: 0;
     }
     .cotiz-monto {
         font-size: 0.85rem;
@@ -680,16 +663,31 @@
         </div>
         <div class="section-body" style="padding: 0.6rem 1.25rem;">
             {% if cotizaciones_recientes %}
-                <div class="cotiz-list">
-                    {% for c in cotizaciones_recientes %}
-                    <a class="cotiz-item" href="{{ c.url }}">
-                        <div class="cotiz-info">
-                            <div class="cotiz-titulo"><strong>{{ c.codigo }}</strong> · {{ c.tutor_nombre }}</div>
-                            <div class="cotiz-meta">{{ c.tiempo_dias }} día{{ c.tiempo_dias|pluralize }} estimado</div>
-                        </div>
-                        <div class="cotiz-monto">${{ c.monto|floatformat:0 }}</div>
-                    </a>
-                    {% endfor %}
+                <div class="table-responsive">
+                    <table class="table-tem cotiz-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Solicitud</th>
+                            <th>Tutor</th>
+                            <th>Estimado</th>
+                            <th>Límite</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in cotizaciones_recientes %}
+                        <tr>
+                            <td><a class="cotiz-link" href="{{ c.url }}"><strong>{{ c.codigo }}</strong></a></td>
+                            <td>{{ c.solicitud_titulo|truncatechars:32 }}</td>
+                            <td>{{ c.tutor_nombre }}</td>
+                            <td>{{ c.tiempo_dias }} día{{ c.tiempo_dias|pluralize }}</td>
+                            <td style="white-space: nowrap;">{{ c.fecha_entrega }}</td>
+                            <td class="cotiz-monto">${{ c.monto|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
                 </div>
             {% else %}
                 <div class="empty-state">
@@ -714,12 +712,10 @@
                 <div id="entregas-lista" class="deliveries-list active">
                     {% for entrega in proximas_entregas_page %}
                     <a class="delivery-item" href="{{ entrega.url }}">
-                        <span class="delivery-title"><strong>{{ entrega.codigo }}</strong>
+                        <span class="delivery-line delivery-title"><strong>{{ entrega.codigo }}</strong>
                             <span class="delivery-dot" style="background: {{ entrega.estado_color_hex }};"></span>
-                            – {{ entrega.titulo|truncatechars:45 }}</span>
-                        <span>Cliente: {{ entrega.cliente_nombre }}</span>
-                        <span>Entrega: {{ entrega.fecha_entrega_display }}</span>
-                        <span>Tutor: {{ entrega.tutor_nombre }}</span>
+                            – {{ entrega.titulo|truncatechars:50 }}</span>
+                        <span class="delivery-line delivery-sub">Cliente: {{ entrega.cliente_nombre }} · Límite: {{ entrega.fecha_entrega_display }} · Tutor: {{ entrega.tutor_nombre }}</span>
                     </a>
                     {% empty %}
                     <div class="empty-state">No hay entregas próximas.</div>
