@@ -475,6 +475,9 @@
         color: var(--primary);
     }
     .deliveries-list {
+        display: none;
+    }
+    .deliveries-list.active {
         display: grid;
         gap: 0.6rem;
     }
@@ -760,7 +763,7 @@
                 <select class="filtro-estado-select" aria-label="Filtrar solicitudes por estado">
                     <option value="" data-href="?"{% if not estado_reci %} selected{% endif %}>Todos los estados</option>
                     {% for est in estados %}
-                    <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{{ est.etiqueta }}</option>
+                    <option value="{{ est.nombre }}" data-href="?estado_reci={{ est.nombre }}"{% if estado_reci == est.nombre %} selected{% endif %}>{% if est.nombre == 'nueva' %}Sin asignar{% else %}{{ est.etiqueta }}{% endif %}</option>
                     {% endfor %}
                     <option value="asignadas" data-href="?estado_reci=asignadas"{% if estado_reci == 'asignadas' %} selected{% endif %}>Asignados por Vencer</option>
                 </select>
@@ -768,7 +771,7 @@
                     {% for est in estados %}
                     <div class="estado-item{% if estado_reci == est.nombre %} active{% endif %}">
                         <a href="?estado_reci={{ est.nombre }}" title="Ver solo {{ est.etiqueta }}">
-                            <span class="estado-nombre">{{ est.etiqueta }}</span>
+                            <span class="estado-nombre">{% if est.nombre == 'nueva' %}Sin asignar{% else %}{{ est.etiqueta }}{% endif %}</span>
                             <span class="estado-cantidad">{{ est.cantidad }}</span>
                         </a>
                     </div>
@@ -822,8 +825,8 @@
                 </div>
             </div>
             <div class="section-body" style="padding: 1.1rem;">
-                <div id="entregas-lista" class="deliveries-list">
-                    {% for entrega in proximas_entregas %}
+                <div id="entregas-lista" class="deliveries-list active">
+                    {% for entrega in proximas_entregas_page %}
                     <a class="delivery-item" href="{{ entrega.url }}">
                         <span class="delivery-title"><strong>{{ entrega.codigo }}</strong>
                             <span class="delivery-dot" style="background: {{ entrega.estado_color_hex }};"></span>
@@ -836,6 +839,7 @@
                     <div class="empty-state">No hay entregas próximas.</div>
                     {% endfor %}
                 </div>
+                {% include "private/_paginacion.html" with pagina=proximas_entregas_page param="pe" qs_base=qs_base_pe %}
                 <div id="entregas-calendar" class="calendar-view">
                     <div class="calendar-nav">
                         <button type="button" class="cal-nav-btn" data-nav="prev" aria-label="Anterior">&#8249;</button>

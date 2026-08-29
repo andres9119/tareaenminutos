@@ -129,6 +129,11 @@ def dashboard_admin(request):
             'estado_color_hex': p.estado.color_hex if p.estado else '#06aa44',
             'url': reverse('solicitud_detalle', args=[p.pk]),
         })
+    # Versión paginada de la lista (8 por página, parámetro propio `pe`); el
+    # calendario sigue usando la lista completa vía json_script.
+    proximas_entregas_page = Paginator(proximas_entregas, 8).get_page(
+        request.GET.get('pe', 1)
+    )
 
     context = {
         'total_solicitudes': total_solicitudes,
@@ -145,6 +150,8 @@ def dashboard_admin(request):
         'mensajes_no_leidos': mensajes_no_leidos,
         'tickets_abiertos': tickets_abiertos,
         'proximas_entregas': proximas_entregas,
+        'proximas_entregas_page': proximas_entregas_page,
+        'qs_base_pe': qs_base_sin_pagina(request, 'pe'),
         'cotizaciones_recientes': cotizaciones_recientes,
     }
     return render(request, 'private/accounts/dashboard_admin.html', context)
