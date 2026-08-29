@@ -3,6 +3,7 @@ Views para accounts — Dashboards, perfiles y gestión de usuarios.
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.db.models import Q, Count, F, Min, Max
@@ -93,6 +94,28 @@ def dashboard_admin(request):
     from tickets.models import TicketReporte
     tickets_abiertos = TicketReporte.objects.filter(estado__in=['abierto', 'en_progreso']).count()
 
+    # Próximas entregas (todas las solicitudes activas con fecha límite, más cercanas primero)
+    # Se pasan como dicts serializables para alimentar tanto la lista como el calendario (json_script).
+    proximas_entregas_objs = (
+        SolicitudAcademica.objects.filter(fecha_entrega_cliente__isnull=False)
+        .exclude(estado__nombre__in=SolicitudAcademica.ESTADOS_CERRADOS_TUTOR)
+        .select_related('estado', 'tutor_asignado')
+        .order_by('fecha_entrega_cliente')[:40]
+    )
+    proximas_entregas = []
+    for p in proximas_entregas_objs:
+        tutor = p.tutor_asignado
+        proximas_entregas.append({
+            'codigo': p.codigo,
+            'titulo': p.titulo,
+            'cliente_nombre': p.cliente_nombre or 'Sin especificar',
+            'fecha_entrega_cliente': p.fecha_entrega_cliente.isoformat(),
+            'fecha_entrega_display': p.fecha_entrega_cliente.strftime('%d/%m/%Y'),
+            'tutor_nombre': f"{tutor.get_full_name() or tutor.username}" if tutor else 'Sin asignar',
+            'estado_color_hex': p.estado.color_hex if p.estado else '#06aa44',
+            'url': reverse('solicitud_detalle', args=[p.pk]),
+        })
+
     context = {
         'total_solicitudes': total_solicitudes,
         'total_por_estados': total_por_estados,
@@ -107,6 +130,7 @@ def dashboard_admin(request):
         'total_mensajes_contacto': total_mensajes_contacto,
         'mensajes_no_leidos': mensajes_no_leidos,
         'tickets_abiertos': tickets_abiertos,
+        'proximas_entregas': proximas_entregas,
     }
     return render(request, 'private/accounts/dashboard_admin.html', context)
 
@@ -202,11 +226,13 @@ def dashboard_tutor(request):
         })
         acumulado += pct
 
-    # Próximas entregas: tareas activas con fecha límite, las más cercanas primero
+    # Próximas entregas: tareas activas asignadas al tutor con fecha límite, las más cercanas primero
     proximas_entregas = (
-        SolicitudAcademica.objects.filter(tutor_asignado=request.user)
+        SolicitudAcademica.objects.filter(
+            tutor_asignado=request.user,
+            fecha_entrega_cliente__isnull=False,
+        )
         .exclude(estado__nombre__in=SolicitudAcademica.ESTADOS_CERRADOS_TUTOR)
-        .filter(fecha_entrega_cliente__isnull=False)
         .select_related('estado', 'area_conocimiento')
         .order_by('fecha_entrega_cliente')[:5]
     )

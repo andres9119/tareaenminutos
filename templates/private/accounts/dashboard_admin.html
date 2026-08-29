@@ -418,6 +418,140 @@
             font-size: 0.75rem;
         }
     }
+    /* Added styles for Upcoming Deliveries toggle and calendar view */
+    .deliveries-toggle {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .deliveries-toggle label {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .deliveries-toggle select {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-surface);
+        color: var(--text-main);
+    }
+    .deliveries-list {
+        display: grid;
+        gap: 0.75rem;
+    }
+    .delivery-item {
+        padding: 0.75rem 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-md);
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        text-decoration: none;
+        color: var(--text-main);
+        transition: var(--transition-smooth);
+    }
+    .delivery-item:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+    .delivery-item span {
+        font-size: 0.9rem;
+    }
+    .delivery-title {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .delivery-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+        flex: none;
+    }
+    .calendar-view {
+        display: none;
+    }
+    .calendar-view.active {
+        display: block;
+    }
+    .calendar-head {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.35rem;
+    }
+    .calendar-head span {
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+    }
+    .calendar-day {
+        position: relative;
+        padding-top: 1.5rem;
+        min-height: 76px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-sm);
+    }
+    .calendar-day.empty {
+        background: transparent;
+        border: none;
+    }
+    .calendar-day[data-today="true"] {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+    .calendar-day::before {
+        content: attr(data-day);
+        position: absolute;
+        top: 0.25rem;
+        left: 0.4rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    .calendar-day[data-today="true"]::before {
+        color: var(--primary);
+    }
+    .calendar-event {
+        margin: 0.15rem 0.1rem 0;
+        padding: 0.12rem 0.3rem;
+        border-radius: var(--border-radius-xs);
+        font-size: 0.72rem;
+        color: #fff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    }
+    .calendar-event:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    @media (max-width: 768px) {
+        .calendar-head span {
+            font-size: 0.6rem;
+        }
+        .calendar-day {
+            min-height: 56px;
+            padding-top: 1.25rem;
+        }
+        .calendar-event {
+            font-size: 0.6rem;
+            padding: 0.08rem 0.2rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -491,7 +625,40 @@
         </div>
     </div>
 
-    <!-- Solicitudes recientes -->
+    <!-- Próximas entregas -->
+    <div class="section-card">
+        <div class="section-header">
+            <h5>Próximas entregas</h5>
+            <div class="deliveries-toggle">
+                <label for="entregas-mode">Vista:</label>
+                <select id="entregas-mode" class="btn-tem">
+                    <option value="list">Lista</option>
+                    <option value="calendar">Calendario</option>
+                </select>
+            </div>
+        </div>
+        <div class="section-body">
+            <div id="entregas-lista" class="deliveries-list">
+                {% for entrega in proximas_entregas %}
+                <a class="delivery-item" href="{{ entrega.url }}">
+                    <span class="delivery-title"><strong>{{ entrega.codigo }}</strong>
+                        <span class="delivery-dot" style="background: {{ entrega.estado_color_hex }};"></span>
+                        – {{ entrega.titulo|truncatechars:45 }}</span>
+                    <span>Cliente: {{ entrega.cliente_nombre }}</span>
+                    <span>Entrega: {{ entrega.fecha_entrega_display }}</span>
+                    <span>Tutor: {{ entrega.tutor_nombre }}</span>
+                </a>
+                {% empty %}
+                <div class="empty-state">No hay entregas próximas.</div>
+                {% endfor %}
+            </div>
+            <div id="entregas-calendar" class="calendar-view">
+                <div class="calendar-grid"></div>
+            </div>
+        </div>
+    </div>
+    {{ proximas_entregas|json_script:"proximas-entregas-data" }}
+<!-- Solicitudes recientes -->
     <div class="section-card">
         <div class="section-header">
             <h5>Solicitudes Recientes{% if etiqueta_reci %} · {{ etiqueta_reci }}{% endif %}</h5>
@@ -603,6 +770,85 @@
         }
     });
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modeSelect = document.getElementById('entregas-mode');
+  const listView = document.getElementById('entregas-lista');
+  const calendarView = document.getElementById('entregas-calendar');
+
+  const toggleView = () => {
+    if (modeSelect.value === 'calendar') {
+      listView.classList.remove('active');
+      calendarView.classList.add('active');
+    } else {
+      calendarView.classList.remove('active');
+      listView.classList.add('active');
+    }
+  };
+  modeSelect.addEventListener('change', toggleView);
+  toggleView();
+
+    const parseFecha = (iso) => {
+      const p = String(iso).split('-').map(Number);
+      if (p.length < 3 || p.some(isNaN)) return null;
+      return new Date(p[0], p[1] - 1, p[2]);
+    };
+    const renderCalendar = (entregas) => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const weekdays = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+
+      const head = document.createElement('div');
+      head.className = 'calendar-head';
+      weekdays.forEach(function (wd) {
+        const s = document.createElement('span');
+        s.textContent = wd;
+        head.appendChild(s);
+      });
+      calendarView.prepend(head);
+
+      const grid = calendarView.querySelector('.calendar-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < firstDay.getDay(); i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day empty';
+        grid.appendChild(empty);
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        dayDiv.dataset.day = d;
+        if (d === today.getDate()) dayDiv.dataset.today = 'true';
+        const dayEntregas = entregas.filter(function (e) {
+          const fecha = parseFecha(e.fecha_entrega_cliente);
+          return fecha &&
+            fecha.getFullYear() === year &&
+            fecha.getMonth() === month &&
+            fecha.getDate() === d;
+        });
+        dayEntregas.forEach(function (e) {
+          const ev = document.createElement('a');
+          ev.className = 'calendar-event';
+          ev.href = e.url;
+          ev.style.background = e.estado_color_hex || 'var(--primary)';
+          ev.title = e.codigo + ' – ' + e.titulo + ' (' + e.tutor_nombre + ')';
+          ev.textContent = e.codigo;
+          dayDiv.appendChild(ev);
+        });
+        grid.appendChild(dayDiv);
+      }
+    };
+
+    const dataEl = document.getElementById('proximas-entregas-data');
+    if (dataEl && calendarView) {
+      const data = JSON.parse(dataEl.textContent);
+      renderCalendar(data);
+    }
+  });
 </script>
 {% endblock %}
 {% endblock %}
