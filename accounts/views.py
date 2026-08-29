@@ -87,6 +87,20 @@ def dashboard_admin(request):
         estado='pendiente'
     ).select_related('solicitud', 'tutor').count()
 
+    # Cotizaciones recientes por revisar (mini-panel del dashboard)
+    cotizaciones_recientes = []
+    for c in Cotizacion.objects.filter(estado='pendiente').select_related('solicitud', 'tutor') \
+            .order_by('-created_at')[:6]:
+        tutor = c.tutor
+        cotizaciones_recientes.append({
+            'codigo': c.solicitud.codigo,
+            'solicitud_pk': c.solicitud.pk,
+            'monto': c.monto,
+            'tiempo_dias': c.tiempo_estimado_dias,
+            'tutor_nombre': f"{tutor.get_full_name() or tutor.username}" if tutor else 'Sin asignar',
+            'url': reverse('solicitud_detalle', args=[c.solicitud.pk]),
+        })
+
     from main_app.models import ContactMessage
     total_mensajes_contacto = ContactMessage.objects.count()
     mensajes_no_leidos = ContactMessage.objects.filter(read=False).count()
@@ -131,6 +145,7 @@ def dashboard_admin(request):
         'mensajes_no_leidos': mensajes_no_leidos,
         'tickets_abiertos': tickets_abiertos,
         'proximas_entregas': proximas_entregas,
+        'cotizaciones_recientes': cotizaciones_recientes,
     }
     return render(request, 'private/accounts/dashboard_admin.html', context)
 
