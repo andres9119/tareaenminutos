@@ -578,3 +578,8 @@
 .tutor-modal-overlay .avatar-hero.avatar-inicial {
     font-size: 1.15rem !important;
 }
+
+/* Panel admin: KPI chips y nombre de usuario un poco mas grandes (vencen a la normalizacion) */
+.dashboard-container .kpi-chip-label { font-size: 1rem !important; }
+.dashboard-container .kpi-chip-value { font-size: 1.4rem !important; }
+.dashboard-container .dashboard-user-info > span:first-child { font-size: 1.25rem !important; }
