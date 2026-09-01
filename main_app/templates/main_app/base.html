@@ -626,6 +626,10 @@ footer {
         .notif-dropdown-footer { text-align: center; padding: 0.6rem; }
         .notif-dropdown-footer a { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
         .notif-dropdown-footer a:hover { text-decoration: underline; }
+        .notif-dropdown-footer.notif-footer-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 0.8rem; }
+        .notif-clear-all { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--primary); font-weight: 600; font-family: var(--font-body); padding: 0; }
+        .notif-clear-all:hover { text-decoration: underline; }
+        .notif-clear-all:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
         .notif-dropdown-empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); }
         .notif-dropdown-empty i { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; display: block; }
         .notif-dropdown-empty p { font-size: 0.85rem; }
@@ -698,15 +702,7 @@ footer {
                                 {% for n in notificaciones_recientes %}
                                 <a href="{{ n.url_accion }}" class="notif-dropdown-item notif-item-link" data-id="{{ n.pk }}">
                                     <div class="notif-item-icon {{ n.tipo }}">
-                                        {% if n.tipo == 'nueva_solicitud' %}<i class="fas fa-file-alt"></i>
-                                        {% elif n.tipo == 'solicitud_asignada' %}<i class="fas fa-user-check"></i>
-                                        {% elif n.tipo == 'cambio_estado' %}<i class="fas fa-exchange-alt"></i>
-                                        {% elif n.tipo == 'mensaje_chat' %><i class="fas fa-comment-dots"></i>
-                                        {% elif n.tipo == 'comprobante_pago' %}<i class="fas fa-money-check-dollar"></i>
-                                        {% elif n.tipo == 'cotizacion_recibida' %}<i class="fas fa-coins"></i>
-                                        {% elif n.tipo == 'ticket_reportado' %}<i class="fas fa-bug"></i>
-                                        {% elif n.tipo == 'ticket_resuelto' %}<i class="fas fa-check-circle"></i>
-                                        {% else %}<i class="fas fa-bell"></i>{% endif %}
+                                        <i class="fas {{ n.icono }}"></i>
                                     </div>
                                     <div class="notif-item-content">
                                         <strong>{{ n.titulo }}</strong>
@@ -715,7 +711,8 @@ footer {
                                     </div>
                                 </a>
                                 {% endfor %}
-                                <div class="notif-dropdown-footer">
+                                <div class="notif-dropdown-footer notif-footer-actions">
+                                    <button type="button" class="notif-clear-all" id="notifClearAll"><i class="fas fa-check-double"></i> Marcar todas</button>
                                     <a href="{% url 'notificaciones_list' %}">Ver todas</a>
                                 </div>
                             {% else %}
@@ -987,28 +984,105 @@ footer {
             }
 
             if (bell && container) {
+                const dropdown = document.getElementById('notifDropdown');
+                const msgC = document.getElementById('msgContainer');
+                const msgB = document.getElementById('msgBell');
+
+                // Expuestas en window para que agregarNotif (footer/items dinámicos) las reutilice
+                window.__mostrarVacioNotif = function() {
+                    if (!dropdown) return;
+                    const items = dropdown.querySelectorAll('.notif-item-link');
+                    if (items.length === 0) {
+                        dropdown.innerHTML = '';
+                        const empty = document.createElement('div');
+                        empty.className = 'notif-dropdown-empty';
+                        empty.innerHTML = '<i class="fas fa-check-circle"></i><p>No hay notificaciones</p>';
+                        dropdown.appendChild(empty);
+                        return;
+                    }
+                    const clearBtn = dropdown.querySelector('#notifClearAll');
+                    if (clearBtn) clearBtn.style.display = '';
+                };
+
+                window.__marcarTodasNotif = function() {
+                    const clearBtn = dropdown ? dropdown.querySelector('#notifClearAll') : null;
+                    if (clearBtn) clearBtn.disabled = true;
+                    fetch('{% url "notif_todas_leidas" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                    }).then(function(r) { return r.json(); }).then(function(res) {
+                        if (res.ok && notifBadge) {
+                            notifBadge.textContent = '0';
+                            notifBadge.classList.add('hidden');
+                        }
+                        if (dropdown) {
+                            dropdown.innerHTML = '';
+                            const empty = document.createElement('div');
+                            empty.className = 'notif-dropdown-empty';
+                            empty.innerHTML = '<i class="fas fa-check-circle"></i><p>No hay notificaciones</p>';
+                            dropdown.appendChild(empty);
+                        }
+                    }).finally(function() {
+                        if (clearBtn) clearBtn.disabled = false;
+                    });
+                };
+
+                const cerrarMsg = function() {
+                    if (msgC && msgC.classList.contains('open')) {
+                        msgC.classList.remove('open');
+                        if (msgB) msgB.setAttribute('aria-expanded', 'false');
+                    }
+                };
+
+                // Fix 3: al abrir notificaciones, cerrar el dropdown de mensajes
                 bell.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    const willOpen = !container.classList.contains('open');
+                    if (willOpen) cerrarMsg();
                     const open = container.classList.toggle('open');
                     bell.setAttribute('aria-expanded', open ? 'true' : 'false');
                 });
+                // Fix 3: clic fuera de ambos cierra los dos dropdowns
                 document.addEventListener('click', function(e) {
                     if (!container.contains(e.target)) {
                         container.classList.remove('open');
                         bell.setAttribute('aria-expanded', 'false');
                     }
+                    if (msgC && !msgC.contains(e.target)) {
+                        msgC.classList.remove('open');
+                        if (msgB) msgB.setAttribute('aria-expanded', 'false');
+                    }
                 });
-                // Marcar como leída al hacer clic en una notificación del dropdown
-                container.querySelectorAll('.notif-item-link').forEach(function(item) {
-                    item.addEventListener('click', function(e) {
+                // Ocultar "Marcar todas" si no hay notificaciones (Fix 2)
+                const clearBtn = dropdown ? dropdown.querySelector('#notifClearAll') : null;
+                if (clearBtn && dropdown && dropdown.querySelectorAll('.notif-item-link').length === 0) {
+                    clearBtn.style.display = 'none';
+                }
+
+                // Delegación de clicks (items + "Marcar todas") - cubre items y footers dinámicos
+                if (dropdown) {
+                    dropdown.addEventListener('click', function(e) {
+                        const clear = e.target.closest('#notifClearAll');
+                        if (clear) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.__marcarTodasNotif();
+                            return;
+                        }
+                        const item = e.target.closest('.notif-item-link');
+                        if (!item) return;
                         e.preventDefault();
                         var url = item.getAttribute('href');
-                        markRead(item.getAttribute('data-id')).then(function() {
+                        var id = item.getAttribute('data-id');
+                        var row = item;
+                        markRead(id).then(function() {
+                            if (row && row.parentNode) row.parentNode.removeChild(row);
+                            window.__mostrarVacioNotif();
                             window.location.href = url;
                         });
                     });
-                });
+                }
             }
 
             const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -1022,12 +1096,21 @@ footer {
                 let footer = dropdown.querySelector('.notif-dropdown-footer');
                 if (!footer) {
                     footer = document.createElement('div');
-                    footer.className = 'notif-dropdown-footer';
+                    footer.className = 'notif-dropdown-footer notif-footer-actions';
+                    const clearBtn = document.createElement('button');
+                    clearBtn.type = 'button';
+                    clearBtn.id = 'notifClearAll';
+                    clearBtn.className = 'notif-clear-all';
+                    clearBtn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todas';
                     const link = document.createElement('a');
                     link.href = '/notificaciones/';
                     link.textContent = 'Ver todas';
+                    footer.appendChild(clearBtn);
                     footer.appendChild(link);
                     dropdown.appendChild(footer);
+                } else {
+                    const existingClear = dropdown.querySelector('#notifClearAll');
+                    if (existingClear) existingClear.style.display = '';
                 }
                 const iconMap = { 'nueva_solicitud':'fa-file-alt','solicitud_asignada':'fa-user-check','cambio_estado':'fa-exchange-alt','mensaje_chat':'fa-comment-dots','cotizacion_recibida':'fa-coins','comprobante_pago':'fa-money-check-dollar','ticket_reportado':'fa-bug','ticket_resuelto':'fa-check-circle' };
                 const icon = iconMap[notif.tipo] || 'fa-bell';
@@ -1048,11 +1131,6 @@ footer {
                 small.textContent = 'hace un momento';
                 content.appendChild(strong); content.appendChild(p); content.appendChild(small);
                 a.appendChild(iconDiv); a.appendChild(content);
-                a.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var url = a.getAttribute('href');
-                    markRead(a.getAttribute('data-id')).then(function() { window.location.href = url; });
-                });
                 const firstItem = dropdown.querySelector('.notif-dropdown-item');
                 dropdown.insertBefore(a, firstItem || footer);
             }
@@ -1128,9 +1206,17 @@ footer {
             }
 
             if (msgBell && msgContainer) {
+                const notifC = document.getElementById('notifContainer');
+                const notifBell = document.getElementById('notifBell');
                 msgBell.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    const willOpen = !msgContainer.classList.contains('open');
+                    // Fix 3: al abrir mensajes, cerrar el dropdown de notificaciones
+                    if (willOpen && notifC) {
+                        notifC.classList.remove('open');
+                        if (notifBell) notifBell.setAttribute('aria-expanded', 'false');
+                    }
                     const open = msgContainer.classList.toggle('open');
                     msgBell.setAttribute('aria-expanded', open ? 'true' : 'false');
                 });

@@ -56,6 +56,23 @@ class Notificacion(models.Model):
     def __str__(self):
         return f"[{self.get_tipo_display()}] {self.titulo} → {self.destinatario.username}"
 
+    def icono(self):
+        """Clase FontAwesome del icono según el tipo de notificación."""
+        iconos = {
+            'nueva_solicitud': 'fa-file-alt',
+            'cotizacion_recibida': 'fa-coins',
+            'cotizacion_aceptada': 'fa-check-circle',
+            'cotizacion_rechazada': 'fa-times-circle',
+            'solicitud_asignada': 'fa-user-check',
+            'cambio_estado': 'fa-exchange-alt',
+            'entrega_recibida': 'fa-file-upload',
+            'comprobante_pago': 'fa-money-check-dollar',
+            'mensaje_chat': 'fa-comment-dots',
+            'ticket_reportado': 'fa-bug',
+            'ticket_resuelto': 'fa-check-circle',
+        }
+        return iconos.get(self.tipo, 'fa-bell')
+
     def marcar_leida(self):
         self.leida = True
         self.save(update_fields=['leida'])

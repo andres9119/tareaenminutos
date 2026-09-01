@@ -25,23 +25,7 @@
             {% for notif in notificaciones %}
             <div class="notif-item {% if not notif.leida %}notif-unread{% endif %}" data-id="{{ notif.pk }}">
                 <div class="notif-icon">
-                    {% if notif.tipo == 'nueva_solicitud' %}
-                        <i class="fas fa-file-alt"></i>
-                    {% elif notif.tipo == 'cotizacion_aceptada' %}
-                        <i class="fas fa-check-circle"></i>
-                    {% elif notif.tipo == 'cotizacion_rechazada' %}
-                        <i class="fas fa-times-circle"></i>
-                    {% elif notif.tipo == 'cambio_estado' %}
-                        <i class="fas fa-exchange-alt"></i>
-                    {% elif notif.tipo == 'solicitud_asignada' %}
-                        <i class="fas fa-user-check"></i>
-                    {% elif notif.tipo == 'mensaje_chat' %}
-                        <i class="fas fa-comment-dots"></i>
-                    {% elif notif.tipo == 'comprobante_pago' %}
-                        <i class="fas fa-money-check-dollar"></i>
-                    {% else %}
-                        <i class="fas fa-bell"></i>
-                    {% endif %}
+                    <i class="fas {{ notif.icono }}"></i>
                 </div>
                 <div class="notif-content">
                     <div class="notif-header">
