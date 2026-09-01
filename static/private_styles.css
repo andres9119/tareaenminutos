@@ -1,4 +1,4 @@
-/* Estilos compartidos para páginas privadas del sistema TEM */
+﻿/* Estilos compartidos para pÃ¡ginas privadas del sistema TEM */
 .container-tem {
     max-width: 1200px;
     margin: 0 auto;
@@ -336,7 +336,7 @@
     color: var(--text-main);
 }
 
-/* ===== Compactación paneles (vence a estilos inline por template) ===== */
+/* ===== CompactaciÃ³n paneles (vence a estilos inline por template) ===== */
 .dashboard-container {
     padding: 1.25rem !important;
 }
@@ -427,17 +427,17 @@
     padding: 0.35rem 0 !important;
 }
 
-/* ===== Jerarquía tipográfica del área privada:
-   solo los títulos de bloque van en color principal;
+/* ===== JerarquÃ­a tipogrÃ¡fica del Ã¡rea privada:
+   solo los tÃ­tulos de bloque van en color principal;
    todo el resto del texto usa el tono gris (--text-muted).
-   El alcance está limitado a contenedores privados, el
-   sitio público no se ve afectado. ===== */
+   El alcance estÃ¡ limitado a contenedores privados, el
+   sitio pÃºblico no se ve afectado. ===== */
 .container-tem,
 .dashboard-container {
     color: var(--text-muted);
 }
 
-/* Los títulos de cada bloque conservan el color principal */
+/* Los tÃ­tulos de cada bloque conservan el color principal */
 .container-tem h1, .container-tem h2, .container-tem h3,
 .container-tem h4, .container-tem h5, .container-tem h6,
 .dashboard-container h1, .dashboard-container h2,
@@ -522,11 +522,11 @@
     font-size: 0.82rem;
 }
 
-/* ===== Normalización de tamaños de fuente (solo área privada) =====
-   Todo el texto que NO es título (h1) ni subtítulo (h2) se unifica a
-   0.85rem en desktop y móvil. Se aplica únicamente dentro de los
-   contenedores del área privada (incluidos sus modales); la landing
-   pública no se ve afectada. Solo se cambia font-size, nada funcional. */
+/* ===== NormalizaciÃ³n de tamaÃ±os de fuente (solo Ã¡rea privada) =====
+   Todo el texto que NO es tÃ­tulo (h1) ni subtÃ­tulo (h2) se unifica a
+   0.85rem en desktop y mÃ³vil. Se aplica Ãºnicamente dentro de los
+   contenedores del Ã¡rea privada (incluidos sus modales); la landing
+   pÃºblica no se ve afectada. Solo se cambia font-size, nada funcional. */
 .container-tem :is(p, label, td, th, input, select, textarea, button, small,
     strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
     option, figcaption, h3, h4, h5, h6, span),
@@ -557,9 +557,9 @@
     font-size: 0.85rem !important;
 }
 
-/* Las iniciales circulares de los avatares conservan su tamaño propio
-   (no son texto de cuerpo). Las clases base ya existen más arriba; aquí se
-   reafirman con !important para vencer la normalización de <span>. */
+/* Las iniciales circulares de los avatares conservan su tamaÃ±o propio
+   (no son texto de cuerpo). Las clases base ya existen mÃ¡s arriba; aquÃ­ se
+   reafirman con !important para vencer la normalizaciÃ³n de <span>. */
 .container-tem .avatar-mini.avatar-inicial,
 .dashboard-container .avatar-mini.avatar-inicial,
 .modal-overlay .avatar-mini.avatar-inicial,
@@ -580,6 +580,6 @@
 }
 
 /* Panel admin: KPI chips y nombre de usuario un poco mas grandes (vencen a la normalizacion) */
-.dashboard-container .kpi-chip-label { font-size: 1rem !important; }
-.dashboard-container .kpi-chip-value { font-size: 1.4rem !important; }
+.dashboard-container .kpi-chip-label { font-size: 1.15rem !important; }
+.dashboard-container .kpi-chip-value { font-size: 1.15rem !important; }
 .dashboard-container .dashboard-user-info > span:first-child { font-size: 1.25rem !important; }
