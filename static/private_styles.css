@@ -580,6 +580,6 @@
 }
 
 /* Panel admin: KPI chips y nombre de usuario un poco mas grandes (vencen a la normalizacion) */
-.dashboard-container .kpi-chip-label { font-size: 1.15rem !important; }
-.dashboard-container .kpi-chip-value { font-size: 1.15rem !important; }
+.dashboard-container .kpi-chip-label { font-size: 0.95rem !important; }
+.dashboard-container .kpi-chip-value { font-size: 0.95rem !important; }
 .dashboard-container .dashboard-user-info > span:first-child { font-size: 1.25rem !important; }
