@@ -245,7 +245,7 @@
 
 .field-error {
     color: #dc2626;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .empty-state {
@@ -280,7 +280,7 @@
     margin-bottom: 0.2rem;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     line-height: 1.2;
 }
 
@@ -364,7 +364,7 @@
 .section-header h5,
 .card-header-tem h5,
 .card-tem-header h3 {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
 }
 
 .section-body,
@@ -396,7 +396,7 @@
 }
 
 .kpi-card h5 {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     margin-bottom: 0.25rem !important;
 }
 
@@ -414,12 +414,12 @@
 }
 
 .action-card h5 {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     margin-bottom: 0.4rem !important;
 }
 
 .action-card p {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     margin-bottom: 0.75rem !important;
 }
 
@@ -507,7 +507,7 @@
 .pag-btn {
     color: var(--primary);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
     padding: 0.35rem 0.9rem;
     border: 1px solid var(--border-glow);
@@ -524,7 +524,7 @@
 
 /* ===== NormalizaciÃ³n de tamaÃ±os de fuente (solo Ã¡rea privada) =====
    Todo el texto que NO es tÃ­tulo (h1) ni subtÃ­tulo (h2) se unifica a
-   0.85rem en desktop y mÃ³vil. Se aplica Ãºnicamente dentro de los
+   0.9rem en desktop y mÃ³vil. Se aplica Ãºnicamente dentro de los
    contenedores del Ã¡rea privada (incluidos sus modales); la landing
    pÃºblica no se ve afectada. Solo se cambia font-size, nada funcional. */
 .container-tem :is(p, label, td, th, input, select, textarea, button, small,
@@ -554,7 +554,7 @@
 #msgDropdown :is(p, label, td, th, input, select, textarea, button, small,
     strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
     option, figcaption, h3, h4, h5, h6, span) {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
 }
 
 /* Las iniciales circulares de los avatares conservan su tamaÃ±o propio
