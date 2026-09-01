@@ -735,7 +735,7 @@ footer {
                                 <span class="notif-badge hidden" id="msgBadge">0</span>
                             {% endif %}
                         </button>
-                        <div class="notif-dropdown" id="msgDropdown" style="width: 360px;">
+                        <div class="notif-dropdown" id="msgDropdown">
                             {% if user_chats %}
                                 {% for chat in user_chats %}
                                 <a href="{% url 'sala_chat' chat.id %}" class="notif-dropdown-item notif-item-link" data-id="{{ chat.id }}">
