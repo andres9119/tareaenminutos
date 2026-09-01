@@ -550,9 +550,6 @@
     optgroup, option, figcaption, h3, h4, h5, h6, span),
 #chatWins :is(p, label, td, th, input, select, textarea, button, small,
     strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
-    option, figcaption, h3, h4, h5, h6, span),
-#msgDropdown :is(p, label, td, th, input, select, textarea, button, small,
-    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
     option, figcaption, h3, h4, h5, h6, span) {
     font-size: 0.9rem !important;
 }
