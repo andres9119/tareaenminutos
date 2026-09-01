@@ -583,3 +583,7 @@
 .dashboard-container .kpi-chip-label { font-size: 0.95rem !important; }
 .dashboard-container .kpi-chip-value { font-size: 0.95rem !important; }
 .dashboard-container .dashboard-user-info > span:first-child { font-size: 1.25rem !important; }
+
+/* Panel tutor: nombre y texto de bienvenida a 0.95rem (los stat-chip se dejan igual) */
+.dashboard-container .hero-main h4 { font-size: 0.95rem !important; }
+.dashboard-container .hero-sub { font-size: 0.95rem !important; }
