@@ -364,7 +364,7 @@
 .section-header h5,
 .card-header-tem h5,
 .card-tem-header h3 {
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
 }
 
 .section-body,
@@ -396,7 +396,7 @@
 }
 
 .kpi-card h5 {
-    font-size: 0.8rem !important;
+    font-size: 0.85rem !important;
     margin-bottom: 0.25rem !important;
 }
 
@@ -414,12 +414,12 @@
 }
 
 .action-card h5 {
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
     margin-bottom: 0.4rem !important;
 }
 
 .action-card p {
-    font-size: 0.88rem !important;
+    font-size: 0.85rem !important;
     margin-bottom: 0.75rem !important;
 }
 
@@ -520,4 +520,61 @@
 .pag-info {
     color: var(--text-muted);
     font-size: 0.82rem;
+}
+
+/* ===== Normalización de tamaños de fuente (solo área privada) =====
+   Todo el texto que NO es título (h1) ni subtítulo (h2) se unifica a
+   0.85rem en desktop y móvil. Se aplica únicamente dentro de los
+   contenedores del área privada (incluidos sus modales); la landing
+   pública no se ve afectada. Solo se cambia font-size, nada funcional. */
+.container-tem :is(p, label, td, th, input, select, textarea, button, small,
+    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
+    option, figcaption, h3, h4, h5, h6, span),
+.dashboard-container :is(p, label, td, th, input, select, textarea, button,
+    small, strong, a, li, summary, dt, dd, legend, caption, blockquote,
+    optgroup, option, figcaption, h3, h4, h5, h6, span),
+.modal-overlay :is(p, label, td, th, input, select, textarea, button, small,
+    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
+    option, figcaption, h3, h4, h5, h6, span),
+.tutor-modal-overlay :is(p, label, td, th, input, select, textarea, button,
+    small, strong, a, li, summary, dt, dd, legend, caption, blockquote,
+    optgroup, option, figcaption, h3, h4, h5, h6, span),
+.modal-rango-overlay :is(p, label, td, th, input, select, textarea, button,
+    small, strong, a, li, summary, dt, dd, legend, caption, blockquote,
+    optgroup, option, figcaption, h3, h4, h5, h6, span),
+.modal-box :is(p, label, td, th, input, select, textarea, button, small,
+    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
+    option, figcaption, h3, h4, h5, h6, span),
+.tutor-modal-box :is(p, label, td, th, input, select, textarea, button,
+    small, strong, a, li, summary, dt, dd, legend, caption, blockquote,
+    optgroup, option, figcaption, h3, h4, h5, h6, span),
+#chatWins :is(p, label, td, th, input, select, textarea, button, small,
+    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
+    option, figcaption, h3, h4, h5, h6, span),
+#msgDropdown :is(p, label, td, th, input, select, textarea, button, small,
+    strong, a, li, summary, dt, dd, legend, caption, blockquote, optgroup,
+    option, figcaption, h3, h4, h5, h6, span) {
+    font-size: 0.85rem !important;
+}
+
+/* Las iniciales circulares de los avatares conservan su tamaño propio
+   (no son texto de cuerpo). Las clases base ya existen más arriba; aquí se
+   reafirman con !important para vencer la normalización de <span>. */
+.container-tem .avatar-mini.avatar-inicial,
+.dashboard-container .avatar-mini.avatar-inicial,
+.modal-overlay .avatar-mini.avatar-inicial,
+.tutor-modal-overlay .avatar-mini.avatar-inicial {
+    font-size: 0.68rem !important;
+}
+.container-tem .avatar-md.avatar-inicial,
+.dashboard-container .avatar-md.avatar-inicial,
+.modal-overlay .avatar-md.avatar-inicial,
+.tutor-modal-overlay .avatar-md.avatar-inicial {
+    font-size: 0.85rem !important;
+}
+.container-tem .avatar-hero.avatar-inicial,
+.dashboard-container .avatar-hero.avatar-inicial,
+.modal-overlay .avatar-hero.avatar-inicial,
+.tutor-modal-overlay .avatar-hero.avatar-inicial {
+    font-size: 1.15rem !important;
 }
