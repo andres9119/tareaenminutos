@@ -32,7 +32,7 @@ class EstadoSolicitud(models.Model):
     """Estados del flujo de una solicitud académica."""
     ESTADOS = [
         ('nueva', 'Nueva'),
-        ('en_cotizacion', 'En Cotización'),
+        ('en_cotizacion', 'Cotización'),
         ('cotizada', 'Cotizada'),
         ('asignada', 'Asignada'),
         ('en_progreso', 'En Progreso'),

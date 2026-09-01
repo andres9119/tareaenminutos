@@ -60,7 +60,7 @@ def cotizacion_crear(request, solicitud_pk):
             if solicitud.estado.nombre == 'nueva':
                 estado_cotizacion, _ = EstadoSolicitud.objects.get_or_create(
                     nombre='en_cotizacion',
-                    defaults={'etiqueta': 'En Cotización', 'color_hex': '#f59e0b', 'orden': 2}
+                    defaults={'etiqueta': 'Cotización', 'color_hex': '#f59e0b', 'orden': 2}
                 )
                 estado_anterior = solicitud.estado
                 solicitud.estado = estado_cotizacion

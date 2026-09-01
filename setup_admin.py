@@ -32,7 +32,7 @@ def setup():
     # Crear estados de solicitud
     estados_data = [
         ('nueva', 'Nueva', '#3b82f6', 1),
-        ('en_cotizacion', 'En Cotización', '#f59e0b', 2),
+        ('en_cotizacion', 'Cotización', '#f59e0b', 2),
         ('cotizada', 'Cotizada', '#8b5cf6', 3),
         ('asignada', 'Asignada', '#8b5cf6', 4),
         ('en_progreso', 'En Progreso', '#10b981', 5),
