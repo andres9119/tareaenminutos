@@ -266,7 +266,7 @@ SITE_META_KEYWORDS = (
     'tareas universitarias colombia, tutores academicos colombia, ayuda con tareas colombia, '
     'trabajos de grado, asesoría tesis, resolver examenes colombia'
 )
-WHATSAPP_PHONE = '+573126635066'
+WHATSAPP_PHONE = '+573128566675'
 SITE_BASE_URL = config('SITE_BASE_URL', default='http://localhost:8000')
 
 # ─── HTTPS / Security Settings (for production) ───────────────────────────────
