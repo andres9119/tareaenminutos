@@ -587,3 +587,15 @@
 /* Panel tutor: nombre y texto de bienvenida a 0.95rem (los stat-chip se dejan igual) */
 .dashboard-container .hero-main h4 { font-size: 0.95rem !important; }
 .dashboard-container .hero-sub { font-size: 0.95rem !important; }
+
+/* Wrapper responsive para tablas en el area privada: scroll horizontal en
+   movil en vez de recortar la tabla. Definido globalmente para que cualquier
+   template que use <div class="table-responsive"> funcione sin CSS inline. */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.table-responsive .table-tem {
+    min-width: 640px;
+}
