@@ -5,6 +5,7 @@ Views para chat interno en tiempo real.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q, Max
+import os
 from django.http import JsonResponse
 from .models import SalaChat, MensajeChat
 from solicitudes.models import SolicitudAcademica
@@ -25,10 +26,7 @@ def sala_chat(request, pk):
         # Salas de solicitud: solo el tutor asignado.
         # Salas generales (canal de anuncios): todo el personal interno.
         # Salas directas: solo participantes.
-        if sala.tipo == 'directa':
-            if not sala.participantes.filter(pk=request.user.pk).exists():
-                raise Http404('No tienes acceso a esta sala.')
-        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+        if not _usuario_puede_ver_sala(request.user, sala):
             raise Http404('No tienes acceso a esta sala.')
 
     # Agregar usuario como participante si aún no está
@@ -75,6 +73,8 @@ def sala_chat(request, pk):
             'mostrar_autor': mostrar_autor,
             'etiqueta_fecha': etiqueta_fecha,
             'hora': local.strftime('%H:%M'),
+            'es_imagen': _adjunto_es_imagen(m),
+            'es_pdf': _adjunto_es_pdf(m),
         })
         fecha_anterior = fecha
 
@@ -111,23 +111,7 @@ def chat_mensajes_json(request, pk):
         m.leido_por.add(request.user)
 
     mensajes = sala.mensajes.select_related('autor').order_by('-created_at')[:50]
-    hoy = timezone.localdate()
-    datos = []
-    for m in reversed(list(mensajes)):
-        local = timezone.localtime(m.created_at)
-        autor_nombre = ''
-        if m.autor:
-            autor_nombre = m.autor.get_full_name() or m.autor.username
-        else:
-            autor_nombre = 'Usuario eliminado'
-        datos.append({
-            'autor_id': m.autor_id,
-            'autor_nombre': autor_nombre,
-            'contenido': m.contenido,
-            'hora': local.strftime('%H:%M'),
-            'fecha': local.strftime('%d/%m/%Y'),
-            'created_at_full': m.created_at.isoformat(),
-        })
+    datos = [m.to_dict() for m in reversed(list(mensajes))]
 
     return JsonResponse({
         'id': sala.pk,
@@ -365,3 +349,131 @@ def sala_chat_pdf(request, pk):
 def _esc_pdf(texto):
     from django.utils.html import escape
     return escape(texto or '')
+
+
+def _usuario_puede_ver_sala(user, sala):
+    """Control de acceso a una sala (copiado de sala_chat / consumers.verificar_acceso)."""
+    if es_admin(user):
+        return True
+    if sala.tipo == 'directa':
+        return sala.participantes.filter(pk=user.pk).exists()
+    if sala.solicitud_id:
+        return (sala.solicitud.tutor_asignado_id == user.pk if sala.solicitud_id else False)
+    # Sala general: todo el personal interno
+    return user.is_staff or user.groups.filter(name__in=['Administrador', 'Tutor']).exists()
+
+
+def _usuario_puede_escribir(user, sala):
+    """Canal General = anuncios (solo admins). Solicitud/Directa = doble vía."""
+    if sala.solicitud_id or sala.tipo == 'directa':
+        return True
+    return es_admin(user)
+
+
+def _adjunto_es_imagen(m):
+    if not m.archivo_adjunto:
+        return False
+    import os
+    ext = os.path.splitext(m.archivo_nombre or m.archivo_adjunto.name)[1].lower().lstrip('.')
+    return ext in ('png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg')
+
+
+def _adjunto_es_pdf(m):
+    if not m.archivo_adjunto:
+        return False
+    import os
+    ext = os.path.splitext(m.archivo_nombre or m.archivo_adjunto.name)[1].lower().lstrip('.')
+    return ext == 'pdf'
+
+
+@admin_o_tutor_required
+def chat_adjunto_subir(request, pk):
+    """Sube un archivo adjunto a una sala de chat y lo distribuye por WebSocket."""
+    from django.http import Http404, JsonResponse
+    from django.views.decorators.http import require_POST
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Método no permitido.'}, status=405)
+
+    sala = get_object_or_404(SalaChat, pk=pk)
+    if not _usuario_puede_ver_sala(request.user, sala):
+        raise Http404('No tienes acceso a esta sala.')
+    if not _usuario_puede_escribir(request.user, sala):
+        return JsonResponse({'ok': False, 'error': 'No puedes enviar archivos en este canal.'}, status=403)
+
+    archivo = request.FILES.get('archivo')
+    contenido = (request.POST.get('mensaje') or '').strip()
+    if not archivo:
+        return JsonResponse({'ok': False, 'error': 'Debes seleccionar un archivo.'}, status=400)
+
+    from django.utils.text import get_valid_filename
+    nombre = get_valid_filename(archivo.name)
+    ext = os.path.splitext(nombre)[1].lower()
+
+    _CHAT_ALLOWED = [
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg',
+        '.zip', '.rar', '.7z', '.txt', '.csv',
+    ]
+    if archivo.size > 20 * 1024 * 1024:
+        return JsonResponse({'ok': False, 'error': 'El archivo no puede superar los 20 MB.'}, status=400)
+    if ext not in _CHAT_ALLOWED:
+        return JsonResponse({
+            'ok': False,
+            'error': f'Tipo de archivo no permitido. Aceptados: {", ".join(_CHAT_ALLOWED)}'
+        }, status=400)
+
+    mensaje = MensajeChat.objects.create(
+        sala=sala,
+        autor=request.user,
+        contenido=contenido or f"Archivo: {nombre}",
+        tipo='archivo',
+        archivo_adjunto=archivo,
+        archivo_nombre=nombre,
+    )
+
+    paquete = mensaje.to_dict()
+    # Push por WebSocket al grupo de la sala
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    channel_layer = get_channel_layer()
+    try:
+        async_to_sync(channel_layer.group_send)(
+            sala.channel_group_name,
+            {'type': 'chat_message', 'mensaje': paquete},
+        )
+    except Exception:
+        pass
+
+    return JsonResponse({'ok': True, 'mensaje': paquete})
+
+
+@admin_o_tutor_required
+def chat_adjunto_descargar(request, mensaje_id):
+    """Descarga (o preview inline) del archivo adjunto de un mensaje de chat."""
+    from django.http import Http404, HttpResponse, FileResponse
+    import os, mimetypes
+    m = get_object_or_404(MensajeChat, pk=mensaje_id)
+    sala = m.sala
+    if not _usuario_puede_ver_sala(request.user, sala):
+        raise Http404('No tienes acceso a este archivo.')
+    if not m.archivo_adjunto:
+        raise Http404('Este mensaje no tiene archivo adjunto.')
+
+    inline = request.GET.get('inline') == '1'
+    nombre = m.archivo_nombre or os.path.basename(m.archivo_adjunto.name)
+    tipo_mime = mimetypes.guess_type(nombre)[0] or 'application/octet-stream'
+
+    if inline:
+        # Leer y servir inline (preview de imágenes sin forzar descarga)
+        try:
+            with m.archivo_adjunto.open('rb') as f:
+                datos = f.read()
+        except Exception:
+            raise Http404('No se pudo leer el archivo.')
+        response = HttpResponse(datos, content_type=tipo_mime)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(nombre)}"'
+        return response
+
+    resp = FileResponse(m.archivo_adjunto, content_type=tipo_mime)
+    resp['Content-Disposition'] = f'attachment; filename="{os.path.basename(nombre)}"'
+    return resp

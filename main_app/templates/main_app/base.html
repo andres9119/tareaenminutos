@@ -533,6 +533,24 @@ footer {
 .cw-send { width: 34px; height: 34px; border: none; border-radius: 50%; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: filter 0.15s; }
 .cw-send:hover { filter: brightness(1.1); }
 .cw-readonly-note { flex: 1; text-align: center; color: var(--text-muted); font-size: 0.74rem; padding: 0.35rem 0; }
+.cw-clip { width: 34px; height: 34px; border: none; border-radius: 50%; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+.cw-clip:hover { background: var(--primary-glow); color: var(--primary); }
+.cw-file { display: none; }
+.cw-preview { display: block; width: 100%; }
+.cw-prev-chip { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: 10px; padding: 0.3rem 0.5rem; font-size: 0.72rem; color: var(--text-main); }
+.cw-prev-chip img { width: 26px; height: 26px; object-fit: cover; border-radius: 5px; }
+.cw-prev-nombre { max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw-prev-x { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; line-height: 1; }
+.cw-prev-x:hover { color: var(--danger, #e5484d); }
+.cw-adj-msg { margin-bottom: 0.25rem; }
+.cw-att-caja { display: block; max-width: 240px; text-decoration: none; color: inherit; }
+.cw-att-img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-bottom: 0.25rem; }
+.cw-att-caja-nombre { display: inline-block; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; opacity: 0.95; }
+.cw-att-caja-file { display: flex; align-items: center; gap: 0.45rem; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; padding: 0.45rem 0.6rem; margin-bottom: 0.2rem; }
+.cw-row:not(.cw-row-own) .cw-att-caja-file { background: var(--bg-base); border-color: var(--border-glow); color: var(--text-main); }
+.cw-row-own .cw-att-caja-file:hover, .cw-row-own .cw-att-caja-nombre:hover, .cw-row-own .cw-att-img:hover { filter: brightness(0.97); }
+.cw-att-ico { width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+.cw-row:not(.cw-row-own) .cw-att-ico { background: var(--primary-glow); color: var(--primary); }
 #cwOverflow {
     pointer-events: auto;
     width: 44px; height: 44px;
@@ -1413,6 +1431,19 @@ footer {
                 return d.innerHTML;
             }
 
+            function csrfToken() {
+                var m = document.cookie.match(/csrftoken=([^;]+)/);
+                return m ? m[1] : '';
+            }
+
+            function fechaMensaje(d) {
+                return { autor_id: d.autor_id, autor_nombre: d.autor_nombre,
+                    contenido: d.contenido, hora: d.created_at, fecha: d.fecha,
+                    tipomsg: d.tipo || 'texto', adjunto_url: d.adjunto_url || '',
+                    adjunto_nombre: d.adjunto_nombre || '', adjunto_es_imagen: d.adjunto_es_imagen || false,
+                    adjunto_es_pdf: d.adjunto_es_pdf || false };
+            }
+
             function burbujaHTML(m, prevFecha) {
                 var propio = m.autor_id === userId;
                 var autor = (!propio && m.autor_nombre)
@@ -1421,10 +1452,29 @@ footer {
                 if (m.fecha && m.fecha !== prevFecha) {
                     sep = '<div class="cw-date-sep"><span>' + esc(m.fecha) + '</span></div>';
                 }
+                var adj = adjuntoHTML(m);
+                var texto = (m.tipomsg === 'archivo' && adj)
+                    ? (m.contenido && m.contenido.indexOf('Archivo:') !== 0 ? '<div class="cw-adj-msg">' + esc(m.contenido) + '</div>' : '')
+                    : esc(m.contenido || '');
                 return sep + '<div class="cw-row' + (propio ? ' cw-row-own' : '') + '">' +
                     '<div class="cw-col">' + autor +
-                    '<div class="cw-bubble">' + esc(m.contenido) +
+                    '<div class="cw-bubble">' + adj + texto +
                     '<span class="cw-meta">' + esc(m.hora || '') + '</span></div></div></div>';
+            }
+
+            function adjuntoHTML(m) {
+                var url = m.adjunto_url || '';
+                var nombre = m.adjunto_nombre || '';
+                if (!url) return '';
+                if (m.adjunto_es_imagen) {
+                    return '<a class="cw-att-caja" href="' + esc(url) + '?inline=1" target="_blank" rel="noopener" title="' + esc(nombre) + '">' +
+                        '<img class="cw-att-img" src="' + esc(url) + '?inline=1" alt="' + esc(nombre) + '">' +
+                        '<span class="cw-att-caja-nombre">' + esc(nombre) + '</span></a>';
+                }
+                var icono = m.adjunto_es_pdf ? 'fa-file-pdf' : 'fa-paperclip';
+                return '<a class="cw-att-caja cw-att-caja-file" href="' + esc(url) + '" title="Descargar ' + esc(nombre) + '">' +
+                    '<span class="cw-att-ico"><i class="fas ' + icono + '"></i></span>' +
+                    '<span class="cw-att-caja-nombre">' + esc(nombre) + '</span></a>';
             }
 
             function scrollFin(st) {
@@ -1461,7 +1511,12 @@ footer {
                     if (d.type === 'historial') {
                         st.data.mensajes = d.mensajes.map(function(m) {
                             return { autor_id: m.autor_id, autor_nombre: m.autor_nombre,
-                                     contenido: m.contenido, hora: m.created_at, fecha: m.fecha };
+                                     contenido: m.contenido, hora: m.created_at, fecha: m.fecha,
+                                     tipomsg: m.tipo || 'texto',
+                                     adjunto_url: m.adjunto_url || '',
+                                     adjunto_nombre: m.adjunto_nombre || '',
+                                     adjunto_es_imagen: m.adjunto_es_imagen || false,
+                                     adjunto_es_pdf: m.adjunto_es_pdf || false };
                         });
                         renderHistorial(st);
                         marcarLeido(id);
@@ -1470,11 +1525,15 @@ footer {
                         var vacio = body.querySelector('.cw-empty');
                         if (vacio) vacio.remove();
                         var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
-                        body.insertAdjacentHTML('beforeend', burbujaHTML({
-                            autor_id: d.autor_id, autor_nombre: d.username,
-                            contenido: d.message, hora: d.created_at, fecha: d.fecha }, ultFecha));
-                        st.data.mensajes.push({ autor_id: d.autor_id, autor_nombre: d.username,
-                            contenido: d.message, hora: d.created_at, fecha: d.fecha });
+                        var nm = { autor_id: d.autor_id, autor_nombre: d.username,
+                            contenido: d.message, hora: d.created_at, fecha: d.fecha,
+                            tipomsg: d.tipomsg || 'texto',
+                            adjunto_url: d.adjunto_url || '',
+                            adjunto_nombre: d.adjunto_nombre || '',
+                            adjunto_es_imagen: d.adjunto_es_imagen || false,
+                            adjunto_es_pdf: d.adjunto_es_pdf || false };
+                        body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
+                        st.data.mensajes.push(nm);
                         scrollFin(st);
                         if (d.autor_id !== userId) {
                             sonidoChat();
@@ -1493,8 +1552,11 @@ footer {
                 el.dataset.chatId = id;
                 var icono = data.tipo === 'general' ? 'fa-bullhorn' : data.tipo === 'directa' ? 'fa-user' : 'fa-file-alt';
                 var entrada = data.puede_escribir
-                    ? '<textarea rows="1" placeholder="Escribe un mensaje..."></textarea>' +
-                      '<button class="cw-send" title="Enviar"><i class="fas fa-paper-plane"></i></button>'
+                    ? '<div class="cw-preview"></div>' +
+                      '<button class="cw-clip" type="button" title="Adjuntar archivo"><i class="fas fa-paperclip"></i></button>' +
+                      '<textarea rows="1" placeholder="Escribe un mensaje..."></textarea>' +
+                      '<button class="cw-send" title="Enviar"><i class="fas fa-paper-plane"></i></button>' +
+                      '<input type="file" class="cw-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.zip,.rar,.7z,.txt,.csv">'
                     : '<div class="cw-readonly-note">Canal de anuncios — solo los administradores publican mensajes.</div>';
                 el.innerHTML =
                     '<div class="cw-head">' +
@@ -1520,10 +1582,58 @@ footer {
                 var ta = el.querySelector('textarea');
                 if (ta) {
                     var btn = el.querySelector('.cw-send');
+                    var btnClip = el.querySelector('.cw-clip');
+                    var inFile = el.querySelector('.cw-file');
+                    var preview = el.querySelector('.cw-preview');
+
+                    function mostrarPreview(file) {
+                        var cont = '';
+                        if (file) {
+                            cont = '<span class="cw-prev-nombre">' + esc(file.name) + '</span>';
+                            if (/^image\/(png|jpe?g|gif|webp|bmp|svg)/i.test(file.type)) {
+                                var r = URL.createObjectURL(file);
+                                cont = '<img src="' + r + '" alt="">' + cont;
+                            }
+                        }
+                        preview.innerHTML = cont ? '<span class="cw-prev-chip">' + cont +
+                            '<button class="cw-prev-x" type="button" title="Quitar">&times;</button></span>' : '';
+                        var x = preview.querySelector('.cw-prev-x');
+                        if (x) x.addEventListener('click', function() { inFile.value = ''; mostrarPreview(null); });
+                    }
+                    if (btnClip) btnClip.addEventListener('click', function() { inFile.click(); });
+                    if (inFile) inFile.addEventListener('change', function() {
+                        mostrarPreview(inFile.files && inFile.files[0]);
+                    });
+
                     function enviar() {
-                        var t = ta.value.trim();
                         var s = abiertos.get(id);
-                        if (!t || !s || !s.ws || s.ws.readyState !== WebSocket.OPEN) return;
+                        if (!s || !s.ws || s.ws.readyState !== WebSocket.OPEN) return;
+                        var t = ta.value.trim();
+                        var tArchivo = inFile && inFile.files && inFile.files[0];
+                        if (!t && !tArchivo) return;
+                        if (tArchivo) {
+                            var fd = new FormData();
+                            fd.append('archivo', tArchivo);
+                            if (t) fd.append('mensaje', t);
+                            fetch('/app/chat/' + id + '/adjunto/', {
+                                method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken() }
+                            }).then(function(r) { return r.json(); }).then(function(data) {
+                                if (data.ok && data.mensaje) {
+                                    var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
+                                    var nm = fechaMensaje(data.mensaje);
+                                    var body = st.el.querySelector('.cw-body');
+                                    body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
+                                    st.data.mensajes.push(nm);
+                                    scrollFin(st);
+                                } else if (data.error) {
+                                    alert(data.error);
+                                }
+                                if (window.__actualizarChats) window.__actualizarChats();
+                            }).catch(function(e) { alert('No se pudo subir el archivo.'); });
+                            ta.value = ''; ta.style.height = 'auto';
+                            inFile.value = ''; mostrarPreview(null);
+                            return;
+                        }
                         s.ws.send(JSON.stringify({ 'message': t }));
                         ta.value = '';
                         ta.style.height = 'auto';

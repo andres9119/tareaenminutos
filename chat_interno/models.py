@@ -5,8 +5,15 @@ Chat en tiempo real entre Admin y Tutores usando Django Channels.
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
 from solicitudes.models import SolicitudAcademica
+
+
+def chat_upload_path(instance, filename):
+    """Ruta dentro de media_privada para adjuntos del chat."""
+    from django.utils.text import get_valid_filename
+    return f"chat_archivos/sala_{instance.sala_id}/{get_valid_filename(filename)}"
 
 
 class SalaChat(models.Model):
@@ -92,9 +99,14 @@ class MensajeChat(models.Model):
     contenido = models.TextField(verbose_name='Contenido')
     tipo = models.CharField(max_length=10, choices=TIPO_MENSAJE, default='texto')
     archivo_adjunto = models.FileField(
-        upload_to='chat_archivos/',
+        upload_to=chat_upload_path,
+        storage=settings.PRIVATE_STORAGE,
         null=True, blank=True,
         verbose_name='Archivo adjunto'
+    )
+    archivo_nombre = models.CharField(
+        max_length=500, blank=True, default='',
+        verbose_name='Nombre original del archivo'
     )
     leido_por = models.ManyToManyField(
         User, blank=True,
@@ -113,8 +125,18 @@ class MensajeChat(models.Model):
         return f"{autor}: {self.contenido[:50]}"
 
     def to_dict(self):
-        """Serializa el mensaje para WebSocket."""
+        """Serializa el mensaje para WebSocket y JSON."""
+        from django.urls import reverse
+        import os
         local = timezone.localtime(self.created_at)
+        url_adj = ''
+        es_img = False
+        es_pdf = False
+        if self.archivo_adjunto:
+            url_adj = reverse('chat_adjunto_descargar', args=[self.pk])
+            ext = (os.path.splitext(self.archivo_nombre or self.archivo_adjunto.name)[1] or '').lower().lstrip('.')
+            es_img = ext in ('png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg')
+            es_pdf = ext == 'pdf'
         return {
             'id': self.pk,
             'sala_id': self.sala_id,
@@ -123,6 +145,10 @@ class MensajeChat(models.Model):
             'autor_foto': self.autor.perfil.get_foto_url() if hasattr(self.autor, 'perfil') else '',
             'contenido': self.contenido,
             'tipo': self.tipo,
+            'adjunto_url': url_adj,
+            'adjunto_nombre': self.archivo_nombre or '',
+            'adjunto_es_imagen': es_img,
+            'adjunto_es_pdf': es_pdf,
             'created_at': local.strftime('%H:%M'),
             'created_at_full': local.isoformat(),
             'fecha': local.strftime('%d/%m/%Y'),
