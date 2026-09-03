@@ -275,3 +275,93 @@ def datos_messenger(request):
             'no_leidos': d['no_leidos'],
         } for d in chats],
     })
+
+
+@admin_o_tutor_required
+def sala_chat_pdf(request, pk):
+    """Descarga de la conversación de una sala en PDF (solo autorizados)."""
+    from django.http import Http404
+    from django.http import HttpResponse
+    from django.utils import timezone
+    user_is_admin = es_admin(request.user)
+
+    sala = get_object_or_404(SalaChat, pk=pk)
+    if not user_is_admin:
+        if sala.tipo == 'directa':
+            if not sala.participantes.filter(pk=request.user.pk).exists():
+                raise Http404('No tienes acceso a esta sala.')
+        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+            raise Http404('No tienes acceso a esta sala.')
+
+    mensajes = sala.mensajes.select_related('autor').order_by('created_at')
+
+    from io import BytesIO
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.units import inch
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
+    from reportlab.lib.colors import HexColor
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+
+    verde = HexColor('#06aa44')
+    gris = HexColor('#5f6b7e')
+
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle(
+        'TituloChat', parent=styles['Title'],
+        fontSize=18, fontName='Helvetica-Bold', textColor=verde, spaceAfter=6,
+    )
+    subtitulo_style = ParagraphStyle(
+        'SubtituloChat', parent=styles['Normal'],
+        fontSize=10, textColor=gris, spaceAfter=14,
+    )
+    msg_style = ParagraphStyle(
+        'MensajeChat', parent=styles['Normal'],
+        fontName='Helvetica', fontSize=10, leading=14, alignment=TA_LEFT,
+        spaceBefore=2, spaceAfter=4,
+    )
+    autor_style = ParagraphStyle(
+        'AutorChat', parent=msg_style,
+        fontName='Helvetica-Bold', fontSize=9.5, textColor=verde, spaceBefore=8, spaceAfter=1,
+    )
+
+    nombre_sala = sala.nombre
+    if sala.solicitud:
+        nombre_sala = f"{sala.solicitud.codigo} — {sala.solicitud.titulo}"
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        rightMargin=0.75 * inch, leftMargin=0.75 * inch,
+        topMargin=0.6 * inch, bottomMargin=0.6 * inch,
+        title=f"Conversación - {sala.nombre}",
+    )
+    story = [Paragraph('Tarea en Minutos — Conversación', titulo_style),
+             Paragraph(f"<b>{_esc_pdf(nombre_sala)}</b>", subtitulo_style),
+             HRFlowable(width='100%', thickness=1, color=verde, spaceAfter=12)]
+
+    for m in mensajes:
+        autor = (m.autor.get_full_name() or m.autor.username) if m.autor else 'Usuario eliminado'
+        local = timezone.localtime(m.created_at)
+        hora = local.strftime('%d/%m/%Y %H:%M')
+        story.append(Paragraph(
+            _esc_pdf(f"{autor} — {hora}"), autor_style))
+        story.append(Paragraph(
+            _esc_pdf(m.contenido).replace('\n', '<br/>'), msg_style))
+
+    if not mensajes.exists():
+        story.append(Paragraph('<i>Sin mensajes en esta conversación.</i>', msg_style))
+
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    filename = f"conversacion_{sala.pk}.pdf"
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _esc_pdf(texto):
+    from django.utils.html import escape
+    return escape(texto or '')
