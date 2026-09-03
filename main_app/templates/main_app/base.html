@@ -623,7 +623,12 @@ footer {
         #notifDropdown .notif-dropdown-item, #msgDropdown .notif-dropdown-item { padding-left: 1.1rem; }
         .notif-item-content { flex: 1; min-width: 0; }
 
-        .notif-item-content strong {
+        /* Especificidad de ID (1,1,1) para que ambos dropdowns venzan SIEMPRE
+           cualquier regla heredada de private_styles.css (p. ej. la compuesta
+           #chatWins/#msgDropdown que forzaba 0.9rem !important). Asi notificaciones
+           y mensajes usan exactamente las mismas fuentes y tamanos. */
+        #notifDropdown .notif-item-content strong,
+        #msgDropdown .notif-item-content strong {
             font-family: var(--font-heading) !important;
             font-size: 0.85rem !important;
             font-weight: 600 !important;
@@ -632,7 +637,8 @@ footer {
             margin-bottom: 0.15rem;
         }
 
-        .notif-item-content p {
+        #notifDropdown .notif-item-content p,
+        #msgDropdown .notif-item-content p {
             font-family: var(--font-body) !important;
             font-size: 0.75rem !important;
             color: var(--text-muted) !important;
@@ -642,7 +648,8 @@ footer {
             text-overflow: ellipsis;
         }
 
-        .notif-item-content small {
+        #notifDropdown .notif-item-content small,
+        #msgDropdown .notif-item-content small {
             font-family: var(--font-body) !important;
             font-size: 0.68rem !important;
             color: var(--text-muted) !important;
