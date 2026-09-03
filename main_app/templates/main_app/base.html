@@ -1618,19 +1618,28 @@ footer {
                             if (t) fd.append('mensaje', t);
                             fetch('/app/chat/' + id + '/adjunto/', {
                                 method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken() }
-                            }).then(function(r) { return r.json(); }).then(function(data) {
-                                if (data.ok && data.mensaje) {
+                            }).then(function(r) {
+                                return r.json().catch(function() { return { ok: false, error: 'El servidor no respondió correctamente. Revisa si el archivo llegó.' }; });
+                            }).then(function(data) {
+                                if (data && data.ok && data.mensaje) {
                                     var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
                                     var nm = fechaMensaje(data.mensaje);
                                     var body = st.el.querySelector('.cw-body');
                                     body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
                                     st.data.mensajes.push(nm);
                                     scrollFin(st);
-                                } else if (data.error) {
+                                } else if (data && data.error) {
                                     alert(data.error);
                                 }
                                 if (window.__actualizarChats) window.__actualizarChats();
-                            }).catch(function(e) { alert('No se pudo subir el archivo.'); });
+                            }).catch(function(e) {
+                                console.error('Error subiendo adjunto:', e);
+                                if (!tArchivo) return;
+                                var yaLlego = Array.prototype.some.call(st.el.querySelectorAll('.cw-att-caja-nombre, .cw-att-img'), function(el) {
+                                    return el.getAttribute('title') === tArchivo.name || (el.alt && el.alt === tArchivo.name);
+                                });
+                                if (!yaLlego) alert('No se pudo subir el archivo. Revisa tu conexión.');
+                            });
                             ta.value = ''; ta.style.height = 'auto';
                             inFile.value = ''; mostrarPreview(null);
                             return;

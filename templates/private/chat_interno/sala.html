@@ -667,7 +667,14 @@
                 } else if (data.error) {
                     alert(data.error);
                 }
-            }).catch(function(e) { alert('No se pudo subir el archivo.'); });
+            }).catch(function(e, file) {
+                console.error('Error subiendo adjunto:', e);
+                if (!pendingFile) return;
+                var yaLlego = Array.prototype.some.call(document.querySelectorAll('.wa-att-caja-nombre, .wa-att-img'), function(el) {
+                    return el.getAttribute('title') === pendingFile.name || (el.alt && el.alt === pendingFile.name);
+                });
+                if (!yaLlego) alert('No se pudo subir el archivo. Revisa tu conexión.');
+            });
             input.value = ''; input.style.height = 'auto';
             fileInput.value = ''; previewEl.innerHTML = '';
             return;
