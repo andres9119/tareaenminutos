@@ -99,8 +99,9 @@ def contact_view(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            form.save()
+            contacto = form.save()
             messages.success(request, 'Tu mensaje ha sido enviado correctamente. Nos pondremos en contacto pronto.')
+            _notificar_contacto_a_admins(contacto)
             return redirect('index')
     else:
         form = ContactForm()
@@ -109,6 +110,41 @@ def contact_view(request):
         'form': form
     }
     return render(request, 'main_app/contact.html', context)
+
+
+def _notificar_contacto_a_admins(contacto):
+    """Envía por email a todos los administradores activos un nuevo mensaje de contacto."""
+    if not settings.EMAIL_HOST_USER:
+        print(f"[TEM] (dev) Nuevo mensaje de contacto sin SMTP:\n{contacto.name} ({contacto.email}) - {contacto.subject}\n{contacto.message}")
+        return
+    from django.contrib.auth import get_user_model
+    from django.db.models import Q
+    User = get_user_model()
+    admins = User.objects.filter(
+        Q(is_superuser=True) | Q(groups__name='Administrador'),
+        is_active=True,
+    ).exclude(email='').values_list('email', flat=True)
+    if not admins:
+        return
+    from django.core.mail import send_mail
+    try:
+        send_mail(
+            subject=f"Nuevo mensaje de contacto - {contacto.subject}",
+            message=(
+                f"Has recibido un nuevo mensaje desde el formulario de contacto.\n\n"
+                f"Nombre: {contacto.name}\n"
+                f"Email: {contacto.email}\n"
+                f"Teléfono: {contacto.phone or 'No especificado'}\n"
+                f"Recibido: {contacto.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
+                f"Mensaje:\n{contacto.message}\n\n"
+                f"---\nTarea en Minutos"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=list(admins),
+            fail_silently=False,
+        )
+    except Exception:
+        pass
 
 
 from django.http import HttpResponse
