@@ -125,6 +125,7 @@ def chat_mensajes_json(request, pk):
             'autor_nombre': autor_nombre,
             'contenido': m.contenido,
             'hora': local.strftime('%H:%M'),
+            'fecha': local.strftime('%d/%m/%Y'),
             'created_at_full': m.created_at.isoformat(),
         })
 

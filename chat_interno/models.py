@@ -125,4 +125,5 @@ class MensajeChat(models.Model):
             'tipo': self.tipo,
             'created_at': local.strftime('%H:%M'),
             'created_at_full': local.isoformat(),
+            'fecha': local.strftime('%d/%m/%Y'),
         }

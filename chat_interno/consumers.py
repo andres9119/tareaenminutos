@@ -116,6 +116,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'username': m.get('autor_nombre', ''),
             'message': m.get('contenido', ''),
             'created_at': m.get('created_at', ''),
+            'fecha': m.get('fecha', ''),
             'created_at_full': m.get('created_at_full', ''),
         }))
 

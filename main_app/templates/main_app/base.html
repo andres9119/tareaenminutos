@@ -517,6 +517,8 @@ footer {
 .cw-row-own .cw-bubble { background: var(--primary); border-color: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
 .cw-row:not(.cw-row-own) .cw-bubble { border-bottom-left-radius: 4px; }
 .cw-meta { display: block; font-size: 0.62rem; opacity: 0.75; margin-top: 2px; text-align: right; }
+.cw-date-sep { display: flex; justify-content: center; margin: 0.45rem 0 0.15rem; }
+.cw-date-sep span { background: var(--bg-base); color: var(--text-muted); border: 1px solid var(--border-glow); border-radius: 999px; padding: 0.12rem 0.7rem; font-size: 0.7rem; font-weight: 500; }
 .cw-empty { margin: auto; text-align: center; color: var(--text-muted); font-size: 0.82rem; }
 .cw-empty i { display: block; font-size: 1.6rem; opacity: 0.35; margin-bottom: 0.4rem; }
 .cw-input-area { display: flex; align-items: flex-end; gap: 0.45rem; padding: 0.55rem 0.65rem; border-top: 1px solid var(--border-glow); flex-shrink: 0; }
@@ -1411,11 +1413,15 @@ footer {
                 return d.innerHTML;
             }
 
-            function burbujaHTML(m) {
+            function burbujaHTML(m, prevFecha) {
                 var propio = m.autor_id === userId;
                 var autor = (!propio && m.autor_nombre)
                     ? '<span class="cw-autor">' + esc(m.autor_nombre) + '</span>' : '';
-                return '<div class="cw-row' + (propio ? ' cw-row-own' : '') + '">' +
+                var sep = '';
+                if (m.fecha && m.fecha !== prevFecha) {
+                    sep = '<div class="cw-date-sep"><span>' + esc(m.fecha) + '</span></div>';
+                }
+                return sep + '<div class="cw-row' + (propio ? ' cw-row-own' : '') + '">' +
                     '<div class="cw-col">' + autor +
                     '<div class="cw-bubble">' + esc(m.contenido) +
                     '<span class="cw-meta">' + esc(m.hora || '') + '</span></div></div></div>';
@@ -1432,7 +1438,12 @@ footer {
                         (st.data.puede_escribir ? 'No hay mensajes aún.' : 'Aún no hay anuncios.') + '</div>';
                     return;
                 }
-                body.innerHTML = st.data.mensajes.map(burbujaHTML).join('');
+                var prev = null;
+                body.innerHTML = st.data.mensajes.map(function(m) {
+                    var r = burbujaHTML(m, prev);
+                    prev = m.fecha;
+                    return r;
+                }).join('');
                 scrollFin(st);
             }
 
@@ -1450,7 +1461,7 @@ footer {
                     if (d.type === 'historial') {
                         st.data.mensajes = d.mensajes.map(function(m) {
                             return { autor_id: m.autor_id, autor_nombre: m.autor_nombre,
-                                     contenido: m.contenido, hora: m.created_at };
+                                     contenido: m.contenido, hora: m.created_at, fecha: m.fecha };
                         });
                         renderHistorial(st);
                         marcarLeido(id);
@@ -1458,9 +1469,12 @@ footer {
                         var body = st.el.querySelector('.cw-body');
                         var vacio = body.querySelector('.cw-empty');
                         if (vacio) vacio.remove();
+                        var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
                         body.insertAdjacentHTML('beforeend', burbujaHTML({
                             autor_id: d.autor_id, autor_nombre: d.username,
-                            contenido: d.message, hora: d.created_at }));
+                            contenido: d.message, hora: d.created_at, fecha: d.fecha }, ultFecha));
+                        st.data.mensajes.push({ autor_id: d.autor_id, autor_nombre: d.username,
+                            contenido: d.message, hora: d.created_at, fecha: d.fecha });
                         scrollFin(st);
                         if (d.autor_id !== userId) {
                             sonidoChat();
