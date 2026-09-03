@@ -177,7 +177,7 @@ class SolicitudAcademica(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.codigo} - {self.titulo[:50]}"
+        return f"{self.codigo} - {(self.titulo or '')[:50]}"
 
     def save(self, *args, **kwargs):
         if not self.codigo or self.codigo.strip() == '':
