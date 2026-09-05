@@ -295,6 +295,7 @@
 /* Input */
 .wa-input-area {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-end;
     gap: 0.6rem;
     padding: 0.6rem 0.9rem;
@@ -302,7 +303,8 @@
     border-top: 1px solid var(--border-glow);
 }
 .wa-input-area textarea {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 0.65rem 1rem;
     border-radius: 22px;
     border: 1px solid var(--border-glow);
@@ -354,7 +356,7 @@
 }
 .wa-clip:hover { background: var(--primary-glow); color: var(--primary); }
 .wa-file { display: none; }
-.wa-preview { display: block; width: 100%; }
+.wa-preview { order: -1; width: 100%; }
 .wa-prev-chip {
     display: inline-flex; align-items: center; gap: 0.45rem;
     background: var(--bg-surface); border: 1px solid var(--border-glow);
