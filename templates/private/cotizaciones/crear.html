@@ -29,9 +29,6 @@
             {% endif %}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; color: var(--text-muted);">
                 <div>
-                    <p><strong>Cliente:</strong> {{ solicitud.cliente_nombre|default:"No especificado" }}</p>
-                    <p><strong>Email:</strong> {{ solicitud.cliente_email|default:"No especificado" }}</p>
-                    <p><strong>Teléfono:</strong> {{ solicitud.cliente_telefono|default:"No especificado" }}</p>
                     <p><strong>Universidad:</strong> {{ solicitud.cliente_universidad|default:"No especificada" }}</p>
                 </div>
                 <div>
