@@ -479,7 +479,7 @@
                 <span class="stat-chip"><i class="fas fa-star" style="color: #f59e0b;"></i> {{ perfil.calificacion_promedio|floatformat:1 }} <small>calif.</small></span>
                 <span class="stat-chip"><i class="fas fa-check-circle" style="color: var(--success);"></i> {{ perfil.trabajos_completados }} <small>trabajos</small></span>
                 <span class="stat-chip" {% if not puede_cotizar %}style="border-color: var(--highlight); color: var(--highlight);"{% endif %} title="Solicitudes activas / máximo permitido">
-                    <i class="fas fa-layer-group"></i> {{ num_solicitudes_activas }}/{{ max_solicitudes_activas }} <small>activas</small></span>
+                    <i class="fas fa-layer-group"></i> {{ num_solicitudes_activas }}/{{ max_solicitudes_activas }} <small>tareas asignadas activas</small></span>
             </div>
             {% endif %}
         </div>
