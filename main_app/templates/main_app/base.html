@@ -778,7 +778,7 @@ footer {
                             {% endif %}
                         </div>
                     </div>
-                    {% if user_chats %}
+                    {% if user.is_authenticated %}
                     <div class="notif-container" id="msgContainer">
                         <button type="button" class="notif-bell" id="msgBell" title="Mensajes" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-comment-dots"></i>
@@ -1246,7 +1246,7 @@ footer {
     </script>
     {% endif %}
 
-    {% if user_chats %}
+    {% if user.is_authenticated %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const msgBell = document.getElementById('msgBell');

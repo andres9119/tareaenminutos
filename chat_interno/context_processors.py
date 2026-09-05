@@ -104,6 +104,16 @@ def messenger(request):
     )):
         return {'user_chats': [], 'total_chats_unread': 0}
 
+    # Invariante: el canal general (anuncios) debe existir siempre para todo
+    # el personal, así el icono de mensajes y la lista nunca quedan vacíos.
+    try:
+        SalaChat.objects.get_or_create(
+            tipo='general',
+            defaults={'nombre': 'Canal General TEM'}
+        )
+    except Exception:
+        pass
+
     user_chats = _salas_con_datos(request.user)
     return {
         'user_chats': user_chats,
