@@ -280,7 +280,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
 
     .features-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 2.2rem;
     }
 
@@ -521,7 +521,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
 
     .testimonials-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 2.2rem;
         max-width: var(--content-wide-max-width);
         margin: 0 auto;
@@ -841,7 +841,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
 
     .blog-grid-home {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 2.2rem;
         max-width: var(--content-wide-max-width);
         margin: 0 auto;
@@ -1071,7 +1071,7 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
 
     .coverage-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
         gap: 2rem;
         max-width: var(--content-wide-max-width);
         margin: 0 auto;
@@ -1743,30 +1743,30 @@ profesionales en Bogotá, Medellín, Cali y todo el país en materias de pregrad
         <h2 class="section-title" style="font-size: 2.1rem; margin-bottom: 0;">¡Únete a nuestras redes sociales!</h2>
     </div>
 
-    <div class="social-icons-row" style="display: flex; justify-content: center; gap: 3rem; margin-top: 1rem;">
+    <div class="social-icons-row" style="display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(1rem, 8vw, 3rem); margin-top: 1rem;">
         <a href="https://www.instagram.com/tareaenminutos_" target="_blank" aria-label="Instagram"
-            style="color: var(--text-main); font-size: 3.5rem; transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
+            style="color: var(--text-main); font-size: clamp(2.4rem, 12vw, 3.5rem); transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
             onmouseover="this.style.transform='scale(1.2)'; this.style.color='var(--primary)'"
             onmouseout="this.style.transform='scale(1)'; this.style.color='var(--text-main)'">
             <i class="fab fa-instagram"></i>
         </a>
 
         <a href="https://www.facebook.com/TareaEnMinutos" target="_blank" aria-label="Facebook"
-            style="color: var(--text-main); font-size: 3.5rem; transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
+            style="color: var(--text-main); font-size: clamp(2.4rem, 12vw, 3.5rem); transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
             onmouseover="this.style.transform='scale(1.2)'; this.style.color='var(--primary)'"
             onmouseout="this.style.transform='scale(1)'; this.style.color='var(--text-main)'">
             <i class="fab fa-facebook"></i>
         </a>
 
         <a href="https://www.tiktok.com/@tareaenminutos" target="_blank" aria-label="TikTok"
-            style="color: var(--text-main); font-size: 3.5rem; transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
+            style="color: var(--text-main); font-size: clamp(2.4rem, 12vw, 3.5rem); transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
             onmouseover="this.style.transform='scale(1.2)'; this.style.color='var(--primary)'"
             onmouseout="this.style.transform='scale(1)'; this.style.color='var(--text-main)'">
             <i class="fab fa-tiktok"></i>
         </a>
 
         <a href="https://www.threads.net/@tareaenminutos_" target="_blank" aria-label="Threads"
-            style="color: var(--text-main); font-size: 3.5rem; transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
+            style="color: var(--text-main); font-size: clamp(2.4rem, 12vw, 3.5rem); transition: transform 0.3s ease, color 0.3s ease; text-decoration: none;"
             onmouseover="this.style.transform='scale(1.2)'; this.style.color='var(--primary)'"
             onmouseout="this.style.transform='scale(1)'; this.style.color='var(--text-main)'">
             <i class="fab fa-at"></i>
