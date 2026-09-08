@@ -48,14 +48,14 @@
             <div class="card-tem-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 style="margin: 0;">
-                        <a href="{% url 'solicitud_detalle' grupo.solicitud.pk %}" style="color: var(--primary); text-decoration: none;">
+                        <a href="{% url 'solicitud_detalle' grupo.solicitud.pk %}?origen=cotizaciones" style="color: var(--primary); text-decoration: none;">
                             {{ grupo.solicitud.codigo }}
                         </a>
                         &mdash; {{ grupo.solicitud.titulo|truncatechars:60 }}
                     </h3>
                     <small class="text-muted-tem">{{ grupo.cotizaciones|length }} cotizacion{{ grupo.cotizaciones|length|pluralize:"es" }}</small>
                 </div>
-                <a href="{% url 'solicitud_detalle' grupo.solicitud.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                <a href="{% url 'solicitud_detalle' grupo.solicitud.pk %}?origen=cotizaciones" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                     Ver Solicitud
                 </a>
             </div>

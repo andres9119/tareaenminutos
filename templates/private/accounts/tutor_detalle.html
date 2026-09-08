@@ -94,7 +94,7 @@
                             <td>{{ s.titulo|truncatechars:40 }}</td>
                             <td><span class="badge-tem" style="background: {{ s.estado.color_hex }}">{{ s.estado.etiqueta }}</span></td>
                             <td>{{ s.area_conocimiento.nombre|default:"—" }}</td>
-                            <td><a href="{% url 'solicitud_detalle' s.pk %}" class="btn-tem btn-sm-tem">Ver</a></td>
+                            <td><a href="{% url 'solicitud_detalle' s.pk %}?origen=tutor_detalle&tutor_id={{ tutor.pk }}" class="btn-tem btn-sm-tem">Ver</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

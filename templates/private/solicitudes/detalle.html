@@ -231,17 +231,17 @@
             <h4 class="docs-subtitle docs-entrega-title">Entrega del Tutor ({{ documentos_entrega|length }})</h4>
             <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
                 {% for doc in documentos_entrega %}
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--primary-glow); border: 1px solid var(--primary); border-radius: var(--border-radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="doc-fila" style="background: var(--primary-glow); border: 1px solid var(--primary);">
+                    <div class="doc-info">
                         <i class="fa-solid {{ doc.icono_extension }}" style="font-size: 1.4rem; color: var(--primary);"></i>
-                        <div>
+                        <div style="min-width: 0;">
                             <strong style="color: var(--text-main); font-size: 0.9rem;">{{ doc.nombre_original }}</strong>
                             <div style="font-size: 0.8rem; color: var(--text-muted);">
                                 {{ doc.tamaño_display }}{% if doc.descripcion %} · {{ doc.descripcion|truncatechars:40 }}{% endif %} · {{ doc.created_at|date:"d/m/Y H:i" }}
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div class="doc-acciones">
                         <a href="{% url 'documento_descargar' doc.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
                             <i class="fas fa-download"></i>
                         </a>
@@ -263,10 +263,10 @@
             <h4 class="docs-subtitle">Documentos de la Solicitud ({{ documentos_otros|length }})</h4>
             <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
                 {% for doc in documentos_otros %}
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-base); border: 1px solid var(--border-glow); border-radius: var(--border-radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="doc-fila" style="background: var(--bg-base); border: 1px solid var(--border-glow);">
+                    <div class="doc-info">
                         <i class="fa-solid {{ doc.icono_extension }}" style="font-size: 1.4rem; color: var(--primary);"></i>
-                        <div>
+                        <div style="min-width: 0;">
                             <strong style="color: var(--text-main); font-size: 0.9rem;">{{ doc.nombre_original }}</strong>
                             <div style="font-size: 0.8rem; color: var(--text-muted);">
                                 {{ doc.get_tipo_display }} · {{ doc.tamaño_display }}
@@ -274,7 +274,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div class="doc-acciones">
                         <a href="{% url 'documento_descargar' doc.pk %}" class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
                             <i class="fas fa-download"></i>
                         </a>
@@ -922,6 +922,39 @@
     color: var(--primary);
     border-bottom: 2px solid var(--primary);
     padding-bottom: 0.4rem;
+}
+
+/* Filas de documentos (Entrega / Solicitud): en móvil el título hace wrap y
+   los botones bajan a su propia línea para no salirse de la tarjeta */
+.doc-fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-md);
+    flex-wrap: wrap;
+}
+.doc-fila .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.doc-fila .doc-info strong {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+.doc-fila .doc-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+@media (max-width: 480px) {
+    .doc-fila { align-items: flex-start; }
+    .doc-fila .doc-info { flex-basis: 100%; }
+    .doc-fila .doc-acciones { flex-basis: 100%; justify-content: flex-end; }
 }
 
 /* Gráfico de rangos de precios cotizados (slider min/max) */

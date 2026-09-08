@@ -59,7 +59,7 @@
                                         data-max="{{ cotizacion.sol_max|floatformat:0 }}">
                                         <i class="fas fa-chart-line"></i> Ver
                                     </button>
-                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}"
+                                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}?origen=cotizaciones_mis"
                                        class="btn-tem btn-outline-tem" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                         Detalle
                                     </a>

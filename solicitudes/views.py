@@ -238,6 +238,30 @@ def solicitud_detalle(request, pk):
             'etiqueta': request.GET.get('origen_txt') or 'Mis Tareas',
             'url': reverse('dashboard_tutor'),
         }
+    elif origen == 'disponibles':
+        breadcrumb_extra = {
+            'etiqueta': 'Solicitudes Disponibles',
+            'url': reverse('solicitudes_disponibles'),
+        }
+    elif origen == 'cotizaciones':
+        breadcrumb_extra = {
+            'etiqueta': 'Cotizaciones',
+            'url': reverse('cotizaciones_lista'),
+        }
+    elif origen == 'cotizaciones_mis':
+        breadcrumb_extra = {
+            'etiqueta': 'Mis Cotizaciones',
+            'url': reverse('mis_cotizaciones'),
+        }
+    elif origen == 'tutor_detalle':
+        tutor_pk = request.GET.get('tutor_id')
+        tutor = User.objects.filter(pk=tutor_pk).first() if tutor_pk else None
+        if tutor:
+            nombre = tutor.get_full_name() or tutor.username
+            breadcrumb_extra = {
+                'etiqueta': f'Tutor: {nombre}',
+                'url': reverse('tutor_detalle', args=[tutor.pk]),
+            }
 
     context = {
         'solicitud': solicitud,
