@@ -8,6 +8,7 @@ logger = logging.getLogger('tareaenminutos')
 
 TIPO_A_ENVIAR = {
     'nueva_solicitud',
+    'cotizacion_recibida',
     'cotizacion_aceptada',
     'cotizacion_rechazada',
     'solicitud_asignada',
