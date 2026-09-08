@@ -2,6 +2,22 @@
 
 {% block title %}Mi Perfil - TEM{% endblock %}
 
+{% block extra_css %}
+<style>
+    .perfil-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .perfil-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-tem">
     <div class="breadcrumb">
@@ -16,7 +32,7 @@
         </a>
     </div>
 
-    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem;">
+    <div class="perfil-layout">
         <div>
             <div class="card-tem" style="text-align: center;">
                 <div class="card-body-tem">

@@ -14,6 +14,17 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .solicitudes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    @media (max-width: 992px) {
+        .solicitudes-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -67,7 +78,7 @@
     {% if solicitudes %}
         <div class="card-tem">
             <div class="card-body-tem">
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                <div class="solicitudes-grid">
                     {% for solicitud in solicitudes %}
                         <div style="background: var(--bg-surface); border: 1px solid var(--border-glow); border-radius: var(--border-radius-lg); padding: 1.5rem; transition: var(--transition-smooth);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">

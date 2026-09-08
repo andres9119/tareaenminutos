@@ -2,6 +2,22 @@
 
 {% block title %}Editar Usuario - TEM{% endblock %}
 
+{% block extra_css %}
+<style>
+    .editar-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .editar-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-tem">
     <div class="breadcrumb">
@@ -18,7 +34,7 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem;">
+    <div class="editar-layout">
         <!-- Panel izquierdo: datos básicos del usuario -->
         <div>
             <div class="card-tem" style="text-align: center;">
