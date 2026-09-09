@@ -817,13 +817,50 @@ footer {
                                     {% if chat.no_leidos %}<span class="notif-badge" style="position:static;margin-left:auto;">{{ chat.no_leidos }}</span>{% endif %}
                                 </a>
                                 {% endfor %}
-                                <div class="notif-dropdown-footer">
+                                {% if online_resumen %}
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>
+                                {% for u in online_resumen %}
+                                    {% if u.directa_id %}
+                                    <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
+                                    {% else %}
+                                    <a href="{% url 'iniciar_chat_directo' u.id %}" class="notif-dropdown-item">
+                                    {% endif %}
+                                        <div class="notif-item-icon"><i class="fas fa-user"></i></div>
+                                        <div class="notif-item-content">
+                                            <strong>{{ u.nombre }}</strong>
+                                            <p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                {% endif %}
+                                <div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">
                                     <a href="{% url 'mis_chats' %}">Ver todos los chats</a>
+                                    <a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>
                                 </div>
                             {% else %}
                                 <div class="notif-dropdown-empty">
                                     <i class="fas fa-comment-slash"></i>
                                     <p>No tienes chats aún</p>
+                                </div>
+                                {% if online_resumen %}
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>
+                                {% for u in online_resumen %}
+                                    {% if u.directa_id %}
+                                    <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
+                                    {% else %}
+                                    <a href="{% url 'iniciar_chat_directo' u.id %}" class="notif-dropdown-item">
+                                    {% endif %}
+                                        <div class="notif-item-icon"><i class="fas fa-user"></i></div>
+                                        <div class="notif-item-content">
+                                            <strong>{{ u.nombre }}</strong>
+                                            <p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                {% endif %}
+                                <div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">
+                                    <a href="{% url 'mis_chats' %}">Ver todos los chats</a>
+                                    <a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>
                                 </div>
                             {% endif %}
                         </div>
@@ -1372,10 +1409,27 @@ footer {
                         }
                         if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
                         if (msgDropdown) {
+                            var onlineUrl = "{% url 'usuarios_online' %}";
+                            var onlineHtml = '';
+                            if (data.online && data.online.length) {
+                                onlineHtml = '<div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>' +
+                                    data.online.map(function(u) {
+                                        var href = u.directa_id ? ('/app/chat/' + u.directa_id + '/') : ('/app/chat/directo/' + u.id + '/');
+                                        var cls = u.directa_id ? 'notif-dropdown-item notif-item-link' : 'notif-dropdown-item';
+                                        var did = u.directa_id ? ' data-id="' + u.directa_id + '"' : '';
+                                        return '<a href="' + href + '" class="' + cls + '"' + did + '>' +
+                                            '<div class="notif-item-icon"><i class="fas fa-user"></i></div>' +
+                                            '<div class="notif-item-content"><strong>' + u.nombre + '</strong>' +
+                                            '<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p></div></a>';
+                                    }).join('');
+                            }
+                            var conectadosTxt = data.online_total ? 'Conectados (' + data.online_total + ')' : 'Conectados';
+                            var footerHtml = '<div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">' +
+                                '<a href="{% url 'mis_chats' %}">Ver todos los chats</a>' +
+                                '<a href="' + onlineUrl + '">' + conectadosTxt + '</a></div>';
                             if (data.chats.length === 0) {
-                                var misChatsUrl = "{% url 'mis_chats' %}";
                                 msgDropdown.innerHTML = '<div class="notif-dropdown-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún</p></div>' +
-                                    '<div class="notif-dropdown-footer"><a href="' + misChatsUrl + '">Ver todos los chats</a></div>';
+                                    onlineHtml + footerHtml;
                                 return;
                             }
                             const base = '/app/chat/';
@@ -1399,7 +1453,7 @@ footer {
                                         '<p>' + prev + '</p>' +
                                         hora +
                                     '</div>' + badge + '</a>';
-                            }).join('');
+                            }).join('') + onlineHtml + footerHtml;
                             // Re-attach click handlers for mark-as-read
                             msgDropdown.querySelectorAll('.notif-item-link').forEach(function(item) {
                                 item.addEventListener('click', function(e) {

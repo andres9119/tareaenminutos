@@ -120,7 +120,12 @@ def messenger(request):
         pass
 
     user_chats = _salas_con_datos(request.user)
+    # Resumen de usuarios en línea para la sección "En línea" del dropdown.
+    from accounts.presence import resumen_online_para
+    online_resumen, online_total = resumen_online_para(request.user)
     return {
         'user_chats': user_chats,
         'total_chats_unread': sum(d['no_leidos'] for d in user_chats),
+        'online_resumen': online_resumen,
+        'online_total': online_total,
     }

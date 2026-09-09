@@ -206,3 +206,31 @@ def obtener_en_linea():
         por_id[u.id]['is_staff'] = por_id[u.id]['is_staff'] or u.is_staff
 
     return list(por_id.values())
+
+
+def resumen_online_para(user, limite=5):
+    """Usuarios en línea para el desplegable de mensajes (sync).
+
+    Retorna hasta `limite` dicts {id, nombre, directa_id} excluyendo al
+    propio usuario. `directa_id` es la sala directa existente con ese
+    usuario (para abrir la ventana flotante) o None (se crea al visitar
+    iniciar_chat_directo).
+    """
+    todos = [u for u in obtener_en_linea() if u['id'] != user.pk]
+    de_linea = todos[:limite]
+    if not de_linea:
+        return [], 0
+    from chat_interno.models import SalaChat
+    mapa = {}
+    for sala in SalaChat.objects.filter(
+        tipo='directa', participantes=user
+    ).prefetch_related('participantes'):
+        for p in sala.participantes.all():
+            if p.id != user.pk and p.id not in mapa:
+                mapa[p.id] = sala.id
+    resumen = [{
+        'id': u['id'],
+        'nombre': u.get('full_name') or u.get('username') or 'Usuario',
+        'directa_id': mapa.get(u['id']),
+    } for u in de_linea]
+    return resumen, len(todos)

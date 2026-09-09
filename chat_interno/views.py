@@ -288,8 +288,12 @@ def datos_messenger(request):
     from notificaciones.signals import flush_resumenes_chat
     flush_resumenes_chat()
     chats = _salas_con_datos(request.user)
+    from accounts.presence import resumen_online_para
+    online_resumen, online_total = resumen_online_para(request.user)
     return JsonResponse({
         'total_no_leidos': sum(d['no_leidos'] for d in chats),
+        'online': online_resumen,
+        'online_total': online_total,
         'chats': [{
             'id': d['id'],
             'nombre': d['nombre'],
