@@ -444,10 +444,17 @@
         }
     }
 
-    /* ── Móvil: compactar para evitar scroll horizontal ── */
+    /* ── Móvil: compactar para evitar scroll horizontal ──
+       (con !important: private_styles.css fija padding y font-size
+       globales con !important que vencerían estos ajustes) */
     @media (max-width: 640px) {
         .dashboard-container {
-            padding: 1rem;
+            padding: 1rem !important;
+        }
+        /* Anula el min-width:640px global: la tabla se encoge al contenido */
+        .table-responsive .table-tem,
+        .table-scroll .table-tem {
+            min-width: 0 !important;
         }
         .hero-tutor {
             padding: 1rem;
@@ -457,17 +464,17 @@
             padding: 1rem;
         }
         .section-body {
-            padding: 1rem;
+            padding: 1rem !important;
         }
         .dashboard-container .table-tem th,
         .dashboard-container .panels-grid .table-tem th {
             white-space: normal;
-            font-size: 0.66rem;
+            font-size: 0.66rem !important;
             padding: 0.4rem 0.45rem !important;
         }
         .dashboard-container .table-tem td,
         .dashboard-container .panels-grid .table-tem td {
-            font-size: 0.76rem;
+            font-size: 0.76rem !important;
             padding: 0.45rem !important;
         }
         .entrega-item {
@@ -478,7 +485,7 @@
             text-align: left;
         }
         .stat-chip {
-            font-size: 0.78rem;
+            font-size: 0.78rem !important;
             padding: 0.2rem 0.65rem;
         }
     }

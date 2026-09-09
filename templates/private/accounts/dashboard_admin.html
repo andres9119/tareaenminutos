@@ -550,6 +550,13 @@
         align-items: start;
         margin-bottom: 1.25rem;
     }
+    /* Los hijos del grid deben poder encogerse: sin esto, una tabla ancha
+       expande la columna y genera scroll horizontal en toda la página. */
+    .panels-grid > *,
+    .stats-row > *,
+    .action-grid > * {
+        min-width: 0;
+    }
     .panels-grid .section-card {
         margin-bottom: 0;
     }
@@ -613,6 +620,40 @@
         .deliveries-toggle button {
             font-size: 0.74rem;
             padding: 0.25rem 0.6rem;
+        }
+    }
+
+    /* ── Móvil: compactar para evitar scroll horizontal ──
+       (con !important: private_styles.css fija padding y font-size
+       globales con !important que vencerían estos ajustes) */
+    @media (max-width: 640px) {
+        .dashboard-container {
+            padding: 1rem !important;
+        }
+        /* Anula el min-width:640px global: la tabla se encoge al contenido */
+        .table-responsive .table-tem {
+            min-width: 0 !important;
+        }
+        .section-header {
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .section-body {
+            padding: 1rem !important;
+        }
+        .dashboard-container .table-tem th,
+        .dashboard-container .panels-grid .table-tem th {
+            white-space: normal;
+            font-size: 0.66rem !important;
+            padding: 0.4rem 0.45rem !important;
+        }
+        .dashboard-container .table-tem td,
+        .dashboard-container .panels-grid .table-tem td {
+            font-size: 0.76rem !important;
+            padding: 0.45rem !important;
+        }
+        .cotiz-monto {
+            font-size: 0.78rem !important;
         }
     }
 </style>
@@ -798,7 +839,7 @@
                         {% if t.detalle_url %}<a href="{{ t.detalle_url }}" style="color: var(--text-main); text-decoration: none;">{{ t.full_name|truncatechars:22 }}</a>{% else %}{{ t.full_name|truncatechars:22 }}{% endif %}
                     </span>
                     <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0;" title="En línea"></span>
-                    <a href="{{ t.chat_url }}" class="btn-tem btn-outline-tem" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; flex-shrink: 0;" title="Abrir chat directo con {{ t.full_name }}">
+                    <a href="{{ t.chat_url }}" class="btn-tem btn-outline-tem" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; flex-shrink: 0; width: auto;" title="Abrir chat directo con {{ t.full_name }}">
                         <i class="fas fa-comment"></i>
                     </a>
                 </div>
