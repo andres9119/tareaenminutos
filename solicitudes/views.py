@@ -169,11 +169,20 @@ def solicitud_detalle(request, pk):
     if user_is_admin:
         solicitud = get_object_or_404(SolicitudAcademica, pk=pk)
     else:
-        # Tutor puede ver: asignadas a él, abiertas (para cotizar), o donde ya cotizó
+        # Tutor puede ver: 
+        # 1. Asignadas a él
+        # 2. Abiertas (para cotizar) - nueva, en_cotizacion
+        # 3. Donde ya cotizó
+        # 4. Ya asignadas a otro tutor (para ver rangos de cotizaciones)
         from .models import EstadoSolicitud as ES
         estados_abiertos = ES.objects.filter(nombre__in=['nueva', 'en_cotizacion'])
         base = SolicitudAcademica.objects.filter(
-            Q(pk=pk) & (Q(tutor_asignado=request.user) | Q(estado__in=estados_abiertos) | Q(cotizaciones__tutor=request.user))
+            Q(pk=pk) & (
+                Q(tutor_asignado=request.user) | 
+                Q(estado__in=estados_abiertos) | 
+                Q(cotizaciones__tutor=request.user) |
+                Q(tutor_asignado__isnull=False)  # Ya asignada a algún tutor
+            )
         ).distinct()
         solicitud = get_object_or_404(base, pk=pk)
 
@@ -198,9 +207,11 @@ def solicitud_detalle(request, pk):
                 'promedio': sum(montos) / len(montos),
             }
     else:
-        # Tutor: solo ve su propia cotización; el rango de precios SOLO si ya cotizó
+        # Tutor: ve su propia cotización; el rango de precios si ya cotizó O si la solicitud ya tiene tutor asignado
         cotizaciones = solicitud.cotizaciones.filter(tutor=request.user).select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades')
         cotizacion_propia = cotizaciones.first()
+        solicitud_asignada = bool(solicitud.tutor_asignado)
+        
         if cotizacion_propia:
             # Ya cotizó: puede ver el rango de todas
             cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto'))
@@ -213,8 +224,20 @@ def solicitud_detalle(request, pk):
                     'max': max(montos),
                     'promedio': sum(montos) / len(montos),
                 }
+        elif solicitud_asignada:
+            # No ha cotizado pero la solicitud YA TIENE TUTOR ASIGNADO: puede ver los rangos
+            cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto'))
+            montos = [c.monto for c in cotizaciones_todas if c.monto]
+            max_monto = max(montos) if montos else 0
+            precios_resumen = None
+            if montos:
+                precios_resumen = {
+                    'min': min(montos),
+                    'max': max(montos),
+                    'promedio': sum(montos) / len(montos),
+                }
         else:
-            # No ha cotizado: NO ve precios de otros
+            # No ha cotizado y la solicitud NO tiene tutor asignado: NO ve precios de otros
             cotizaciones_todas = []
             max_monto = 0
             precios_resumen = None
