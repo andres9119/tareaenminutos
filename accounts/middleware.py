@@ -1,5 +1,5 @@
 """
-Middleware de inactividad real (10 minutos, pedido del cliente 22 Ago 2026).
+Middleware de inactividad real (15 minutos, pedido del cliente).
 
 La sesión solo se mantiene viva con NAVIGACIÓN REAL. El tráfico en background
 que genera el propio JavaScript (polling del messenger cada 20 s, fetch de

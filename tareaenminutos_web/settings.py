@@ -284,13 +284,13 @@ CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 # Dominios permitidos separados por coma. Ej: https://tareaenminutos.com,https://www.tareaenminutos.com
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()]
 
-# Sesión: expira por inactividad REAL del usuario (10 minutos, pedido del cliente).
+# Sesión: expira por inactividad REAL del usuario (15 minutos, pedido del cliente).
 # NO se usa SESSION_SAVE_EVERY_REQUEST: el polling en background del messenger
 # (/app/chat/datos/, /mensajes/) no cuenta como actividad ni renueva la sesión.
 # El middleware InactividadMiddleware (accounts/middleware.py) guarda
 # _ultima_actividad solo en navegación real y cierra la sesión si pasan más de
 # SESSION_COOKIE_AGE segundos sin ella. Las peticiones de fondo no renuevan nada,
-# así que con la pestaña abierta sin tocar nada, la sesión muere a los 10 minutos.
+# así que con la pestaña abierta sin tocar nada, la sesión muere a los 15 minutos.
 SESSION_COOKIE_AGE = 900
 
 SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
