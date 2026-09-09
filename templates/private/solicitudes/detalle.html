@@ -524,7 +524,7 @@
                                 {% if cotizacion.estado == 'pendiente' %}
                                 <a href="{% url 'cotizacion_aceptar' cotizacion.pk %}"
                                    class="btn-tem btn-sm-tem"
-                                   onclick="return confirm('¿Aceptar esta cotización y asignar el tutor?')">
+                                   onclick="return confirm('¿Aceptar esta cotización y pasar a etapa de negociación con el cliente? (Aún no queda en firme ni el tutor debe empezar)')">
                                     Aceptar
                                 </a>
                                 <a href="{% url 'cotizacion_rechazar' cotizacion.pk %}"

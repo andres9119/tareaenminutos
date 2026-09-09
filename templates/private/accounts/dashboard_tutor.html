@@ -443,6 +443,45 @@
             font-size: 1.25rem;
         }
     }
+
+    /* ── Móvil: compactar para evitar scroll horizontal ── */
+    @media (max-width: 640px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        .hero-tutor {
+            padding: 1rem;
+        }
+        .section-header {
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .section-body {
+            padding: 1rem;
+        }
+        .dashboard-container .table-tem th,
+        .dashboard-container .panels-grid .table-tem th {
+            white-space: normal;
+            font-size: 0.66rem;
+            padding: 0.4rem 0.45rem !important;
+        }
+        .dashboard-container .table-tem td,
+        .dashboard-container .panels-grid .table-tem td {
+            font-size: 0.76rem;
+            padding: 0.45rem !important;
+        }
+        .entrega-item {
+            flex-wrap: wrap;
+        }
+        .entrega-fecha {
+            width: 100%;
+            text-align: left;
+        }
+        .stat-chip {
+            font-size: 0.78rem;
+            padding: 0.2rem 0.65rem;
+        }
+    }
 </style>
 {% endblock %}
 

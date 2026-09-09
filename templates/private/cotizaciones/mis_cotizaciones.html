@@ -2,6 +2,16 @@
 
 {% block title %}Mis Cotizaciones - TEM{% endblock %}
 
+{% block extra_css %}
+<style>
+    .mis-cotiz-scroll { overflow-x: auto; }
+    @media (max-width: 640px) {
+        .mis-cotiz-scroll .table-tem th { white-space: normal; font-size: 0.66rem; padding: 0.4rem 0.45rem; }
+        .mis-cotiz-scroll .table-tem td { font-size: 0.76rem; padding: 0.45rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-tem">
     <div class="breadcrumb">
@@ -19,6 +29,7 @@
     {% if cotizaciones %}
         <div class="card-tem">
             <div class="card-body-tem">
+                <div class="table-scroll mis-cotiz-scroll">
                 <table class="table-tem">
                     <thead>
                         <tr>
@@ -79,6 +90,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     {% else %}
