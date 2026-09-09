@@ -108,9 +108,8 @@ def cotizacion_aceptar(request, pk):
 
     Etapa 1 de 2: el equipo acepta la propuesta, pero el tutor NO empieza a
     trabajar hasta que el cliente acepte (ver `cotizacion_confirmar_asignacion`).
-    Las demás cotizaciones quedan pendientes como respaldo y sus tutores solo
-    son notificados cuando la asignación queda en firme o se cancela la
-    negociación, para no confundir las etapas.
+    Las demás cotizaciones pendientes quedan rechazadas de una vez, con aviso
+    a sus tutores de que otra propuesta fue seleccionada.
     """
     cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
 
@@ -169,8 +168,23 @@ def cotizacion_aceptar(request, pk):
         solicitud_id=cotizacion.solicitud.pk,
     )
 
-    # Las demás cotizaciones quedan pendientes como respaldo: sus tutores serán
-    # notificados solo al confirmar (en firme) o al cancelar la negociación.
+    # Las demás cotizaciones pendientes quedan rechazadas de una vez: sus
+    # tutores reciben el aviso de que otra propuesta fue seleccionada.
+    for otra_cot in Cotizacion.objects.filter(
+        solicitud=cotizacion.solicitud, estado='pendiente'
+    ).exclude(pk=cotizacion.pk):
+        otra_cot.estado = 'rechazada'
+        otra_cot.motivo_rechazo = 'Se seleccionó otra propuesta para esta solicitud.'
+        otra_cot.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
+        crear_notificacion(
+            destinatario=otra_cot.tutor,
+            tipo='cotizacion_rechazada',
+            titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
+            mensaje=(f'El administrador seleccionó otra propuesta para "{cotizacion.solicitud.titulo}". '
+                     f'Motivo: Se seleccionó otra propuesta para esta solicitud. ¡Sigue participando!'),
+            url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
+            solicitud_id=cotizacion.solicitud.pk,
+        )
 
     messages.success(request, f'Cotización aceptada. Solicitud {cotizacion.solicitud.codigo} en "En Negociación". Tutor {cotizacion.tutor.get_full_name()} asignado provisionalmente.')
     return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
@@ -247,18 +261,33 @@ def cotizacion_confirmar_asignacion(request, pk):
         solicitud.estado = estado_asignada
         solicitud.save()
 
-        # Las demás cotizaciones pendientes quedan rechazadas (sus tutores
-        # reciben ahora sí la notificación de no seleccionados).
+        # Red de seguridad: si quedara alguna pendiente (no debería: se
+        # rechazan al aceptar), se rechaza ahora con su aviso.
         from cotizaciones.models import Cotizacion
-        otras = Cotizacion.objects.filter(
+        for otra_cot in Cotizacion.objects.filter(
             solicitud=solicitud, estado='pendiente'
-        ).exclude(tutor=solicitud.tutor_asignado)
-        nombres_descartados = []
-        for otra_cot in otras:
+        ).exclude(tutor=solicitud.tutor_asignado):
             otra_cot.estado = 'rechazada'
             otra_cot.motivo_rechazo = 'Se seleccionó otra propuesta para esta solicitud.'
             otra_cot.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
-            nombres_descartados.append(otra_cot.tutor.get_full_name() or otra_cot.tutor.username)
+            from notificaciones.utils import crear_notificacion as _crear
+            _crear(
+                destinatario=otra_cot.tutor,
+                tipo='cotizacion_rechazada',
+                titulo=f'Tu cotización no fue seleccionada — {solicitud.codigo}',
+                mensaje=f'El administrador seleccionó otra propuesta para "{solicitud.titulo}". Motivo: Se seleccionó otra propuesta para esta solicitud. ¡Sigue participando!',
+                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                solicitud_id=solicitud.pk,
+            )
+
+        # Para el historial: todas las descartadas salvo la ganadora
+        # (normalmente ya rechazadas al aceptar).
+        descartadas = Cotizacion.objects.filter(
+            solicitud=solicitud, estado='rechazada'
+        ).exclude(tutor=solicitud.tutor_asignado)
+        nombres_descartados = [
+            c.tutor.get_full_name() or c.tutor.username for c in descartadas
+        ]
 
         HistorialEstado.objects.create(
             solicitud=solicitud,
@@ -280,17 +309,6 @@ def cotizacion_confirmar_asignacion(request, pk):
             solicitud_id=solicitud.pk,
         )
 
-        for otra_cot in Cotizacion.objects.filter(solicitud=solicitud, estado='rechazada',
-                                                  motivo_rechazo='Se seleccionó otra propuesta para esta solicitud.'):
-            crear_notificacion(
-                destinatario=otra_cot.tutor,
-                tipo='cotizacion_rechazada',
-                titulo=f'Tu cotización no fue seleccionada — {solicitud.codigo}',
-                mensaje=f'El administrador seleccionó otra propuesta para "{solicitud.titulo}". Motivo: Se seleccionó otra propuesta para esta solicitud. ¡Sigue participando!',
-                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
-                solicitud_id=solicitud.pk,
-            )
-
         messages.success(request, f'Solicitud {solicitud.codigo} confirmada como "Asignada". El tutor ha sido notificado.')
         return redirect('solicitud_detalle', pk=pk)
 
@@ -305,8 +323,8 @@ def cotizacion_cancelar_negociacion(request, pk):
 
     La solicitud vuelve a 'En Cotización', se libera al tutor provisional y su
     cotización aceptada vuelve a 'pendiente' (sigue en consideración). Las
-    demás cotizaciones nunca fueron notificadas como rechazadas, así que no
-    hay confusión de etapas: solo se avisa al tutor provisional.
+    demás siguen rechazadas desde la aceptación; solo se avisa al tutor
+    provisional.
     """
     from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
     from cotizaciones.models import Cotizacion
