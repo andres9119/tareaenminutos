@@ -1851,7 +1851,17 @@ footer {
                 pendientes.add(id);
                 try {
                     var r = await fetch('/app/chat/' + id + '/mensajes/');
-                    if (!r.ok) return;
+                    if (!r.ok) {
+                        // Sin acceso (p. ej. chat directo ajeno): olvidar la
+                        // ventana persistida para no reintentarla en cada página.
+                        try {
+                            var gw = JSON.parse(localStorage.getItem('tem_chatwins')) || [];
+                            localStorage.setItem('tem_chatwins', JSON.stringify(gw.filter(function(x) { return x !== id; })));
+                            var gm = JSON.parse(localStorage.getItem('tem_chatwins_min')) || [];
+                            localStorage.setItem('tem_chatwins_min', JSON.stringify(gm.filter(function(x) { return x !== id; })));
+                        } catch (e) {}
+                        return;
+                    }
                     var data = await r.json();
                     var st = { data: data, min: false, ws: null };
                     st.el = construirDOM(id, data);
