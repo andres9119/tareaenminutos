@@ -54,6 +54,7 @@ class PerfilUsuario(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     ultima_conexion = models.DateTimeField(null=True, blank=True, verbose_name='Última conexión')
+    ultimo_email_chat = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Perfil de Usuario'

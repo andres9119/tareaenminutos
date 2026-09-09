@@ -41,6 +41,16 @@ def sala_chat(request, pk):
     for m in sala.mensajes.exclude(autor=request.user):
         m.leido_por.add(request.user)
 
+    # Las notificaciones de chat de esta sala ya se vieron: no deben contar
+    # para el resumen de emails (anti-spam) ni reaparecer como pendientes.
+    from django.urls import reverse as _reverse
+    from notificaciones.models import Notificacion as _Notificacion
+    _Notificacion.objects.filter(
+        destinatario=request.user,
+        tipo='mensaje_chat',
+        url_accion=_reverse('sala_chat', args=[sala.pk]),
+    ).update(leida=True)
+
     # Últimos 50 mensajes (se actualizan via WebSocket)
     mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('created_at')[:50]
 
@@ -121,6 +131,14 @@ def chat_mensajes_json(request, pk):
     sala.participantes.add(request.user)
     for m in sala.mensajes.exclude(autor=request.user):
         m.leido_por.add(request.user)
+
+    from django.urls import reverse as _reverse
+    from notificaciones.models import Notificacion as _Notificacion
+    _Notificacion.objects.filter(
+        destinatario=request.user,
+        tipo='mensaje_chat',
+        url_accion=_reverse('sala_chat', args=[sala.pk]),
+    ).update(leida=True)
 
     mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('-created_at')[:50]
     datos = [m.to_dict() for m in reversed(list(mensajes))]
@@ -257,6 +275,10 @@ def mis_chats(request):
 def datos_messenger(request):
     """Endpoint JSON con los chats del usuario y sus no leídos (polling del flotante)."""
     from django.utils import timezone
+    # El tráfico constante de este endpoint sirve de motor para los resúmenes
+    # de email de chat pendientes (anti-spam), aunque el destinatario esté off.
+    from notificaciones.signals import flush_resumenes_chat
+    flush_resumenes_chat()
     chats = _salas_con_datos(request.user)
     return JsonResponse({
         'total_no_leidos': sum(d['no_leidos'] for d in chats),
