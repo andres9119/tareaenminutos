@@ -407,7 +407,9 @@ nav.nav-links a:hover::after { width: 100%; }
     font-size: 1.1rem;
 }
 .theme-toggle:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-glow); transform: rotate(15deg); }
-.mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; transition: var(--transition-smooth); }
+.mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; transition: var(--transition-smooth); position: relative; }
+/* Punto rojo sobre la hamburguesa: visible sin abrir el menú en móvil */
+#menuToggleDot { display: none; position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg-header); pointer-events: none; }
 main { flex: 1; }
 
 footer {
@@ -833,6 +835,7 @@ footer {
 
             <button class="mobile-menu-toggle" id="menuToggle" aria-label="Abrir Menú">
                 <i class="fas fa-bars"></i>
+                {% if user.is_authenticated %}<span id="menuToggleDot"></span>{% endif %}
             </button>
         </div>
     </header>
@@ -1086,13 +1089,18 @@ footer {
                     });
                 };
 
-                // Función para actualizar el punto rojo en el menú móvil
+                // Función para actualizar los puntos rojos en móvil:
+                // hamburguesa (visible sin abrir el menú) + dentro del menú.
+                // Un badge con clase 'hidden' cuenta como 0 aunque conserve texto viejo.
                 window.actualizarIndicadorMovil = function() {
+                    var notifCount = (notifBadge && !notifBadge.classList.contains('hidden')) ? (parseInt(notifBadge.textContent) || 0) : 0;
+                    var msgBadgeEl = document.getElementById('msgBadge');
+                    var msgCount = (msgBadgeEl && !msgBadgeEl.classList.contains('hidden')) ? (parseInt(msgBadgeEl.textContent) || 0) : 0;
+                    var hay = (notifCount > 0 || msgCount > 0);
                     const mobileIndicator = document.getElementById('mobileNotifIndicator');
-                    if (!mobileIndicator) return;
-                    var notifCount = parseInt(notifBadge?.textContent) || 0;
-                    var msgCount = parseInt(document.getElementById('msgBadge')?.textContent) || 0;
-                    mobileIndicator.style.display = (notifCount > 0 || msgCount > 0) ? 'block' : 'none';
+                    if (mobileIndicator) mobileIndicator.style.display = hay ? 'block' : 'none';
+                    const toggleDot = document.getElementById('menuToggleDot');
+                    if (toggleDot) toggleDot.style.display = hay ? 'block' : 'none';
                 };
 
                 const cerrarMsg = function() {
@@ -1154,6 +1162,9 @@ footer {
                 }
             }
 
+            // Estado inicial del punto rojo al cargar (badges renderizados por el servidor)
+            if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
+
             const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
             let notifSocket = null;
 
@@ -1204,28 +1215,43 @@ footer {
                 dropdown.insertBefore(a, firstItem || footer);
             }
 
-            function playTone(freqs, dur) {
+            // Audio compartido para notificaciones/chat.
+            // iOS/Safari móvil exige un gesto del usuario y deja suspendido
+            // cualquier AudioContext creado fuera de él: por eso se crea UN
+            // solo contexto y se desbloquea con el primer toque/clic.
+            var __temAC = null;
+            function temAudioCtx() {
                 try {
                     var AC = window.AudioContext || window.webkitAudioContext;
-                    if (!AC) return;
-                    var ac = new AC();
-                    ac.resume().then(function() {
-                        var t = ac.currentTime;
-                        var step = dur || 0.18;
-                        (freqs || [880]).forEach(function(f, i) {
-                            var o = ac.createOscillator();
-                            var g = ac.createGain();
-                            o.connect(g); g.connect(ac.destination);
-                            o.frequency.value = f;
-                            o.type = 'sine';
-                            var st = t + i * step;
-                            g.gain.setValueAtTime(0.0001, st);
-                            g.gain.exponentialRampToValueAtTime(0.12, st + 0.03);
-                            g.gain.exponentialRampToValueAtTime(0.0001, st + step);
-                            o.start(st);
-                            o.stop(st + step + 0.03);
-                        });
-                        setTimeout(function() { ac.close(); }, 1500);
+                    if (!AC) return null;
+                    if (!__temAC || __temAC.state === 'closed') __temAC = new AC();
+                    if (__temAC.state === 'suspended') __temAC.resume();
+                    return __temAC;
+                } catch (e) { return null; }
+            }
+            window.__temAudioCtx = temAudioCtx;
+            ['pointerdown', 'touchstart', 'click'].forEach(function(ev) {
+                document.addEventListener(ev, function() { temAudioCtx(); }, { passive: true });
+            });
+
+            function playTone(freqs, dur) {
+                try {
+                    var ac = temAudioCtx();
+                    if (!ac || ac.state === 'suspended') return;
+                    var t = ac.currentTime;
+                    var step = dur || 0.18;
+                    (freqs || [880]).forEach(function(f, i) {
+                        var o = ac.createOscillator();
+                        var g = ac.createGain();
+                        o.connect(g); g.connect(ac.destination);
+                        o.frequency.value = f;
+                        o.type = 'sine';
+                        var st = t + i * step;
+                        g.gain.setValueAtTime(0.0001, st);
+                        g.gain.exponentialRampToValueAtTime(0.12, st + 0.03);
+                        g.gain.exponentialRampToValueAtTime(0.0001, st + step);
+                        o.start(st);
+                        o.stop(st + step + 0.03);
                     });
                 } catch (e) {}
             }
@@ -1388,22 +1414,18 @@ footer {
     <script>
         function sonidoChat() {
             try {
-                var AC = window.AudioContext || window.webkitAudioContext;
-                if (!AC) return;
-                var ac = new AC();
-                ac.resume().then(function() {
-                    var t = ac.currentTime;
-                    [520, 660, 880].forEach(function(f, i) {
-                        var o = ac.createOscillator(), g = ac.createGain();
-                        o.connect(g); g.connect(ac.destination);
-                        o.frequency.value = f; o.type = 'sine';
-                        var st = t + i * 0.07;
-                        g.gain.setValueAtTime(0.0001, st);
-                        g.gain.exponentialRampToValueAtTime(0.15, st + 0.02);
-                        g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
-                        o.start(st); o.stop(st + 0.12);
-                    });
-                    setTimeout(function() { ac.close(); }, 600);
+                var ac = window.__temAudioCtx ? window.__temAudioCtx() : null;
+                if (!ac || ac.state === 'suspended') return;
+                var t = ac.currentTime;
+                [520, 660, 880].forEach(function(f, i) {
+                    var o = ac.createOscillator(), g = ac.createGain();
+                    o.connect(g); g.connect(ac.destination);
+                    o.frequency.value = f; o.type = 'sine';
+                    var st = t + i * 0.07;
+                    g.gain.setValueAtTime(0.0001, st);
+                    g.gain.exponentialRampToValueAtTime(0.15, st + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, st + 0.1);
+                    o.start(st); o.stop(st + 0.12);
                 });
             } catch (e) {}
         }
