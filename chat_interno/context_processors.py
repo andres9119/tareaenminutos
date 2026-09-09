@@ -17,9 +17,14 @@ def _es_admin(user):
 
 
 def _base_salas(user):
-    """Queryset de salas visibles para el usuario (sin evaluar)."""
+    """Queryset de salas visibles para el usuario (sin evaluar).
+
+    Chats directos: SOLO donde participa (ni los admins ven los ajenos).
+    """
     if _es_admin(user):
-        return SalaChat.objects.all()
+        return SalaChat.objects.filter(
+            ~Q(tipo='directa') | Q(participantes=user)
+        ).distinct()
     # Tutores: canal general (anuncios) + solicitudes asignadas + chats directos en los que participa.
     return SalaChat.objects.filter(
         Q(tipo='general') | Q(solicitud__tutor_asignado=user) |

@@ -22,6 +22,11 @@ def sala_chat(request, pk):
 
     sala = get_object_or_404(SalaChat, pk=pk)
 
+    # Chats directos: SOLO participantes (ni admins ajenos).
+    if sala.tipo == 'directa':
+        if not sala.participantes.filter(pk=request.user.pk).exists():
+            raise Http404('No tienes acceso a esta sala.')
+
     if not user_is_admin:
         # Salas de solicitud: solo el tutor asignado.
         # Salas generales (canal de anuncios): todo el personal interno.
@@ -105,11 +110,12 @@ def chat_mensajes_json(request, pk):
     user_is_admin = es_admin(request.user)
 
     sala = get_object_or_404(SalaChat, pk=pk)
+    # Chats directos: SOLO participantes (ni admins ajenos).
+    if sala.tipo == 'directa':
+        if not sala.participantes.filter(pk=request.user.pk).exists():
+            raise Http404('No tienes acceso a esta sala.')
     if not user_is_admin:
-        if sala.tipo == 'directa':
-            if not sala.participantes.filter(pk=request.user.pk).exists():
-                raise Http404('No tienes acceso a esta sala.')
-        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a esta sala.')
 
     sala.participantes.add(request.user)
@@ -180,10 +186,13 @@ def mis_chats(request):
     filtro = request.GET.get('filtro') or 'activos'
 
     if user_is_admin:
-        base = SalaChat.objects.all()
+        # Chats directos ajenos: ni los admins los ven en la lista.
+        base = SalaChat.objects.filter(
+            ~Q(tipo='directa') | Q(participantes=request.user)
+        ).distinct()
     else:
         base = SalaChat.objects.filter(
-            Q(solicitud__isnull=True) | Q(solicitud__tutor_asignado=request.user) |
+            Q(tipo='general') | Q(solicitud__tutor_asignado=request.user) |
             Q(tipo='directa', participantes=request.user)
         ).distinct()
 
@@ -276,11 +285,12 @@ def sala_chat_pdf(request, pk):
     user_is_admin = es_admin(request.user)
 
     sala = get_object_or_404(SalaChat, pk=pk)
+    # Chats directos: SOLO participantes (ni admins ajenos).
+    if sala.tipo == 'directa':
+        if not sala.participantes.filter(pk=request.user.pk).exists():
+            raise Http404('No tienes acceso a esta sala.')
     if not user_is_admin:
-        if sala.tipo == 'directa':
-            if not sala.participantes.filter(pk=request.user.pk).exists():
-                raise Http404('No tienes acceso a esta sala.')
-        elif sala.solicitud and sala.solicitud.tutor_asignado != request.user:
+        if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a esta sala.')
 
     mensajes = sala.mensajes.select_related('autor').order_by('created_at')
