@@ -596,6 +596,9 @@
                     <div class="timeline-content">
                         <strong>{{ item.estado_nuevo.etiqueta }}</strong>
                         <small>{{ item.created_at|date:"d/m/Y H:i" }}</small>
+                        {% if item.comentario and item.comentario != 'Solicitud creada.' %}
+                        <p title="{{ item.comentario }}">{{ item.comentario|truncatechars:140 }}</p>
+                        {% endif %}
                         <p>Por: {% if item.cambiado_por %}{{ item.cambiado_por.get_full_name|default:item.cambiado_por.username }}{% else %}Usuario eliminado{% endif %}</p>
                     </div>
                 </div>

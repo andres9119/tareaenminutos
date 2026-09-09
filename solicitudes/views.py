@@ -571,10 +571,22 @@ def solicitud_calificar(request, pk):
             return redirect('solicitud_detalle', pk=pk)
 
         from django.utils import timezone
+        nueva_calificacion = int(round(nota * 20))
+        cambio = (solicitud.nota_obtenida != nota
+                  or solicitud.calificacion_tutor != nueva_calificacion)
         solicitud.nota_obtenida = nota
-        solicitud.calificacion_tutor = int(round(nota * 20))
+        solicitud.calificacion_tutor = nueva_calificacion
         solicitud.fecha_calificacion = timezone.now()
         solicitud.save(update_fields=['nota_obtenida', 'calificacion_tutor', 'fecha_calificacion'])
+
+        if cambio:
+            HistorialEstado.objects.create(
+                solicitud=solicitud,
+                estado_anterior=solicitud.estado,
+                estado_nuevo=solicitud.estado,
+                cambiado_por=request.user,
+                comentario=f'Calificación registrada: nota {nota}/5.0 (puntuación {nueva_calificacion}/100).',
+            )
 
         messages.success(
             request,
@@ -711,6 +723,8 @@ def solicitud_reactivar(request, pk):
             cambiado_por=request.user,
             comentario=(
                 (comentario + ' ' if comentario else '')
+                + (f'Tutor: {(tutor_anterior.get_full_name() or tutor_anterior.username) if tutor_anterior else "—"} → '
+                   f'{nuevo_tutor.get_full_name() or nuevo_tutor.username}. ' if nuevo_tutor != tutor_anterior else '')
                 + f'Fecha límite de corrección: '
                 f'{solicitud.fecha_limite_correccion.strftime("%d/%m/%Y")}.'
             ),

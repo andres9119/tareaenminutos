@@ -187,6 +187,17 @@ def cotizacion_rechazar(request, pk):
         cotizacion.motivo_rechazo = motivo
         cotizacion.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
 
+        from solicitudes.models import HistorialEstado
+        nombre_rechazado = cotizacion.tutor.get_full_name() or cotizacion.tutor.username
+        HistorialEstado.objects.create(
+            solicitud=cotizacion.solicitud,
+            estado_anterior=cotizacion.solicitud.estado,
+            estado_nuevo=cotizacion.solicitud.estado,
+            cambiado_por=request.user,
+            comentario=(f'Cotización de {nombre_rechazado} rechazada. '
+                        + (f'Motivo: {motivo}' if motivo else 'Sin motivo registrado.')),
+        )
+
         from notificaciones.utils import crear_notificacion
         msg = f'El administrador descartó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}".'
         if motivo:
@@ -236,12 +247,26 @@ def cotizacion_confirmar_asignacion(request, pk):
         solicitud.estado = estado_asignada
         solicitud.save()
 
+        # Las demás cotizaciones pendientes quedan rechazadas (sus tutores
+        # reciben ahora sí la notificación de no seleccionados).
+        from cotizaciones.models import Cotizacion
+        otras = Cotizacion.objects.filter(
+            solicitud=solicitud, estado='pendiente'
+        ).exclude(tutor=solicitud.tutor_asignado)
+        nombres_descartados = []
+        for otra_cot in otras:
+            otra_cot.estado = 'rechazada'
+            otra_cot.motivo_rechazo = 'Se seleccionó otra propuesta para esta solicitud.'
+            otra_cot.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
+            nombres_descartados.append(otra_cot.tutor.get_full_name() or otra_cot.tutor.username)
+
         HistorialEstado.objects.create(
             solicitud=solicitud,
             estado_anterior=estado_anterior,
             estado_nuevo=estado_asignada,
             cambiado_por=request.user,
-            comentario='Asignación confirmada tras negociación con el cliente. El tutor puede empezar a trabajar.'
+            comentario=('Asignación confirmada tras negociación con el cliente. El tutor puede empezar a trabajar.'
+                        + (f' Cotizaciones descartadas: {", ".join(nombres_descartados)}.' if nombres_descartados else ''))
         )
 
         # Notificar al tutor que ya puede empezar (etapa 2 de 2: en firme)
@@ -255,16 +280,8 @@ def cotizacion_confirmar_asignacion(request, pk):
             solicitud_id=solicitud.pk,
         )
 
-        # Las demás cotizaciones pendientes quedan rechazadas: sus tutores
-        # reciben ahora sí la notificación de no seleccionados.
-        from cotizaciones.models import Cotizacion
-        otras = Cotizacion.objects.filter(
-            solicitud=solicitud, estado='pendiente'
-        ).exclude(tutor=solicitud.tutor_asignado)
-        for otra_cot in otras:
-            otra_cot.estado = 'rechazada'
-            otra_cot.motivo_rechazo = 'Se seleccionó otra propuesta para esta solicitud.'
-            otra_cot.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
+        for otra_cot in Cotizacion.objects.filter(solicitud=solicitud, estado='rechazada',
+                                                  motivo_rechazo='Se seleccionó otra propuesta para esta solicitud.'):
             crear_notificacion(
                 destinatario=otra_cot.tutor,
                 tipo='cotizacion_rechazada',
