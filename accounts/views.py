@@ -383,7 +383,9 @@ def usuarios_list(request):
     paginator = Paginator(usuarios, 20)
     page = request.GET.get('page', 1)
     usuarios_page = paginator.get_page(page)
-    context = {'usuarios': usuarios_page, 'pagina': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages(), 'qs_base': qs_base_sin_pagina(request, 'page'), 'usuario_actual_pk': request.user.pk}
+    from accounts.presence import obtener_en_linea
+    online_ids = {u['id'] for u in obtener_en_linea()}
+    context = {'usuarios': usuarios_page, 'pagina': usuarios_page, 'q': q, 'rol': rol, 'is_paginated': usuarios_page.has_other_pages(), 'qs_base': qs_base_sin_pagina(request, 'page'), 'usuario_actual_pk': request.user.pk, 'online_ids': online_ids}
     return render(request, 'private/accounts/usuarios_list.html', context)
 
 

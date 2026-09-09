@@ -8,6 +8,10 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
     .tutor-info-link {
         color: var(--primary);
         text-decoration: none;
@@ -218,6 +222,7 @@
                         <th>Email</th>
                         <th>Roles</th>
                         <th>Activo</th>
+                        <th>Última conexión</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -263,6 +268,17 @@
                             {% endfor %}
                         </td>
                         <td>{% if user.is_active %}<span style="color: var(--success);">Sí</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
+                        <td>
+                            {% if user.pk in online_ids %}
+                                <span style="display: inline-flex; align-items: center; gap: 0.4rem; color: var(--success); font-weight: 600; font-size: 0.85rem;" title="En línea ahora">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse-dot 2s infinite;"></span> Ahora
+                                </span>
+                            {% elif user.perfil and user.perfil.ultima_conexion %}
+                                <span style="font-size: 0.85rem;" title="Última actividad en el sistema">{{ user.perfil.ultima_conexion|date:"d/m/Y H:i" }}</span>
+                            {% else %}
+                                <span class="text-muted-tem" style="font-size: 0.85rem;">Nunca</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if user.pk == usuario_actual_pk %}
                             <span class="text-muted-tem"><i class="fas fa-user-shield"></i> Tu cuenta</span>
