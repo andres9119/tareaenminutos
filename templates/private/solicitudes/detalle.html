@@ -160,20 +160,24 @@
                         </a>
                         {% endif %}
                         {% if solicitud.tutor_asignado and solicitud.estado.nombre != 'completada' %}
-                            {% if documentos_entrega %}
+                            {% if puede_marcar_completada %}
                             <form method="post" action="{% url 'solicitud_marcar_completada' solicitud.pk %}" style="width:100%;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" onclick="return confirm('¿Marcar {{ solicitud.codigo }} como completada?')">
+                                <button type="submit" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" onclick="return confirm('¿Marcar {{ solicitud.codigo }} como completada? El tutor realizó {{ num_entregas_validas }} entrega{{ num_entregas_validas|pluralize }} en este ciclo.')">
                                     <i class="fas fa-check-circle"></i> Marcar Completada
                                 </button>
                             </form>
                             {% else %}
                             <button type="button" class="btn-tem btn-secondary-tem" style="width:100%;justify-content:center;opacity:0.6;cursor:not-allowed;" disabled
-                                    title="Disponible cuando el tutor realice la entrega">
+                                    title="{% if solicitud.estado.nombre == 'en_correccion' %}Disponible cuando el tutor entregue la corrección solicitada{% else %}Disponible cuando el tutor realice la entrega{% endif %}">
                                 <i class="fas fa-check-circle"></i> Marcar Completada
                             </button>
                             <small style="display:block;color:var(--text-muted);font-size:0.78rem;margin-top:0.35rem;text-align:center;">
+                                {% if solicitud.estado.nombre == 'en_correccion' %}
+                                Esperando la nueva entrega del tutor (corrección solicitada)
+                                {% else %}
                                 Esperando la entrega del tutor
+                                {% endif %}
                             </small>
                             {% endif %}
                         {% endif %}

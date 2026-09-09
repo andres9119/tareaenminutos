@@ -218,6 +218,21 @@ class SolicitudAcademica(models.Model):
             return False
         return self.dias_para_correccion < 0
 
+    def entregas_validas_para_completar(self):
+        """Entregas que habilitan marcar como completada.
+
+        Tras una reactivación (corrección), las entregas ANTERIORES a la
+        última entrada en corrección ya no valen: el tutor debe entregar
+        de nuevo. Sin correcciones previas, vale cualquier entrega.
+        """
+        entregas = self.documentos.filter(tipo='entrega')
+        ultima_correccion = self.historial_estados.filter(
+            estado_nuevo__nombre='en_correccion'
+        ).order_by('-created_at').values_list('created_at', flat=True).first()
+        if ultima_correccion:
+            entregas = entregas.filter(created_at__gt=ultima_correccion)
+        return entregas
+
     # ─── Límite de carga de trabajo por tutor ───
     # Un tutor puede tener máximo 3 solicitudes activas simultáneas y necesita
     # tener máximo 2 para poder cotizar una nueva.

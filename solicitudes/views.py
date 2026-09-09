@@ -312,6 +312,8 @@ def solicitud_detalle(request, pk):
         'documentos_otros': documentos_otros,
         'comprobantes_pago': comprobantes_pago,
         'puede_subir_comprobante': puede_subir_comprobante,
+        'puede_marcar_completada': user_is_admin and solicitud.entregas_validas_para_completar().exists(),
+        'num_entregas_validas': solicitud.entregas_validas_para_completar().count() if user_is_admin else 0,
         'cotizaciones': cotizaciones,
         'cotizaciones_todas': cotizaciones_todas,
         'max_monto': max_monto,
@@ -517,12 +519,19 @@ def solicitud_marcar_completada(request, pk):
             messages.warning(request, 'La solicitud ya está completada.')
             return redirect('solicitud_detalle', pk=pk)
 
-        # Solo se puede completar si el tutor ya hizo al menos una entrega.
-        if not Documento.objects.filter(solicitud=solicitud, tipo='entrega').exists():
-            messages.error(
-                request,
-                'No se puede marcar como completada: el tutor todavía no ha realizado ninguna entrega.'
-            )
+        # Solo se puede completar con entrega válida del ciclo actual: tras
+        # una corrección, las entregas anteriores ya no cuentan.
+        if not solicitud.entregas_validas_para_completar().exists():
+            if solicitud.estado.nombre == 'en_correccion':
+                messages.error(
+                    request,
+                    'No se puede marcar como completada: el tutor todavía no ha entregado la corrección solicitada.'
+                )
+            else:
+                messages.error(
+                    request,
+                    'No se puede marcar como completada: el tutor todavía no ha realizado ninguna entrega.'
+                )
             return redirect('solicitud_detalle', pk=pk)
 
         estado_anterior = solicitud.estado
