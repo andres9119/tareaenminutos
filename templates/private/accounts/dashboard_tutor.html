@@ -734,7 +734,11 @@
                                     {% if cotizacion.estado == 'pendiente' %}
                                         <span class="badge-tem badge-warning">Pendiente</span>
                                     {% elif cotizacion.estado == 'aceptada' %}
-                                        <span class="badge-tem badge-success">Aceptada</span>
+                                        {% if cotizacion.solicitud.estado.nombre == 'en_negociacion' %}
+                                            <span class="badge-tem badge-warning" title="Aceptada por el equipo. En negociación final con el cliente: aún no empieces a trabajar.">En Negociación</span>
+                                        {% else %}
+                                            <span class="badge-tem badge-success">Aceptada</span>
+                                        {% endif %}
                                     {% elif cotizacion.estado == 'rechazada' %}
                                         {% if cotizacion.motivo_rechazo %}
                                             <button type="button" class="badge-tem badge-danger motivo-btn" title="Ver motivo del rechazo" data-codigo="{{ cotizacion.solicitud.codigo }}" data-motivo="{{ cotizacion.motivo_rechazo|escape }}">Rechazada</button>

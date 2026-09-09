@@ -1,0 +1,32 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Cancelar Negociación - {{ solicitud.codigo }}{% endblock %}
+{% block content %}
+<div class="container-tem" style="max-width: 600px; margin-top: 3rem;">
+    <div class="card-tem">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-times-circle" style="color: var(--highlight);"></i> Cancelar Negociación</h3>
+        </div>
+        <div class="card-tem-body">
+            <div class="alert alert-info" style="background: var(--primary-glow); border: 1px solid var(--primary); color: var(--primary); padding: 1rem; border-radius: var(--border-radius-md); margin-bottom: 1.5rem;">
+                <strong>{{ solicitud.codigo }}</strong> — {{ solicitud.titulo }}
+                <br><small>Tutor provisional: {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }} | Precio propuesto: ${{ solicitud.precio_final|floatformat:0 }}</small>
+                <br><small>Estado actual: <span class="badge-tem" style="background: {{ solicitud.estado.color_hex }};">{{ solicitud.estado.etiqueta }}</span></small>
+            </div>
+
+            <p>El cliente <strong>NO aceptó</strong> la propuesta. La solicitud volverá a <strong>"En Cotización"</strong>, se liberará al tutor provisional y su cotización volverá a <strong>pendiente</strong> (sigue en consideración).</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Se notificará al tutor provisional para que no empiece a trabajar.</p>
+
+            <form method="post" data-guard data-confirm="¿Confirmas cancelar la negociación? La solicitud volverá a cotización.">
+                {% csrf_token %}
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">Volver</a>
+                    <button type="submit" class="btn-tem btn-danger-tem">
+                        <i class="fas fa-times-circle"></i> Cancelar Negociación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

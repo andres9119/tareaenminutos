@@ -106,8 +106,11 @@ def cotizacion_crear(request, solicitud_pk):
 def cotizacion_aceptar(request, pk):
     """Aceptar una cotización y poner la solicitud en 'En Negociación' (solo Admin).
 
-    El tutor NO empieza a trabajar hasta que el admin cambie manualmente a 'Asignada'
-    tras negociar con el cliente.
+    Etapa 1 de 2: el equipo acepta la propuesta, pero el tutor NO empieza a
+    trabajar hasta que el cliente acepte (ver `cotizacion_confirmar_asignacion`).
+    Las demás cotizaciones quedan pendientes como respaldo y sus tutores solo
+    son notificados cuando la asignación queda en firme o se cancela la
+    negociación, para no confundir las etapas.
     """
     cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
 
@@ -121,11 +124,6 @@ def cotizacion_aceptar(request, pk):
             'Debe completar al menos una antes de recibir una nueva asignación.'
         )
         return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
-
-    # Obtener las otras cotizaciones antes de aceptar (para notificar rechazo)
-    otras_cotizaciones = Cotizacion.objects.filter(
-        solicitud=cotizacion.solicitud
-    ).exclude(pk=cotizacion.pk)
 
     # Cambiar estado de la cotización a aceptada
     cotizacion.estado = 'aceptada'
@@ -159,27 +157,20 @@ def cotizacion_aceptar(request, pk):
     if sala:
         sala.participantes.add(cotizacion.tutor)
 
-    # Notificar al tutor seleccionado
+    # Notificar al tutor seleccionado: etapa 1 de 2 (aceptada por el equipo,
+    # pendiente de negociación final con el cliente; NO debe empezar todavía)
     from notificaciones.utils import crear_notificacion
     crear_notificacion(
         destinatario=cotizacion.tutor,
         tipo='cotizacion_aceptada',
-        titulo=f'Tu cotización fue aceptada — {cotizacion.solicitud.codigo}',
-        mensaje=f'El administrador aceptó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". La solicitud está en negociación con el cliente; te avisaremos cuando puedas empezar.',
+        titulo=f'Tu cotización fue aceptada por el equipo — {cotizacion.solicitud.codigo} (etapa 1 de 2)',
+        mensaje=f'El equipo administrativo aceptó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". Ahora está en negociación final con el cliente. NO empieces a trabajar todavía: te avisaremos cuando la asignación quede en firme o si el cliente no acepta.',
         url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
         solicitud_id=cotizacion.solicitud.pk,
     )
 
-    # Notificar a los otros tutores que fueron rechazados
-    for otra_cot in otras_cotizaciones:
-        crear_notificacion(
-            destinatario=otra_cot.tutor,
-            tipo='cotizacion_rechazada',
-            titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
-            mensaje=f'El administrador seleccionó otra propuesta para "{cotizacion.solicitud.titulo}". ¡Sigue participando!',
-            url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
-            solicitud_id=cotizacion.solicitud.pk,
-        )
+    # Las demás cotizaciones quedan pendientes como respaldo: sus tutores serán
+    # notificados solo al confirmar (en firme) o al cancelar la negociación.
 
     messages.success(request, f'Cotización aceptada. Solicitud {cotizacion.solicitud.codigo} en "En Negociación". Tutor {cotizacion.tutor.get_full_name()} asignado provisionalmente.')
     return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
@@ -253,21 +244,104 @@ def cotizacion_confirmar_asignacion(request, pk):
             comentario='Asignación confirmada tras negociación con el cliente. El tutor puede empezar a trabajar.'
         )
 
-        # Notificar al tutor que ya puede empezar
+        # Notificar al tutor que ya puede empezar (etapa 2 de 2: en firme)
         from notificaciones.utils import crear_notificacion
         crear_notificacion(
             destinatario=solicitud.tutor_asignado,
             tipo='solicitud_asignada',
-            titulo=f'Asignación confirmada — {solicitud.codigo}',
-            mensaje=f'El administrador confirmó la asignación de "{solicitud.titulo}". ¡Ya puedes empezar a trabajar!',
+            titulo=f'Asignación en firme — {solicitud.codigo} (etapa 2 de 2)',
+            mensaje=f'El cliente aceptó la propuesta para "{solicitud.titulo}". ¡Ya puedes empezar a trabajar!',
             url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
             solicitud_id=solicitud.pk,
         )
+
+        # Las demás cotizaciones pendientes quedan rechazadas: sus tutores
+        # reciben ahora sí la notificación de no seleccionados.
+        from cotizaciones.models import Cotizacion
+        otras = Cotizacion.objects.filter(
+            solicitud=solicitud, estado='pendiente'
+        ).exclude(tutor=solicitud.tutor_asignado)
+        for otra_cot in otras:
+            otra_cot.estado = 'rechazada'
+            otra_cot.motivo_rechazo = 'Se seleccionó otra propuesta para esta solicitud.'
+            otra_cot.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
+            crear_notificacion(
+                destinatario=otra_cot.tutor,
+                tipo='cotizacion_rechazada',
+                titulo=f'Tu cotización no fue seleccionada — {solicitud.codigo}',
+                mensaje=f'El administrador seleccionó otra propuesta para "{solicitud.titulo}". Motivo: Se seleccionó otra propuesta para esta solicitud. ¡Sigue participando!',
+                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                solicitud_id=solicitud.pk,
+            )
 
         messages.success(request, f'Solicitud {solicitud.codigo} confirmada como "Asignada". El tutor ha sido notificado.')
         return redirect('solicitud_detalle', pk=pk)
 
     return render(request, 'private/cotizaciones/confirmar_asignacion.html', {
+        'solicitud': solicitud,
+    })
+
+
+@admin_required
+def cotizacion_cancelar_negociacion(request, pk):
+    """Cancelar la negociación: el cliente NO aceptó (solo Admin).
+
+    La solicitud vuelve a 'En Cotización', se libera al tutor provisional y su
+    cotización aceptada vuelve a 'pendiente' (sigue en consideración). Las
+    demás cotizaciones nunca fueron notificadas como rechazadas, así que no
+    hay confusión de etapas: solo se avisa al tutor provisional.
+    """
+    from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
+    from cotizaciones.models import Cotizacion
+    solicitud = get_object_or_404(SolicitudAcademica, pk=pk)
+
+    if solicitud.estado.nombre != 'en_negociacion':
+        messages.error(request, 'Solo se puede cancelar la negociación desde el estado "En Negociación".')
+        return redirect('solicitud_detalle', pk=pk)
+
+    if request.method == 'POST':
+        tutor_provisional = solicitud.tutor_asignado
+        cotizacion_ganadora = Cotizacion.objects.filter(
+            solicitud=solicitud, estado='aceptada'
+        ).first()
+
+        estado_cotizacion = EstadoSolicitud.objects.get(nombre='en_cotizacion')
+        estado_anterior = solicitud.estado
+        solicitud._notif_actor = request.user
+        solicitud.estado = estado_cotizacion
+        solicitud.tutor_asignado = None
+        solicitud.precio_final = None
+        solicitud.save()
+
+        if cotizacion_ganadora:
+            cotizacion_ganadora.estado = 'pendiente'
+            cotizacion_ganadora.save(update_fields=['estado', 'updated_at'])
+
+        nombre_tutor = (tutor_provisional.get_full_name() or tutor_provisional.username) if tutor_provisional else '—'
+        HistorialEstado.objects.create(
+            solicitud=solicitud,
+            estado_anterior=estado_anterior,
+            estado_nuevo=estado_cotizacion,
+            cambiado_por=request.user,
+            comentario=f'El cliente no aceptó la propuesta en negociación. Tutor provisional liberado: {nombre_tutor}. La solicitud vuelve a cotización.'
+        )
+
+        # Avisar al tutor provisional: que NO empiece y que sigue en consideración
+        if tutor_provisional:
+            from notificaciones.utils import crear_notificacion
+            crear_notificacion(
+                destinatario=tutor_provisional,
+                tipo='cotizacion_rechazada',
+                titulo=f'El cliente no aceptó — {solicitud.codigo}',
+                mensaje=f'El cliente no aceptó la propuesta en negociación para "{solicitud.titulo}". NO empieces a trabajar: tu cotización vuelve a estar en consideración junto a las demás. ¡Sigue participando!',
+                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                solicitud_id=solicitud.pk,
+            )
+
+        messages.success(request, f'Negociación de {solicitud.codigo} cancelada. Volvió a "En Cotización" y se avisó al tutor provisional.')
+        return redirect('solicitud_detalle', pk=pk)
+
+    return render(request, 'private/cotizaciones/cancelar_negociacion.html', {
         'solicitud': solicitud,
     })
 

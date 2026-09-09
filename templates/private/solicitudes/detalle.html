@@ -31,6 +31,12 @@
 
     <div class="detail-grid">
         <div class="detail-main">
+            {% if not es_admin and solicitud.estado.nombre == 'en_negociacion' and solicitud.tutor_asignado == request.user %}
+            <div class="alert-tem alert-warning-tem" style="margin-bottom: 1rem;">
+                <h4>Tu cotización fue aceptada por el equipo (etapa 1 de 2)</h4>
+                <p style="margin: 0;">Estamos en <strong>negociación final con el cliente</strong>. Por favor <strong>NO empieces a trabajar todavía</strong>: te avisaremos cuando la asignación quede en firme o si el cliente no acepta.</p>
+            </div>
+            {% endif %}
             <div class="card-tem">
                 <div class="card-tem-body">
                     <h2 class="detail-title">{{ solicitud.titulo }}</h2>
@@ -145,6 +151,14 @@
                         <a href="{% url 'solicitud_editar' solicitud.pk %}" class="btn-tem btn-primary-tem" style="width:100%;justify-content:center;">
                             <i class="fas fa-edit"></i> Editar Solicitud
                         </a>
+                        {% if solicitud.estado.nombre == 'en_negociacion' %}
+                        <a href="{% url 'cotizacion_confirmar_asignacion' solicitud.pk %}" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" title="El cliente aceptó: la asignación queda en firme y el tutor podrá empezar">
+                            <i class="fas fa-check-circle"></i> Poner en Firme (cliente aceptó)
+                        </a>
+                        <a href="{% url 'cotizacion_cancelar_negociacion' solicitud.pk %}" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;border-color:var(--highlight);color:var(--highlight);" title="El cliente no aceptó: vuelve a cotización y se avisa al tutor provisional">
+                            <i class="fas fa-times-circle"></i> Cancelar Negociación
+                        </a>
+                        {% endif %}
                         {% if solicitud.tutor_asignado and solicitud.estado.nombre != 'completada' %}
                             {% if documentos_entrega %}
                             <form method="post" action="{% url 'solicitud_marcar_completada' solicitud.pk %}" style="width:100%;">
@@ -485,7 +499,11 @@
                                 {% if cotizacion.estado == 'pendiente' %}
                                     <span class="badge-tem badge-warning">Pendiente</span>
                                 {% elif cotizacion.estado == 'aceptada' %}
-                                    <span class="badge-tem badge-success">Aceptada</span>
+                                    {% if solicitud.estado.nombre == 'en_negociacion' %}
+                                        <span class="badge-tem badge-warning" title="Aceptada por el equipo. En negociación final con el cliente.">En Negociación</span>
+                                    {% else %}
+                                        <span class="badge-tem badge-success">Aceptada</span>
+                                    {% endif %}
                                 {% elif cotizacion.estado == 'rechazada' %}
                                     {% if cotizacion.motivo_rechazo %}
                                         <button type="button" class="badge-tem badge-danger motivo-btn" title="Ver motivo del rechazo" data-codigo="{{ solicitud.codigo }}" data-motivo="{{ cotizacion.motivo_rechazo|escape }}">Rechazada</button>

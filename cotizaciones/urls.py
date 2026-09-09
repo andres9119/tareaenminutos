@@ -6,6 +6,7 @@ urlpatterns = [
     path('<int:pk>/aceptar/', views.cotizacion_aceptar, name='cotizacion_aceptar'),
     path('<int:pk>/rechazar/', views.cotizacion_rechazar, name='cotizacion_rechazar'),
     path('<int:pk>/confirmar-asignacion/', views.cotizacion_confirmar_asignacion, name='cotizacion_confirmar_asignacion'),
+    path('<int:pk>/cancelar-negociacion/', views.cotizacion_cancelar_negociacion, name='cotizacion_cancelar_negociacion'),
     path('mis-cotizaciones/', views.mis_cotizaciones, name='mis_cotizaciones'),
     path('', views.cotizaciones_lista, name='cotizaciones_lista'),
 ]

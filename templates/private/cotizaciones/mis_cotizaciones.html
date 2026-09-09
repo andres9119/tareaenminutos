@@ -43,7 +43,11 @@
                                     {% if cotizacion.estado == 'pendiente' %}
                                         <span class="badge-tem" style="background: var(--secondary); color: white;">Pendiente</span>
                                     {% elif cotizacion.estado == 'aceptada' %}
-                                        <span class="badge-tem" style="background: var(--success); color: white;">Aceptada</span>
+                                        {% if cotizacion.solicitud.estado.nombre == 'en_negociacion' %}
+                                            <span class="badge-tem" style="background: #f59e0b; color: white;" title="Aceptada por el equipo. En negociación final con el cliente: aún no empieces a trabajar.">En Negociación</span>
+                                        {% else %}
+                                            <span class="badge-tem" style="background: var(--success); color: white;">Aceptada</span>
+                                        {% endif %}
                                     {% elif cotizacion.estado == 'rechazada' %}
                                         {% if cotizacion.motivo_rechazo %}
                                             <button type="button" class="badge-tem motivo-btn" style="background: var(--highlight); color: white; border: none;" title="Ver motivo del rechazo" data-codigo="{{ cotizacion.solicitud.codigo }}" data-motivo="{{ cotizacion.motivo_rechazo|escape }}">Rechazada</button>
