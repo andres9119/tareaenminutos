@@ -55,6 +55,13 @@ class Cotizacion(models.Model):
         default='pendiente'
     )
 
+    # Motivo de rechazo (si el admin la rechaza)
+    motivo_rechazo = models.TextField(
+        blank=True,
+        verbose_name='Motivo del rechazo',
+        help_text='Razón por la que el administrador rechazó esta cotización'
+    )
+
     # Metadatos
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

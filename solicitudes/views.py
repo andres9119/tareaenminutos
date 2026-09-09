@@ -186,19 +186,38 @@ def solicitud_detalle(request, pk):
     puede_subir_comprobante = user_is_admin and solicitud.estado.nombre == 'completada'
     if user_is_admin:
         cotizaciones = solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto')
+        # Admin ve todas las cotizaciones para el rango de precios
+        cotizaciones_todas = list(cotizaciones)
+        montos = [c.monto for c in cotizaciones_todas if c.monto]
+        max_monto = max(montos) if montos else 0
+        precios_resumen = None
+        if montos:
+            precios_resumen = {
+                'min': min(montos),
+                'max': max(montos),
+                'promedio': sum(montos) / len(montos),
+            }
     else:
+        # Tutor: solo ve su propia cotización; el rango de precios SOLO si ya cotizó
         cotizaciones = solicitud.cotizaciones.filter(tutor=request.user).select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades')
-    # Todas las cotizaciones (de todos los tutores) para el gráfico de rangos de precios.
-    cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto'))
-    montos = [c.monto for c in cotizaciones_todas if c.monto]
-    max_monto = max(montos) if montos else 0
-    precios_resumen = None
-    if montos:
-        precios_resumen = {
-            'min': min(montos),
-            'max': max(montos),
-            'promedio': sum(montos) / len(montos),
-        }
+        cotizacion_propia = cotizaciones.first()
+        if cotizacion_propia:
+            # Ya cotizó: puede ver el rango de todas
+            cotizaciones_todas = list(solicitud.cotizaciones.select_related('tutor', 'tutor__perfil').prefetch_related('tutor__perfil__especialidades').order_by('monto'))
+            montos = [c.monto for c in cotizaciones_todas if c.monto]
+            max_monto = max(montos) if montos else 0
+            precios_resumen = None
+            if montos:
+                precios_resumen = {
+                    'min': min(montos),
+                    'max': max(montos),
+                    'promedio': sum(montos) / len(montos),
+                }
+        else:
+            # No ha cotizado: NO ve precios de otros
+            cotizaciones_todas = []
+            max_monto = 0
+            precios_resumen = None
     historial = solicitud.historial_estados.select_related(
         'estado_anterior', 'estado_nuevo', 'cambiado_por'
     ).order_by('-created_at')[:10]
@@ -683,3 +702,88 @@ def solicitud_reactivar(request, pk):
         return redirect('solicitud_detalle', pk=pk)
 
     return redirect('solicitud_detalle', pk=pk)
+
+
+@admin_required
+def solicitud_cerrar(request, pk):
+    """Cerrar una solicitud como CANCELADA (distinto de Completada).
+
+    Se usa cuando: ningún tutor cotizó, cliente desistió, se resolvió por otro medio, etc.
+    Requiere confirmación y motivo obligatorio.
+    """
+    solicitud = get_object_or_404(SolicitudAcademica, pk=pk)
+
+    # No se puede cerrar si ya está completada o cancelada
+    if solicitud.estado.nombre in ('completada', 'cancelada'):
+        messages.warning(request, f'La solicitud ya está en estado "{solicitud.estado.etiqueta}".')
+        return redirect('solicitud_detalle', pk=pk)
+
+    if request.method == 'POST':
+        # Verificar confirmación explícita
+        confirmacion = request.POST.get('confirmacion')
+        if confirmacion != 'CERRAR':
+            messages.error(request, 'Debes escribir "CERRAR" para confirmar.')
+            return redirect('solicitud_detalle', pk=pk)
+
+        motivo = (request.POST.get('motivo_cierre') or '').strip()
+        if not motivo:
+            messages.error(request, 'El motivo de cierre es obligatorio.')
+            return redirect('solicitud_detalle', pk=pk)
+
+        # Opcional: verificar contraseña del admin para cierre definitivo
+        password = request.POST.get('password')
+        if password:
+            from django.contrib.auth import authenticate
+            if not authenticate(request, username=request.user.username, password=password):
+                messages.error(request, 'Contraseña incorrecta. El cierre no se realizó.')
+                return redirect('solicitud_detalle', pk=pk)
+
+        estado_anterior = solicitud.estado
+        estado_cancelada = EstadoSolicitud.objects.get(nombre='cancelada')
+        solicitud._notif_actor = request.user
+        solicitud.estado = estado_cancelada
+        solicitud.fecha_limite_correccion = None
+        solicitud.save()
+
+        HistorialEstado.objects.create(
+            solicitud=solicitud,
+            estado_anterior=estado_anterior,
+            estado_nuevo=estado_cancelada,
+            cambiado_por=request.user,
+            comentario=f'Solicitud cerrada (cancelada). Motivo: {motivo}'
+        )
+
+        # Notificar al tutor asignado si existe
+        if solicitud.tutor_asignado:
+            from notificaciones.utils import crear_notificacion
+            crear_notificacion(
+                destinatario=solicitud.tutor_asignado,
+                tipo='cambio_estado',
+                titulo=f'Solicitud cancelada — {solicitud.codigo}',
+                mensaje=f'La solicitud "{solicitud.titulo}" fue cancelada por el administrador. Motivo: {motivo}',
+                url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                solicitud_id=solicitud.pk,
+            )
+
+        # Notificar a admins
+        from notificaciones.utils import crear_notificacion
+        from django.contrib.auth.models import User
+        admins = User.objects.filter(groups__name='Administrador') | User.objects.filter(is_superuser=True)
+        for admin in admins:
+            if admin != request.user:
+                crear_notificacion(
+                    destinatario=admin,
+                    tipo='cambio_estado',
+                    titulo=f'Solicitud cancelada — {solicitud.codigo}',
+                    mensaje=f'El admin {request.user.get_full_name() or request.user.username} canceló la solicitud "{solicitud.titulo}". Motivo: {motivo}',
+                    url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+                    solicitud_id=solicitud.pk,
+                )
+
+        messages.success(request, f'Solicitud {solicitud.codigo} cerrada como cancelada.')
+        return redirect('solicitud_detalle', pk=pk)
+
+    # GET: mostrar modal de confirmación
+    return render(request, 'private/solicitudes/cerrar_modal.html', {
+        'solicitud': solicitud,
+    })

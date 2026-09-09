@@ -94,6 +94,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif tipo == 'editar_mensaje':
+            mensaje_id = data.get('mensaje_id')
+            nuevo_contenido = data.get('contenido', '').strip()
+            if not mensaje_id or not nuevo_contenido:
+                return
+            mensaje = await self.editar_mensaje(mensaje_id, nuevo_contenido)
+            if mensaje:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        'type': 'mensaje_editado',
+                        'mensaje': mensaje,
+                    }
+                )
+
+        elif tipo == 'eliminar_mensaje':
+            mensaje_id = data.get('mensaje_id')
+            if not mensaje_id:
+                return
+            ok = await self.eliminar_mensaje(mensaje_id)
+            if ok:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        'type': 'mensaje_eliminado',
+                        'mensaje_id': mensaje_id,
+                    }
+                )
+
         elif tipo == 'typing':
             # Indicador de escritura (no se persiste); quien no puede escribir no lo envía
             if not await self.puede_escribir():
@@ -123,6 +152,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'created_at': m.get('created_at', ''),
             'fecha': m.get('fecha', ''),
             'created_at_full': m.get('created_at_full', ''),
+            'editado': m.get('editado'),
+            'eliminado': m.get('eliminado', False),
         }))
 
     async def typing_indicator(self, event):
@@ -133,20 +164,69 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'usuario': event['usuario']
             }))
 
+    async def mensaje_editado(self, event):
+        """Notificar a todos que un mensaje fue editado."""
+        m = event['mensaje']
+        await self.send(text_data=json.dumps({
+            'type': 'mensaje_editado',
+            'mensaje': m,
+        }))
+
+    async def mensaje_eliminado(self, event):
+        """Notificar a todos que un mensaje fue eliminado."""
+        await self.send(text_data=json.dumps({
+            'type': 'mensaje_eliminado',
+            'mensaje_id': event['mensaje_id'],
+        }))
+
+    @database_sync_to_async
+    def editar_mensaje(self, mensaje_id, nuevo_contenido):
+        from chat_interno.models import MensajeChat
+        from django.utils import timezone
+        try:
+            mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
+            if not mensaje.puede_editar(self.user):
+                return None
+            mensaje.contenido = nuevo_contenido
+            mensaje.editado = timezone.now()
+            mensaje.save(update_fields=['contenido', 'editado'])
+            return mensaje.to_dict()
+        except MensajeChat.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def eliminar_mensaje(self, mensaje_id):
+        from chat_interno.models import MensajeChat
+        try:
+            mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
+            if not mensaje.puede_eliminar(self.user):
+                return False
+            mensaje.eliminado = True
+            mensaje.contenido = 'Este mensaje fue eliminado.'
+            mensaje.save(update_fields=['eliminado', 'contenido'])
+            return True
+        except MensajeChat.DoesNotExist:
+            return False
+
     @database_sync_to_async
     def verificar_acceso(self):
         from chat_interno.models import SalaChat
         try:
             sala = SalaChat.objects.get(pk=self.sala_id)
-            # Admins tienen acceso total
-            if self.user.is_staff or self.user.groups.filter(name='Administrador').exists():
-                return True
-            # Salas directas: solo participantes
+            # Salas directas: SOLO participantes (ni admins ajenos)
             if sala.tipo == 'directa':
                 return sala.participantes.filter(pk=self.user.pk).exists()
-            # Salas de solicitud: solo el tutor asignado (las abiertas no dan acceso)
+            # Salas de solicitud: SOLO si hay tutor asignado (y el usuario es ese tutor o admin)
             if sala.solicitud:
+                if not sala.solicitud.tutor_asignado:
+                    return False
+                # Admin siempre puede; tutor solo si es el asignado
+                if self.user.is_staff or self.user.groups.filter(name='Administrador').exists():
+                    return True
                 return sala.solicitud.tutor_asignado == self.user
+            # Admins tienen acceso a salas generales
+            if self.user.is_staff or self.user.groups.filter(name='Administrador').exists():
+                return True
             # Salas generales (anuncios): todo el personal interno
             return (
                 self.user.is_staff

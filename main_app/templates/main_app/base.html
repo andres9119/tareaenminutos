@@ -743,6 +743,9 @@ footer {
                 <a href="/blog/">Blog</a>
                 <a href="/contacto/">Contacto</a>
 {% if user.is_authenticated %}
+                    <!-- Indicador móvil: punto rojo si hay notificaciones o mensajes sin leer -->
+                    <span class="mobile-notif-indicator" id="mobileNotifIndicator"
+                          style="display:none; position:absolute; top:0.5rem; right:0.5rem; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg-header);"></span>
                     <div class="notif-container" id="notifContainer">
                         <button type="button" class="notif-bell" id="notifBell" title="Notificaciones" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-bell"></i>
@@ -1079,7 +1082,17 @@ footer {
                         }
                     }).finally(function() {
                         if (clearBtn) clearBtn.disabled = false;
+                        if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
                     });
+                };
+
+                // Función para actualizar el punto rojo en el menú móvil
+                window.actualizarIndicadorMovil = function() {
+                    const mobileIndicator = document.getElementById('mobileNotifIndicator');
+                    if (!mobileIndicator) return;
+                    var notifCount = parseInt(notifBadge?.textContent) || 0;
+                    var msgCount = parseInt(document.getElementById('msgBadge')?.textContent) || 0;
+                    mobileIndicator.style.display = (notifCount > 0 || msgCount > 0) ? 'block' : 'none';
                 };
 
                 const cerrarMsg = function() {
@@ -1134,6 +1147,7 @@ footer {
                         markRead(id).then(function() {
                             if (row && row.parentNode) row.parentNode.removeChild(row);
                             window.__mostrarVacioNotif();
+                            if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
                             window.location.href = url;
                         });
                     });
@@ -1231,6 +1245,7 @@ footer {
                         setTimeout(function() { notifBadge.classList.remove('pulse'); }, 300);
                         agregarNotif(data.notif);
                         playNotifSound();
+                        if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
                     }
                 };
 
@@ -1312,6 +1327,7 @@ footer {
                                 msgBadge.classList.add('hidden');
                             }
                         }
+                        if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
                         if (msgDropdown) {
                             if (data.chats.length === 0) {
                                 var misChatsUrl = "{% url 'mis_chats' %}";

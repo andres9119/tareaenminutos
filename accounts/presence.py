@@ -52,6 +52,27 @@ async def mark_offline(user_id: int):
     online_set = cache.get(PRESENCE_KEY, set())
     online_set.discard(user_id)
     cache.set(PRESENCE_KEY, online_set, PRESENCE_TTL * 2)
+    
+    # Actualizar última conexión en BD
+    await _update_ultima_conexion(user_id)
+
+
+async def _update_ultima_conexion(user_id: int):
+    """Actualiza el campo ultima_conexion en el perfil del usuario."""
+    from asgiref.sync import sync_to_async
+    from accounts.models import PerfilUsuario
+    from django.utils import timezone
+    
+    @sync_to_async
+    def _do_update():
+        try:
+            perfil = PerfilUsuario.objects.get(user_id=user_id)
+            perfil.ultima_conexion = timezone.now()
+            perfil.save(update_fields=['ultima_conexion'])
+        except PerfilUsuario.DoesNotExist:
+            pass
+    
+    await _do_update()
 
 
 async def get_online_users():

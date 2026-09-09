@@ -58,7 +58,6 @@
                     {% endif %}
                     <span class="wa-meta">
                         {{ e.hora }}
-                        {% if e.propio %}<i class="fas fa-check-double wa-tick"></i>{% endif %}
                     </span>
                 </div>
             </div>
@@ -250,6 +249,45 @@
     opacity: 0.9;
 }
 .wa-tick { color: var(--secondary); font-size: 0.72rem; }
+
+/* Edit/Delete */
+.wa-edit-badge {
+    font-size: 0.6rem;
+    color: var(--accent);
+    background: var(--accent-glow, rgba(245,158,11,0.15));
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    margin-left: 0.3rem;
+    font-weight: 600;
+}
+.wa-deleted {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+.wa-actions {
+    display: none;
+    gap: 0.2rem;
+    margin-top: 0.25rem;
+}
+.wa-bubble:hover .wa-actions {
+    display: inline-flex;
+}
+.wa-actions button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+}
+.wa-actions button:hover {
+    background: var(--primary-glow);
+    color: var(--primary);
+}
 
 .wa-empty {
     text-align: center;
@@ -473,19 +511,23 @@
             '<span class="wa-att-caja-nombre">' + esc(nombre) + '</span></a>';
     }
 
-    function bubbleHTML(propio, showAutor, autorNombre, contenido, hora, adj) {
+    function bubbleHTML(propio, showAutor, autorNombre, contenido, hora, adj, editado, eliminado) {
         const author = (propio || !showAutor) ? '' : '<span class="wa-author">' + esc(autorNombre) + '</span>';
-        const tick = propio ? ' <i class="fas fa-check-double wa-tick"></i>' : '';
+        const editBadge = editado ? ' <span class="wa-edit-badge">editado</span>' : '';
+        const deletedHtml = eliminado ? '<span class="wa-deleted">Este mensaje fue eliminado.</span>' : '';
         const adjHtml = adj ? adjuntoHTML(adj) : '';
         const mostrarTexto = !(adj && adj.tipomsg === 'archivo' && (!contenido || contenido.indexOf('Archivo:') === 0));
         const htmlTexto = mostrarTexto
             ? '<span class="wa-text">' + esc(contenido || '').replace(/\n/g, '<br>') + '</span>' : '';
         return `
-            <div class="wa-bubble ${propio ? 'wa-bubble-own' : ''}">
+            <div class="wa-bubble ${propio ? 'wa-bubble-own' : ''}" data-msg-id="${adj && adj.id ? adj.id : ''}">
                 ${author}
                 ${adjHtml}
                 ${htmlTexto}
-                <span class="wa-meta">${esc(hora || 'ahora')}${tick}</span>
+                ${editBadge}
+                ${deletedHtml}
+                <span class="wa-meta">${esc(hora || 'ahora')}${editBadge}</span>
+                ${propio && !eliminado ? '<div class="wa-actions"><button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>' : ''}
             </div>`;
     }
 
@@ -515,7 +557,7 @@
         const adj = { tipomsg: data.tipomsg || 'texto', adjunto_url: data.adjunto_url || '',
             adjunto_nombre: data.adjunto_nombre || '', adjunto_es_imagen: data.adjunto_es_imagen || false,
             adjunto_es_pdf: data.adjunto_es_pdf || false };
-        row.innerHTML = bubbleHTML(propio, showAutor, data.username, data.message, data.created_at, adj);
+        row.innerHTML = bubbleHTML(propio, showAutor, data.username, data.message, data.created_at, adj, data.editado, data.eliminado);
         insertBeforeTyping(row);
         scrollBottom();
     }
@@ -541,7 +583,7 @@
             if (!propio && m.autor_id !== lastAutor) { showAutor = true; lastAutor = m.autor_id; }
             const row = document.createElement('div');
             row.className = 'wa-row' + (propio ? ' wa-row-own' : '');
-            row.innerHTML = bubbleHTML(propio, showAutor, m.autor_nombre, m.contenido, m.created_at, m);
+            row.innerHTML = bubbleHTML(propio, showAutor, m.autor_nombre, m.contenido, m.created_at, m, m.editado, m.eliminado);
             messagesDiv.appendChild(row);
         });
         messagesDiv.appendChild(typingEl);
@@ -599,6 +641,33 @@
             if (data.type === 'mensaje') {
                 appendMensaje(data);
                 if (data.autor_id !== userId) playChatSound();
+                return;
+            }
+            if (data.type === 'mensaje_editado') {
+                const m = data.mensaje;
+                const bubble = messagesDiv.querySelector('.wa-bubble[data-msg-id="' + m.id + '"]');
+                if (bubble) {
+                    const textSpan = bubble.querySelector('.wa-text');
+                    if (textSpan) textSpan.innerHTML = esc(m.message || '').replace(/\n/g, '<br>');
+                    const meta = bubble.querySelector('.wa-meta');
+                    if (meta) {
+                        const editBadge = m.editado ? ' <span class="wa-edit-badge">editado</span>' : '';
+                        meta.innerHTML = esc(m.created_at || 'ahora') + editBadge;
+                    }
+                }
+                return;
+            }
+            if (data.type === 'mensaje_eliminado') {
+                const msgId = data.mensaje_id;
+                const bubble = messagesDiv.querySelector('.wa-bubble[data-msg-id="' + msgId + '"]');
+                if (bubble) {
+                    const textSpan = bubble.querySelector('.wa-text');
+                    if (textSpan) textSpan.innerHTML = '<span class="wa-deleted">Este mensaje fue eliminado.</span>';
+                    const meta = bubble.querySelector('.wa-meta');
+                    if (meta) meta.innerHTML = esc(bubble.querySelector('.wa-meta')?.textContent?.split('editado')[0] || '') || '';
+                    const actions = bubble.querySelector('.wa-actions');
+                    if (actions) actions.remove();
+                }
                 return;
             }
         };
@@ -663,7 +732,7 @@
                         adjunto_es_pdf: data.mensaje.adjunto_es_pdf || false };
                     const row = document.createElement('div');
                     row.className = 'wa-row' + (data.mensaje.autor_id === userId ? ' wa-row-own' : '');
-                    row.innerHTML = bubbleHTML(data.mensaje.autor_id === userId, true, data.mensaje.autor_nombre, data.mensaje.contenido, data.mensaje.created_at, act);
+                    row.innerHTML = bubbleHTML(data.mensaje.autor_id === userId, true, data.mensaje.autor_nombre, data.mensaje.contenido, data.mensaje.created_at, act, data.mensaje.editado, data.mensaje.eliminado);
                     insertBeforeTyping(row);
                     scrollBottom();
                 } else if (data.error) {
@@ -714,6 +783,44 @@
     if (submitBtn) {
         submitBtn.addEventListener('click', sendMessage);
     }
+
+    // Delegación de clicks para editar/eliminar mensajes propios
+    messagesDiv.addEventListener('click', function(e) {
+        const editBtn = e.target.closest('.wa-edit-btn');
+        const deleteBtn = e.target.closest('.wa-delete-btn');
+        if (editBtn) {
+            const bubble = editBtn.closest('.wa-bubble');
+            const msgId = bubble?.dataset?.msgId;
+            const textSpan = bubble?.querySelector('.wa-text');
+            if (!msgId || !textSpan) return;
+            const currentText = textSpan.textContent;
+            const nuevo = prompt('Editar mensaje:', currentText);
+            if (nuevo !== null && nuevo.trim() !== '' && nuevo !== currentText) {
+                if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({
+                        'type': 'editar_mensaje',
+                        'mensaje_id': parseInt(msgId, 10),
+                        'contenido': nuevo.trim()
+                    }));
+                }
+            }
+            return;
+        }
+        if (deleteBtn) {
+            const bubble = deleteBtn.closest('.wa-bubble');
+            const msgId = bubble?.dataset?.msgId;
+            if (!msgId) return;
+            if (confirm('¿Eliminar este mensaje?')) {
+                if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({
+                        'type': 'eliminar_mensaje',
+                        'mensaje_id': parseInt(msgId, 10)
+                    }));
+                }
+            }
+            return;
+        }
+    });
 
     connect();
     scrollBottom();

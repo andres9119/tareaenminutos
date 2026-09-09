@@ -104,7 +104,11 @@ def cotizacion_crear(request, solicitud_pk):
 
 @admin_required
 def cotizacion_aceptar(request, pk):
-    """Aceptar una cotización y asignar el tutor automáticamente (solo Admin)."""
+    """Aceptar una cotización y poner la solicitud en 'En Negociación' (solo Admin).
+
+    El tutor NO empieza a trabajar hasta que el admin cambie manualmente a 'Asignada'
+    tras negociar con el cliente.
+    """
     cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
 
     # Límite de carga: el tutor no puede superar el máximo de solicitudes activas
@@ -123,7 +127,37 @@ def cotizacion_aceptar(request, pk):
         solicitud=cotizacion.solicitud
     ).exclude(pk=cotizacion.pk)
 
-    cotizacion.aceptar(por_usuario=request.user)
+    # Cambiar estado de la cotización a aceptada
+    cotizacion.estado = 'aceptada'
+    cotizacion.save(update_fields=['estado', 'updated_at'])
+
+    # Cambiar solicitud a "En Negociación" (NO asignada aún)
+    estado_negociacion, _ = EstadoSolicitud.objects.get_or_create(
+        nombre='en_negociacion',
+        defaults={'etiqueta': 'En Negociación', 'color_hex': '#f59e0b', 'orden': 4}
+    )
+    estado_anterior = cotizacion.solicitud.estado
+    cotizacion.solicitud._notif_actor = request.user
+    cotizacion.solicitud._skip_estado_notif = True
+    cotizacion.solicitud.estado = estado_negociacion
+    cotizacion.solicitud.tutor_asignado = cotizacion.tutor
+    cotizacion.solicitud.precio_final = cotizacion.monto
+    cotizacion.solicitud.save()
+
+    # Registrar en historial
+    HistorialEstado.objects.create(
+        solicitud=cotizacion.solicitud,
+        estado_anterior=estado_anterior,
+        estado_nuevo=estado_negociacion,
+        cambiado_por=request.user,
+        comentario=f'Cotización aceptada. En negociación con el cliente. Tutor: {cotizacion.tutor.get_full_name() or cotizacion.tutor.username}. Precio: ${cotizacion.monto:,.0f}'
+    )
+
+    # Agregar tutor a la sala de chat
+    from chat_interno.models import SalaChat
+    sala = getattr(cotizacion.solicitud, 'sala_chat', None)
+    if sala:
+        sala.participantes.add(cotizacion.tutor)
 
     # Notificar al tutor seleccionado
     from notificaciones.utils import crear_notificacion
@@ -131,7 +165,7 @@ def cotizacion_aceptar(request, pk):
         destinatario=cotizacion.tutor,
         tipo='cotizacion_aceptada',
         titulo=f'Tu cotización fue aceptada — {cotizacion.solicitud.codigo}',
-        mensaje=f'El administrador aceptó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". ¡Comienza a trabajar!',
+        mensaje=f'El administrador aceptó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". La solicitud está en negociación con el cliente; te avisaremos cuando puedas empezar.',
         url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
         solicitud_id=cotizacion.solicitud.pk,
     )
@@ -147,30 +181,95 @@ def cotizacion_aceptar(request, pk):
             solicitud_id=cotizacion.solicitud.pk,
         )
 
-    messages.success(request, f'Cotización aceptada. Tutor {cotizacion.tutor.get_full_name()} asignado a {cotizacion.solicitud.codigo}.')
+    messages.success(request, f'Cotización aceptada. Solicitud {cotizacion.solicitud.codigo} en "En Negociación". Tutor {cotizacion.tutor.get_full_name()} asignado provisionalmente.')
     return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
 
 
 @admin_required
 def cotizacion_rechazar(request, pk):
-    """Rechazar manualmente una cotización pendiente (solo Admin)."""
+    """Rechazar manualmente una cotización pendiente con motivo (solo Admin)."""
     cotizacion = get_object_or_404(Cotizacion, pk=pk, estado='pendiente')
-    cotizacion.estado = 'rechazada'
-    cotizacion.save(update_fields=['estado', 'updated_at'])
 
-    from notificaciones.utils import crear_notificacion
-    crear_notificacion(
-        destinatario=cotizacion.tutor,
-        tipo='cotizacion_rechazada',
-        titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
-        mensaje=f'El administrador descartó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}". ¡Sigue participando!',
-        url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
-        solicitud_id=cotizacion.solicitud.pk,
-    )
+    if request.method == 'POST':
+        motivo = (request.POST.get('motivo_rechazo') or '').strip()
+        cotizacion.estado = 'rechazada'
+        cotizacion.motivo_rechazo = motivo
+        cotizacion.save(update_fields=['estado', 'motivo_rechazo', 'updated_at'])
 
-    nombre_tutor = cotizacion.tutor.get_full_name() or cotizacion.tutor.username
-    messages.info(request, f'Cotización de {nombre_tutor} rechazada para {cotizacion.solicitud.codigo}.')
-    return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
+        from notificaciones.utils import crear_notificacion
+        msg = f'El administrador descartó tu propuesta de ${cotizacion.monto:,.0f} COP para "{cotizacion.solicitud.titulo}".'
+        if motivo:
+            msg += f' Motivo: {motivo}'
+        msg += ' ¡Sigue participando!'
+        crear_notificacion(
+            destinatario=cotizacion.tutor,
+            tipo='cotizacion_rechazada',
+            titulo=f'Tu cotización no fue seleccionada — {cotizacion.solicitud.codigo}',
+            mensaje=msg,
+            url_accion=reverse('solicitud_detalle', args=[cotizacion.solicitud.pk]),
+            solicitud_id=cotizacion.solicitud.pk,
+        )
+
+        nombre_tutor = cotizacion.tutor.get_full_name() or cotizacion.tutor.username
+        messages.success(request, f'Cotización de {nombre_tutor} rechazada para {cotizacion.solicitud.codigo}.')
+        return redirect('solicitud_detalle', pk=cotizacion.solicitud.pk)
+
+    # GET: mostrar modal con formulario de motivo
+    return render(request, 'private/cotizaciones/rechazar_modal.html', {
+        'cotizacion': cotizacion,
+        'solicitud': cotizacion.solicitud,
+    })
+
+
+@admin_required
+def cotizacion_confirmar_asignacion(request, pk):
+    """Confirmar asignación final: cambia de 'En Negociación' a 'Asignada' (solo Admin).
+
+    Solo disponible si la solicitud está en estado 'en_negociacion' y tiene tutor_asignado.
+    """
+    from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
+    solicitud = get_object_or_404(SolicitudAcademica, pk=pk)
+
+    if solicitud.estado.nombre != 'en_negociacion':
+        messages.error(request, 'Solo se puede confirmar asignación desde el estado "En Negociación".')
+        return redirect('solicitud_detalle', pk=pk)
+
+    if not solicitud.tutor_asignado:
+        messages.error(request, 'No hay tutor asignado para confirmar.')
+        return redirect('solicitud_detalle', pk=pk)
+
+    if request.method == 'POST':
+        estado_asignada = EstadoSolicitud.objects.get(nombre='asignada')
+        estado_anterior = solicitud.estado
+        solicitud._notif_actor = request.user
+        solicitud.estado = estado_asignada
+        solicitud.save()
+
+        HistorialEstado.objects.create(
+            solicitud=solicitud,
+            estado_anterior=estado_anterior,
+            estado_nuevo=estado_asignada,
+            cambiado_por=request.user,
+            comentario='Asignación confirmada tras negociación con el cliente. El tutor puede empezar a trabajar.'
+        )
+
+        # Notificar al tutor que ya puede empezar
+        from notificaciones.utils import crear_notificacion
+        crear_notificacion(
+            destinatario=solicitud.tutor_asignado,
+            tipo='solicitud_asignada',
+            titulo=f'Asignación confirmada — {solicitud.codigo}',
+            mensaje=f'El administrador confirmó la asignación de "{solicitud.titulo}". ¡Ya puedes empezar a trabajar!',
+            url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
+            solicitud_id=solicitud.pk,
+        )
+
+        messages.success(request, f'Solicitud {solicitud.codigo} confirmada como "Asignada". El tutor ha sido notificado.')
+        return redirect('solicitud_detalle', pk=pk)
+
+    return render(request, 'private/cotizaciones/confirmar_asignacion.html', {
+        'solicitud': solicitud,
+    })
 
 
 @tutor_required

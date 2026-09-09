@@ -9,6 +9,7 @@ urlpatterns = [
     path('<int:pk>/editar/', views.solicitud_editar, name='solicitud_editar'),
     path('<int:pk>/reasignar/', views.solicitud_reasignar_tutor, name='solicitud_reasignar_tutor'),
     path('<int:pk>/reactivar/', views.solicitud_reactivar, name='solicitud_reactivar'),
+    path('<int:pk>/cerrar/', views.solicitud_cerrar, name='solicitud_cerrar'),
     path('<int:pk>/entregar/', views.solicitud_entregar, name='solicitud_entregar'),
     path('<int:pk>/completada/', views.solicitud_marcar_completada, name='solicitud_marcar_completada'),
     path('<int:pk>/calificar/', views.solicitud_calificar, name='solicitud_calificar'),

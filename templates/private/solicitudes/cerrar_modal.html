@@ -1,0 +1,58 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Cerrar Solicitud - {{ solicitud.codigo }}{% endblock %}
+{% block content %}
+<div class="container-tem" style="max-width: 600px; margin-top: 3rem;">
+    <div class="card-tem">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-ban" style="color: var(--highlight);"></i> Cerrar Solicitud (Cancelar)</h3>
+        </div>
+        <div class="card-tem-body">
+            <div class="alert alert-danger" style="background: rgba(239,68,68,0.12); border: 1px solid var(--highlight); color: var(--highlight); padding: 1rem; border-radius: var(--border-radius-md); margin-bottom: 1.5rem;">
+                <strong>⚠ Acción irreversible</strong>
+                <br>Esto marcará la solicitud como <strong>Cancelada</strong> (NO como Completada).
+                <br>El tutor asignado (si lo hay) será notificado y la solicitud no podrá reactivarse fácilmente.
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <strong>{{ solicitud.codigo }}</strong> — {{ solicitud.titulo|truncatechars:60 }}
+                <br><small>Estado actual: <span class="badge-tem" style="background: {{ solicitud.estado.color_hex }};">{{ solicitud.estado.etiqueta }}</span></small>
+                {% if solicitud.tutor_asignado %}
+                <br><small>Tutor asignado: {{ solicitud.tutor_asignado.get_full_name|default:solicitud.tutor_asignado.username }}</small>
+                {% endif %}
+            </div>
+
+            <form method="post" data-guard>
+                {% csrf_token %}
+                <div class="form-group-tem">
+                    <label for="motivo_cierre"><i class="fas fa-comment-dots"></i> Motivo del cierre <span class="text-danger">*</span></label>
+                    <textarea name="motivo_cierre" id="motivo_cierre" class="form-control-tem" rows="3" required
+                        placeholder="Ej: Cliente desistió / Ningún tutor cotizó / Se resolvió por otro medio..."></textarea>
+                    <small class="form-text-tem">Este motivo se guardará en el historial y se notificará al tutor.</small>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="confirmacion"><i class="fas fa-keyboard"></i> Escribe <strong>CERRAR</strong> para confirmar <span class="text-danger">*</span></label>
+                    <input type="text" name="confirmacion" id="confirmacion" class="form-control-tem" required
+                        placeholder="CERRAR" style="text-transform: uppercase; letter-spacing: 0.1em;">
+                    <small class="form-text-tem">Medida de seguridad para evitar cierres accidentales.</small>
+                </div>
+
+                <div class="form-group-tem">
+                    <label for="password"><i class="fas fa-lock"></i> Tu contraseña (opcional, para doble verificación)</label>
+                    <input type="password" name="password" id="password" class="form-control-tem"
+                        placeholder="Tu contraseña de administrador">
+                    <small class="form-text-tem">Si la dejas vacía, solo se pedirá la confirmación de texto.</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_detalle' solicitud.pk %}" class="btn-tem btn-secondary-tem">Cancelar</a>
+                    <button type="submit" class="btn-tem btn-danger-tem">
+                        <i class="fas fa-ban"></i> Cerrar definitivamente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

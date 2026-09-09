@@ -216,10 +216,14 @@
             {% endif %}
             {% endif %}
 
-            {% if sala_chat %}
+            {% if sala_chat and solicitud.tutor_asignado %}
             <a href="{% url 'sala_chat' sala_chat.pk %}" class="btn-tem btn-outline-tem" style="display:inline-flex;align-items:center;gap:0.5rem;">
                 <i class="fas fa-comments"></i> Ir al Chat de la Solicitud
             </a>
+            {% elif sala_chat and not solicitud.tutor_asignado %}
+            <span class="btn-tem btn-outline-tem" style="display:inline-flex;align-items:center;gap:0.5rem;opacity:0.6;cursor:not-allowed;" title="El chat se habilita al asignar un tutor">
+                <i class="fas fa-comments"></i> Chat (esperando asignación)
+            </span>
             {% endif %}
         </div>
     </div>
@@ -453,10 +457,13 @@
                                    data-tutor-name="{{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}"
                                    data-tutor-email="{{ cotizacion.tutor.email }}"
                                    data-tutor-foto="{{ cotizacion.tutor.perfil.get_foto_url }}"
+                                   data-tutor-telefono="{{ cotizacion.tutor.perfil.telefono }}"
                                    data-tutor-bio="{{ cotizacion.tutor.perfil.bio|escapejs }}"
                                    data-tutor-calificacion="{{ cotizacion.tutor.perfil.calificacion_promedio|floatformat:1 }}"
                                    data-tutor-completados="{{ cotizacion.tutor.perfil.trabajos_completados }}"
                                    data-tutor-asignadas="{{ cotizacion.tutor.perfil.trabajos_asignados }}"
+                                   data-tutor-ultima-conexion="{% if cotizacion.tutor.perfil.ultima_conexion %}{{ cotizacion.tutor.perfil.ultima_conexion|date:'d/m/Y H:i' }}{% endif %}"
+                                   data-tutor-chat-url="{% url 'iniciar_chat_directo' cotizacion.tutor.pk %}"
                                    data-tutor-especialidades="{% for esp in cotizacion.tutor.perfil.especialidades.all %}{{ esp.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}">
                                     {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }}
                                 </a>
@@ -1291,6 +1298,7 @@ details summary::-webkit-details-marker { display: none; }
             <img id="tutorModalFoto" src="" alt="Foto del tutor" class="tutor-modal-avatar">
             <h4 id="tutorModalNombre" class="tutor-modal-name"></h4>
             <p id="tutorModalEmail" class="tutor-modal-email"></p>
+            <p id="tutorModalTelefono" class="tutor-modal-telefono" style="display:none;"></p>
             
             <div class="tutor-modal-stats">
                 <div class="tutor-modal-stat">
@@ -1307,6 +1315,11 @@ details summary::-webkit-details-marker { display: none; }
                 </div>
             </div>
             
+            <div class="tutor-modal-ultima-conexion" id="tutorModalUltimaConexion" style="display:none; margin: 1rem 0; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--border-radius-md); font-size: 0.85rem;">
+                <i class="fas fa-clock" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                <span>Última conexión: <strong id="tutorModalUltimaConexionValor">—</strong></span>
+            </div>
+
             <div class="tutor-modal-bio">
                 <h5>Descripción</h5>
                 <p id="tutorModalBio">—</p>
@@ -1315,6 +1328,12 @@ details summary::-webkit-details-marker { display: none; }
             <div class="tutor-modal-especialidades">
                 <h5>Áreas de Especialidad</h5>
                 <div id="tutorModalEspecialidades" class="badge-list"></div>
+            </div>
+
+            <div class="tutor-modal-actions" style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                <a id="tutorModalChatDirecto" href="#" class="btn-tem btn-primary-tem" style="display:inline-flex;align-items:center;gap:0.5rem;" title="Abrir chat directo con este tutor">
+                    <i class="fas fa-comments"></i> Chat Directo
+                </a>
             </div>
         </div>
     </div>
@@ -1333,10 +1352,42 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tutorModalFoto').src = this.dataset.tutorFoto || '';
             document.getElementById('tutorModalNombre').textContent = this.dataset.tutorName || '';
             document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
+            
+            // Teléfono
+            var telEl = document.getElementById('tutorModalTelefono');
+            var tel = this.dataset.tutorTelefono || '';
+            if (tel) {
+                telEl.innerHTML = '<i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.4rem;"></i>' + tel;
+                telEl.style.display = 'block';
+            } else {
+                telEl.style.display = 'none';
+            }
+            
             document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
             document.getElementById('tutorModalCompletados').textContent = this.dataset.tutorCompletados || '—';
             document.getElementById('tutorModalAsignadas').textContent = this.dataset.tutorAsignadas || '—';
             document.getElementById('tutorModalBio').textContent = this.dataset.tutorBio || 'Sin descripción';
+            
+            // Última conexión
+            var ultimaConnEl = document.getElementById('tutorModalUltimaConexion');
+            var ultimaConnVal = document.getElementById('tutorModalUltimaConexionValor');
+            var ultimaConn = this.dataset.tutorUltimaConexion || '';
+            if (ultimaConn) {
+                ultimaConnVal.textContent = ultimaConn;
+                ultimaConnEl.style.display = 'block';
+            } else {
+                ultimaConnEl.style.display = 'none';
+            }
+            
+            // Chat directo
+            var chatBtn = document.getElementById('tutorModalChatDirecto');
+            var chatUrl = this.dataset.tutorChatUrl || '';
+            if (chatUrl) {
+                chatBtn.href = chatUrl;
+                chatBtn.style.display = 'inline-flex';
+            } else {
+                chatBtn.style.display = 'none';
+            }
             
             // Especialidades
             var especialidades = (this.dataset.tutorEspecialidades || '').split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });

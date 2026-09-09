@@ -34,6 +34,7 @@ class EstadoSolicitud(models.Model):
         ('nueva', 'Nueva'),
         ('en_cotizacion', 'Cotización'),
         ('cotizada', 'Cotizada'),
+        ('en_negociacion', 'En Negociación'),
         ('asignada', 'Asignada'),
         ('en_progreso', 'En Progreso'),
         ('en_revision', 'En Revisión'),

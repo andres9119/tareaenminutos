@@ -140,6 +140,27 @@ def dashboard_admin(request):
     from tickets.models import TicketReporte
     tickets_abiertos = TicketReporte.objects.filter(estado__in=['abierto', 'en_progreso']).count()
 
+    # Tutores conectados (usando presence system)
+    from accounts.presence import get_online_users_sync
+    tutores_online = []
+    online_users = get_online_users_sync()
+    for u in online_users:
+        if u.get('is_staff') or 'Tutor' in str(u):  # Filtrar solo tutores/admins
+            # Obtener última conexión del perfil
+            from accounts.models import PerfilUsuario
+            try:
+                perfil = PerfilUsuario.objects.get(user_id=u['id'])
+                ultima = perfil.ultima_conexion
+            except PerfilUsuario.DoesNotExist:
+                ultima = None
+            tutores_online.append({
+                'id': u['id'],
+                'username': u['username'],
+                'full_name': u.get('full_name', u['username']),
+                'is_staff': u.get('is_staff', False),
+                'ultima_conexion': ultima,
+            })
+
     # Próximas entregas (todas las solicitudes activas con fecha límite, más cercanas primero)
     # Se pasan como dicts serializables para alimentar tanto la lista como el calendario (json_script).
     proximas_entregas_objs = (
@@ -172,6 +193,7 @@ def dashboard_admin(request):
         'total_por_estados': total_por_estados,
         'estados': estados,
         'tutores_activos': tutores_activos,
+        'tutores_online': tutores_online,
         'solicitudes_recientes': solicitudes_recientes,
         'qs_base_rec': qs_base_sin_pagina(request, 'rec'),
         'estado_reci': estado_reci,

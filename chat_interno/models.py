@@ -113,7 +113,13 @@ class MensajeChat(models.Model):
         related_name='mensajes_leidos',
         verbose_name='Leído por'
     )
+    # Edición y borrado suave
+    editado = models.DateTimeField(null=True, blank=True, verbose_name='Editado en')
+    eliminado = models.BooleanField(default=False, verbose_name='Eliminado')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Límite de tiempo para editar (minutos)
+    TIEMPO_EDITAR_MINUTOS = 15
 
     class Meta:
         verbose_name = 'Mensaje de Chat'
@@ -123,6 +129,25 @@ class MensajeChat(models.Model):
     def __str__(self):
         autor = self.autor.username if self.autor else 'Usuario eliminado'
         return f"{autor}: {self.contenido[:50]}"
+
+    def puede_editar(self, user):
+        """Verifica si el usuario puede editar este mensaje."""
+        if self.eliminado or self.autor != user:
+            return False
+        if not self.editado:
+            # Nunca editado: dentro del límite desde created_at
+            from django.utils import timezone
+            from datetime import timedelta
+            return timezone.now() - self.created_at < timedelta(minutes=self.TIEMPO_EDITAR_MINUTOS)
+        # Ya editado: no permitir re-edición (o permitir si se desea)
+        return False
+
+    def puede_eliminar(self, user):
+        """Verifica si el usuario puede eliminar este mensaje."""
+        if self.eliminado:
+            return False
+        # Solo el autor puede eliminar sus mensajes
+        return self.autor == user
 
     def to_dict(self):
         """Serializa el mensaje para WebSocket y JSON."""
@@ -137,7 +162,7 @@ class MensajeChat(models.Model):
             ext = (os.path.splitext(self.archivo_nombre or self.archivo_adjunto.name)[1] or '').lower().lstrip('.')
             es_img = ext in ('png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg')
             es_pdf = ext == 'pdf'
-        return {
+        data = {
             'id': self.pk,
             'sala_id': self.sala_id,
             'autor_id': self.autor_id,
@@ -152,4 +177,7 @@ class MensajeChat(models.Model):
             'created_at': local.strftime('%H:%M'),
             'created_at_full': local.isoformat(),
             'fecha': local.strftime('%d/%m/%Y'),
+            'editado': self.editado.isoformat() if self.editado else None,
+            'eliminado': self.eliminado,
         }
+        return data

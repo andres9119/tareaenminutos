@@ -1,0 +1,35 @@
+{% extends "main_app/base.html" %}
+{% load static %}
+{% block title %}Rechazar Cotización - {{ cotizacion.solicitud.codigo }}{% endblock %}
+{% block content %}
+<div class="container-tem" style="max-width: 600px; margin-top: 3rem;">
+    <div class="card-tem">
+        <div class="card-tem-header">
+            <h3><i class="fas fa-times-circle" style="color: var(--highlight);"></i> Rechazar Cotización</h3>
+        </div>
+        <div class="card-tem-body">
+            <div class="alert alert-warning" style="background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent-hover); padding: 1rem; border-radius: var(--border-radius-md); margin-bottom: 1.5rem;">
+                <strong>{{ cotizacion.solicitud.codigo }}</strong> — {{ cotizacion.solicitud.titulo|truncatechars:60 }}
+                <br><small>Tutor: {{ cotizacion.tutor.get_full_name|default:cotizacion.tutor.username }} | Monto: ${{ cotizacion.monto|floatformat:0 }}</small>
+            </div>
+
+            <form method="post" data-guard data-confirm="¿Confirmas que deseas rechazar esta cotización?">
+                {% csrf_token %}
+                <div class="form-group-tem">
+                    <label for="motivo_rechazo"><i class="fas fa-comment-dots"></i> Motivo del rechazo <span class="text-danger">*</span></label>
+                    <textarea name="motivo_rechazo" id="motivo_rechazo" class="form-control-tem" rows="4" required
+                        placeholder="Explica el motivo del rechazo para que el tutor lo sepa..."></textarea>
+                    <small class="form-text-tem">El tutor recibirá este motivo por notificación y correo.</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <a href="{% url 'solicitud_detalle' cotizacion.solicitud.pk %}" class="btn-tem btn-secondary-tem">Cancelar</a>
+                    <button type="submit" class="btn-tem btn-danger-tem">
+                        <i class="fas fa-times-circle"></i> Rechazar con motivo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

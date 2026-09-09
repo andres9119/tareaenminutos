@@ -291,7 +291,7 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', defaul
 # _ultima_actividad solo en navegación real y cierra la sesión si pasan más de
 # SESSION_COOKIE_AGE segundos sin ella. Las peticiones de fondo no renuevan nada,
 # así que con la pestaña abierta sin tocar nada, la sesión muere a los 10 minutos.
-SESSION_COOKIE_AGE = 600
+SESSION_COOKIE_AGE = 900
 
 SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=bool)

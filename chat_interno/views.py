@@ -353,12 +353,18 @@ def _esc_pdf(texto):
 
 def _usuario_puede_ver_sala(user, sala):
     """Control de acceso a una sala (copiado de sala_chat / consumers.verificar_acceso)."""
-    if es_admin(user):
-        return True
+    # Salas directas: SOLO participantes (ni admins ajenos)
     if sala.tipo == 'directa':
         return sala.participantes.filter(pk=user.pk).exists()
-    if sala.solicitud_id:
-        return (sala.solicitud.tutor_asignado_id == user.pk if sala.solicitud_id else False)
+    # Salas de solicitud: SOLO si hay tutor asignado
+    if sala.solicitud:
+        if not sala.solicitud.tutor_asignado:
+            return False
+        if es_admin(user):
+            return True
+        return sala.solicitud.tutor_asignado == user
+    if es_admin(user):
+        return True
     # Sala general: todo el personal interno
     return user.is_staff or user.groups.filter(name__in=['Administrador', 'Tutor']).exists()
 

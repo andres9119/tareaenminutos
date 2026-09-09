@@ -146,7 +146,7 @@
 
     .action-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
@@ -780,6 +780,13 @@
             <p>{{ tickets_abiertos }} incidentes abiertos o en progreso por atender</p>
             <a href="{% url 'ticket_lista' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-bug"></i> Ver Incidentes
+            </a>
+        </div>
+        <div class="action-card">
+            <h5>Tutores Conectados</h5>
+            <p>{{ tutores_online|length }} tutor{{ tutores_online|length|pluralize }} en línea ahora</p>
+            <a href="{% url 'usuarios_online' %}" class="btn-tem btn-outline-tem">
+                <i class="fas fa-wifi"></i> Ver Conectados
             </a>
         </div>
     </div>
