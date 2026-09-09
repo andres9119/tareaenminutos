@@ -45,7 +45,11 @@
                                     {% elif cotizacion.estado == 'aceptada' %}
                                         <span class="badge-tem" style="background: var(--success); color: white;">Aceptada</span>
                                     {% elif cotizacion.estado == 'rechazada' %}
-                                        <span class="badge-tem" style="background: var(--highlight); color: white;">Rechazada</span>
+                                        {% if cotizacion.motivo_rechazo %}
+                                            <button type="button" class="badge-tem motivo-btn" style="background: var(--highlight); color: white; border: none;" title="Ver motivo del rechazo" data-codigo="{{ cotizacion.solicitud.codigo }}" data-motivo="{{ cotizacion.motivo_rechazo|escape }}">Rechazada</button>
+                                        {% else %}
+                                            <span class="badge-tem" style="background: var(--highlight); color: white;">Rechazada</span>
+                                        {% endif %}
                                         {% if cotizacion.motivo_rechazo %}
                                             <br><small class="text-muted-tem" style="display: inline-block; margin-top: 0.3rem; max-width: 220px; white-space: normal;" title="{{ cotizacion.motivo_rechazo }}">Motivo: {{ cotizacion.motivo_rechazo|truncatechars:100 }}</small>
                                         {% endif %}
@@ -83,4 +87,5 @@
 
     {% include "private/_paginacion.html" with pagina=cotizaciones param="page" %}
 {% include "private/cotizaciones/_modal_rango.html" %}
+{% include "private/cotizaciones/_modal_motivo.html" %}
 {% endblock %}

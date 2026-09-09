@@ -736,7 +736,11 @@
                                     {% elif cotizacion.estado == 'aceptada' %}
                                         <span class="badge-tem badge-success">Aceptada</span>
                                     {% elif cotizacion.estado == 'rechazada' %}
-                                        <span class="badge-tem badge-danger">Rechazada</span>
+                                        {% if cotizacion.motivo_rechazo %}
+                                            <button type="button" class="badge-tem badge-danger motivo-btn" title="Ver motivo del rechazo" data-codigo="{{ cotizacion.solicitud.codigo }}" data-motivo="{{ cotizacion.motivo_rechazo|escape }}">Rechazada</button>
+                                        {% else %}
+                                            <span class="badge-tem badge-danger">Rechazada</span>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
                                 <td>{{ cotizacion.created_at|date:"d/m/Y" }}</td>
@@ -764,4 +768,5 @@
 </div>
 
 {% include "private/cotizaciones/_modal_rango.html" %}
+{% include "private/cotizaciones/_modal_motivo.html" %}
 {% endblock %}

@@ -1,0 +1,65 @@
+{# Modal reutilizable: motivo de rechazo de una cotización. Requiere botones .motivo-btn con data-codigo y data-motivo #}
+<style>
+    .motivo-btn {
+        cursor: pointer;
+        border: none;
+        font: inherit;
+    }
+    .motivo-btn:hover { filter: brightness(1.1); text-decoration: underline; }
+    .modal-motivo-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2000;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .modal-motivo-box {
+        background: var(--bg-surface); border: 1px solid var(--border-glow);
+        border-radius: var(--border-radius-lg); padding: 1.5rem;
+        width: 100%; max-width: 460px; box-shadow: 0 20px 50px rgba(0,0,0,.3);
+    }
+    .modal-motivo-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 1rem;
+    }
+    .modal-motivo-header h3 {
+        margin: 0; font-family: var(--font-heading); font-size: 1.05rem; color: var(--text-main);
+    }
+    .modal-motivo-close {
+        background: none; border: none; color: var(--text-muted);
+        font-size: 1.4rem; cursor: pointer; line-height: 1;
+    }
+    .modal-motivo-close:hover { color: var(--text-main); }
+    .modal-motivo-texto {
+        color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;
+        white-space: pre-line; margin: 0;
+    }
+</style>
+
+<div id="modalMotivo" class="modal-motivo-overlay" style="display:none;">
+    <div class="modal-motivo-box">
+        <div class="modal-motivo-header">
+            <h3>Motivo del rechazo — <span id="motivoCodigo"></span></h3>
+            <button type="button" class="modal-motivo-close" id="motivoCerrar">&times;</button>
+        </div>
+        <p class="modal-motivo-texto" id="motivoTexto"></p>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('modalMotivo');
+    if (!modal) return;
+
+    function cerrar() { modal.style.display = 'none'; }
+
+    document.querySelectorAll('.motivo-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('motivoCodigo').textContent = btn.dataset.codigo || '';
+            document.getElementById('motivoTexto').textContent = btn.dataset.motivo || 'Sin motivo registrado.';
+            modal.style.display = 'flex';
+        });
+    });
+
+    document.getElementById('motivoCerrar').addEventListener('click', cerrar);
+    modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrar(); });
+})();
+</script>
