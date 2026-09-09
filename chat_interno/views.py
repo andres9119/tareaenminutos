@@ -27,6 +27,11 @@ def sala_chat(request, pk):
         if not sala.participantes.filter(pk=request.user.pk).exists():
             raise Http404('No tienes acceso a esta sala.')
 
+    # Chat de solicitud: solo existe cuando ya hay tutor asignado (para todos,
+    # incluido el admin; el consumer WebSocket aplica la misma regla).
+    if sala.solicitud_id and not sala.solicitud.tutor_asignado:
+        raise Http404('El chat se habilita al asignar un tutor.')
+
     if not user_is_admin:
         # Salas de solicitud: solo el tutor asignado.
         # Salas generales (canal de anuncios): todo el personal interno.
@@ -124,6 +129,9 @@ def chat_mensajes_json(request, pk):
     if sala.tipo == 'directa':
         if not sala.participantes.filter(pk=request.user.pk).exists():
             raise Http404('No tienes acceso a esta sala.')
+    # Chat de solicitud: solo existe cuando ya hay tutor asignado (para todos).
+    if sala.solicitud_id and not sala.solicitud.tutor_asignado:
+        raise Http404('El chat se habilita al asignar un tutor.')
     if not user_is_admin:
         if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
             raise Http404('No tienes acceso a esta sala.')
