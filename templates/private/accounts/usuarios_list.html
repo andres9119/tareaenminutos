@@ -241,6 +241,8 @@
                                    data-tutor-name="{{ user.get_full_name|default:user.username }}"
                                    data-tutor-email="{{ user.email }}"
                                    data-tutor-foto="{% if user.perfil and user.perfil.foto %}{{ user.perfil.foto.url }}{% endif %}"
+                                   data-tutor-telefono="{{ user.perfil.telefono|default:'' }}"
+                                   data-tutor-chat-url="{% url 'iniciar_chat_directo' user.pk %}"
                                    data-tutor-calificacion="{{ user.perfil.calificacion_promedio|default:'—' }}"
                                    data-tutor-completados="{{ user.perfil.trabajos_completados|default:'0' }}"
                                    data-tutor-asignadas="{{ user.perfil.trabajos_asignados|default:'0' }}"
@@ -305,6 +307,7 @@
             <img id="tutorModalFoto" src="" alt="Foto del tutor" class="tutor-modal-avatar">
             <h4 id="tutorModalNombre" class="tutor-modal-name"></h4>
             <p id="tutorModalEmail" class="tutor-modal-email"></p>
+            <p id="tutorModalTelefono" class="tutor-modal-telefono" style="display:none;"></p>
             <div class="tutor-modal-stats">
                 <div class="tutor-modal-stat">
                     <span id="tutorModalCalificacion" class="tutor-modal-stat-value">—</span>
@@ -327,6 +330,14 @@
                 <h5>Áreas de Especialidad</h5>
                 <div id="tutorModalEspecialidades" class="badge-list"></div>
             </div>
+            <div class="tutor-modal-actions" style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                <a id="tutorModalChatDirecto" href="#" class="btn-tem btn-primary-tem" style="display:inline-flex;align-items:center;gap:0.5rem;" title="Abrir chat directo con este tutor (funciona aunque esté desconectado)">
+                    <i class="fas fa-comments"></i> Chat Directo
+                </a>
+                <a id="tutorModalWhatsapp" href="#" target="_blank" rel="noopener" class="btn-tem btn-success-tem" style="display:none;align-items:center;gap:0.5rem;" title="Abrir WhatsApp del tutor">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -341,6 +352,39 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tutorModalFoto').src = this.dataset.tutorFoto || '';
             document.getElementById('tutorModalNombre').textContent = this.dataset.tutorName || '';
             document.getElementById('tutorModalEmail').textContent = this.dataset.tutorEmail || '';
+            // Teléfono + WhatsApp (solo dígitos; si son 10 se asume Colombia: 57)
+            var telEl = document.getElementById('tutorModalTelefono');
+            var tel = this.dataset.tutorTelefono || '';
+            var waBtn = document.getElementById('tutorModalWhatsapp');
+            var digitos = tel.replace(/\D/g, '');
+            if (digitos.length === 10) digitos = '57' + digitos;
+            if (telEl) {
+                if (tel) {
+                    telEl.innerHTML = '<i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.4rem;"></i>' + tel;
+                    telEl.style.display = 'block';
+                } else {
+                    telEl.style.display = 'none';
+                }
+            }
+            if (waBtn) {
+                if (digitos) {
+                    waBtn.href = 'https://wa.me/' + digitos;
+                    waBtn.style.display = 'inline-flex';
+                } else {
+                    waBtn.style.display = 'none';
+                }
+            }
+            // Chat directo (siempre disponible, en línea o no)
+            var chatBtn = document.getElementById('tutorModalChatDirecto');
+            var chatUrl = this.dataset.tutorChatUrl || '';
+            if (chatBtn) {
+                if (chatUrl) {
+                    chatBtn.href = chatUrl;
+                    chatBtn.style.display = 'inline-flex';
+                } else {
+                    chatBtn.style.display = 'none';
+                }
+            }
             document.getElementById('tutorModalCalificacion').textContent = this.dataset.tutorCalificacion || '—';
             document.getElementById('tutorModalCompletados').textContent = this.dataset.tutorCompletados || '—';
             document.getElementById('tutorModalAsignadas').textContent = this.dataset.tutorAsignadas || '—';

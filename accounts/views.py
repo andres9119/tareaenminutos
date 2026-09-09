@@ -140,26 +140,31 @@ def dashboard_admin(request):
     from tickets.models import TicketReporte
     tickets_abiertos = TicketReporte.objects.filter(estado__in=['abierto', 'en_progreso']).count()
 
-    # Tutores conectados (usando presence system)
-    from accounts.presence import get_online_users_sync
+    # Tutores conectados (WS activo o navegación reciente; ver presence.py)
+    from accounts.presence import obtener_en_linea
+    from django.contrib.auth.models import User as _User
     tutores_online = []
-    online_users = get_online_users_sync()
-    for u in online_users:
-        if u.get('is_staff') or 'Tutor' in str(u):  # Filtrar solo tutores/admins
-            # Obtener última conexión del perfil
-            from accounts.models import PerfilUsuario
-            try:
-                perfil = PerfilUsuario.objects.get(user_id=u['id'])
-                ultima = perfil.ultima_conexion
-            except PerfilUsuario.DoesNotExist:
-                ultima = None
-            tutores_online.append({
-                'id': u['id'],
-                'username': u['username'],
-                'full_name': u.get('full_name', u['username']),
-                'is_staff': u.get('is_staff', False),
-                'ultima_conexion': ultima,
-            })
+    for u in obtener_en_linea():
+        try:
+            user_obj = _User.objects.select_related('perfil').get(pk=u['id'])
+        except _User.DoesNotExist:
+            continue
+        es_tutor = user_obj.groups.filter(name='Tutor').exists()
+        if not (es_tutor or u.get('is_staff') or user_obj.is_staff):
+            continue
+        tutores_online.append({
+            'id': u['id'],
+            'username': user_obj.username,
+            'full_name': user_obj.get_full_name() or user_obj.username,
+            'is_staff': user_obj.is_staff,
+            'es_tutor': es_tutor,
+            'foto_url': user_obj.perfil.get_foto_url() if hasattr(user_obj, 'perfil') else '',
+            'telefono': user_obj.perfil.telefono if hasattr(user_obj, 'perfil') else '',
+            'ultima_conexion': user_obj.perfil.ultima_conexion if hasattr(user_obj, 'perfil') else None,
+            'via': u.get('via', ''),
+            'chat_url': reverse('iniciar_chat_directo', args=[u['id']]),
+            'detalle_url': reverse('tutor_detalle', args=[u['id']]) if es_tutor else '',
+        })
 
     # Próximas entregas (todas las solicitudes activas con fecha límite, más cercanas primero)
     # Se pasan como dicts serializables para alimentar tanto la lista como el calendario (json_script).
@@ -617,26 +622,34 @@ def area_eliminar(request, pk):
 
 @admin_required
 def usuarios_online(request):
-    """Lista de usuarios conectados en tiempo real (solo Admin)."""
-    from accounts.presence import get_online_users_sync
-    
-    online = get_online_users_sync()
-    
+    """Personal en línea: socket WS activo o navegación reciente (solo Admin)."""
+    from accounts.presence import obtener_en_linea
+
+    online = obtener_en_linea()
+
     # Enriquecer con datos del modelo User
     from django.contrib.auth.models import User
     user_ids = [u['id'] for u in online]
     users_map = {u.id: u for u in User.objects.filter(id__in=user_ids).select_related('perfil')}
-    
+
+    enriched = []
     for u in online:
         user_obj = users_map.get(u['id'])
-        if user_obj:
-            u['username'] = user_obj.username
-            u['full_name'] = user_obj.get_full_name() or user_obj.username
-            u['email'] = user_obj.email
-            u['is_staff'] = user_obj.is_staff
-            u['groups'] = [g.name for g in user_obj.groups.all()]
-            u['perfil_foto'] = user_obj.perfil.foto.url if hasattr(user_obj, 'perfil') and user_obj.perfil.foto else None
-            u['perfil_es_tutor'] = hasattr(user_obj, 'perfil') and user_obj.groups.filter(name='Tutor').exists()
-    
-    context = {'usuarios_online': online}
+        if not user_obj:
+            continue
+        enriched.append({
+            'id': u['id'],
+            'username': user_obj.username,
+            'full_name': user_obj.get_full_name() or user_obj.username,
+            'email': user_obj.email,
+            'is_staff': user_obj.is_staff,
+            'groups': [g.name for g in user_obj.groups.all()],
+            'perfil_foto': user_obj.perfil.foto.url if hasattr(user_obj, 'perfil') and user_obj.perfil.foto else None,
+            'perfil_es_tutor': hasattr(user_obj, 'perfil') and user_obj.groups.filter(name='Tutor').exists(),
+            'telefono': user_obj.perfil.telefono if hasattr(user_obj, 'perfil') else '',
+            'ultima_conexion': user_obj.perfil.ultima_conexion if hasattr(user_obj, 'perfil') else None,
+            'via': u.get('via', ''),
+        })
+
+    context = {'usuarios_online': enriched}
     return render(request, 'private/accounts/usuarios_online.html', context)

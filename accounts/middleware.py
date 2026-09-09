@@ -49,4 +49,15 @@ class InactividadMiddleware:
                     # Marca actividad; como modifica la sesión, Django la
                     # guarda al final del ciclo y renueva la cookie.
                     request.session['_ultima_actividad'] = ahora
+                    # Presencia: la navegación real también cuenta como "en
+                    # línea" (respaldo si el WebSocket no conecta). Se escribe
+                    # a BD máximo 1 vez por minuto por usuario.
+                    ultimo_db = request.session.get('_ultima_conexion_db', 0)
+                    if ahora - (ultimo_db or 0) > 60:
+                        from accounts.models import PerfilUsuario
+                        from django.utils import timezone
+                        PerfilUsuario.objects.filter(user=user).update(
+                            ultima_conexion=timezone.now()
+                        )
+                        request.session['_ultima_conexion_db'] = ahora
         return self.get_response(request)

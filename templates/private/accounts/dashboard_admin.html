@@ -785,6 +785,26 @@
         <div class="action-card">
             <h5>Tutores Conectados</h5>
             <p>{{ tutores_online|length }} tutor{{ tutores_online|length|pluralize }} en línea ahora</p>
+            {% if tutores_online %}
+            <div style="display: flex; flex-direction: column; gap: 0.45rem; margin: 0.75rem 0;">
+                {% for t in tutores_online|slice:":5" %}
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    {% if t.foto_url %}
+                        <img src="{{ t.foto_url }}" alt="Foto de {{ t.username }}" class="avatar-mini">
+                    {% else %}
+                        <span class="avatar-mini avatar-inicial">{{ t.full_name|first|upper }}</span>
+                    {% endif %}
+                    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem;" title="{{ t.full_name }}">
+                        {% if t.detalle_url %}<a href="{{ t.detalle_url }}" style="color: var(--text-main); text-decoration: none;">{{ t.full_name|truncatechars:22 }}</a>{% else %}{{ t.full_name|truncatechars:22 }}{% endif %}
+                    </span>
+                    <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0;" title="En línea"></span>
+                    <a href="{{ t.chat_url }}" class="btn-tem btn-outline-tem" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; flex-shrink: 0;" title="Abrir chat directo con {{ t.full_name }}">
+                        <i class="fas fa-comment"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             <a href="{% url 'usuarios_online' %}" class="btn-tem btn-outline-tem">
                 <i class="fas fa-wifi"></i> Ver Conectados
             </a>

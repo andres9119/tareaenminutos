@@ -11,6 +11,12 @@ from django.core.cache import cache
 PRESENCE_KEY = "presence:online_users"
 PRESENCE_TTL = 300  # 5 minutos (debe ser mayor que heartbeat interval)
 
+# Ventana de actividad HTTP que también cuenta como "en línea" (minutos).
+# Respaldo cuando el WebSocket no conecta (pestaña sin socket, caché
+# fragmentada entre procesos, etc.): si el usuario navegó hace poco,
+# está en línea aunque no tenga socket abierto.
+ONLINE_ACTIVIDAD_MINUTOS = 3
+
 
 def _get_redis():
     """Obtener cliente Redis del channel layer o cache backend."""
@@ -146,3 +152,57 @@ def get_online_users_sync():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     return loop.run_until_complete(get_online_users())
+
+
+def obtener_en_linea():
+    """Personal interno en línea (sync, para vistas).
+
+    Unión de dos señales:
+    1. Socket WebSocket activo (notificaciones o chat).
+    2. Navegación HTTP reciente (ultima_conexion <= ONLINE_ACTIVIDAD_MINUTOS,
+       actualizada por InactividadMiddleware en cada navegación real).
+
+    Retorna lista de dicts {id, username, full_name, is_staff, via} donde
+    via es 'ws', 'http' o 'ambas'. Solo personal interno activo
+    (is_staff o grupo Administrador/Tutor).
+    """
+    from datetime import timedelta
+    from django.contrib.auth.models import User
+    from django.db.models import Q
+    from django.utils import timezone
+
+    por_id = {}
+    for u in get_online_users_sync():
+        por_id[u['id']] = {
+            'id': u['id'],
+            'username': u.get('username', ''),
+            'full_name': u.get('full_name', ''),
+            'is_staff': bool(u.get('is_staff', False)),
+            'via': 'ws',
+        }
+
+    limite = timezone.now() - timedelta(minutes=ONLINE_ACTIVIDAD_MINUTOS)
+    recientes = User.objects.filter(
+        Q(is_staff=True) | Q(groups__name__in=['Administrador', 'Tutor']),
+        is_active=True,
+        perfil__ultima_conexion__gte=limite,
+    ).distinct()
+    for u in recientes:
+        if u.id in por_id:
+            por_id[u.id]['via'] = 'ambas'
+        else:
+            por_id[u.id] = {
+                'id': u.id,
+                'username': u.username,
+                'full_name': u.get_full_name() or u.username,
+                'is_staff': u.is_staff,
+                'via': 'http',
+            }
+        # Completar nombres si el socket no los trajo
+        if not por_id[u.id]['username']:
+            por_id[u.id]['username'] = u.username
+        if not por_id[u.id]['full_name']:
+            por_id[u.id]['full_name'] = u.get_full_name() or u.username
+        por_id[u.id]['is_staff'] = por_id[u.id]['is_staff'] or u.is_staff
+
+    return list(por_id.values())
