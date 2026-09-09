@@ -36,10 +36,13 @@
             <div class="wa-date"><span>{{ e.etiqueta_fecha }}</span></div>
             {% endif %}
             <div class="wa-row {% if e.propio %}wa-row-own{% endif %}">
-                <div class="wa-bubble {% if e.propio %}wa-bubble-own{% endif %}">
+                <div class="wa-bubble {% if e.propio %}wa-bubble-own{% endif %}" data-msg-id="{{ e.mensaje.pk }}">
                     {% if e.mostrar_autor %}
                     <span class="wa-author">{{ e.mensaje.autor.get_full_name|default:e.mensaje.autor.username }}</span>
                     {% endif %}
+                    {% if e.mensaje.eliminado %}
+                    <span class="wa-deleted">Este mensaje fue eliminado.</span>
+                    {% else %}
                     {% if e.mensaje.archivo_adjunto %}
                         {% if e.es_imagen %}
                         <a class="wa-att-caja" href="{% url 'chat_adjunto_descargar' e.mensaje.pk %}?inline=1" target="_blank" rel="noopener" title="{{ e.mensaje.archivo_nombre }}">
@@ -56,9 +59,23 @@
                     {% if e.mensaje.tipo != 'archivo' or e.mensaje.archivo_nombre %}
                     <span class="wa-text">{{ e.mensaje.contenido|linebreaksbr }}</span>
                     {% endif %}
+                    {% endif %}
                     <span class="wa-meta">
-                        {{ e.hora }}
+                        {{ e.hora }}{% if e.mensaje.editado and not e.mensaje.eliminado %} <span class="wa-edit-badge">editado</span>{% endif %}{% if e.leido and e.propio and not e.mensaje.eliminado %} <span class="wa-leido">Leído</span>{% endif %}
                     </span>
+                    {% if e.propio and not e.mensaje.eliminado %}
+                    <div class="wa-actions">
+                        {% if e.editable %}
+                        <button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button>
+                        {% endif %}
+                        {% if e.eliminable %}
+                        <button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        {% endif %}
+                        {% if not e.editable and not e.eliminable %}
+                        <span class="wa-locked" title="{% if e.motivo_bloqueo == 'leido' %}Ya fue leído por el destinatario: no se puede editar ni eliminar{% elif e.motivo_bloqueo == 'ya_editado' %}Ya fue editado una vez{% else %}Ya pasó el tiempo de edición (15 minutos){% endif %}"><i class="fas fa-lock"></i></span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         {% empty %}
@@ -288,6 +305,19 @@
     background: var(--primary-glow);
     color: var(--primary);
 }
+.wa-locked {
+    color: var(--text-muted);
+    opacity: 0.6;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    cursor: help;
+}
+.wa-leido {
+    font-size: 0.62rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
 
 .wa-empty {
     text-align: center;
@@ -511,23 +541,32 @@
             '<span class="wa-att-caja-nombre">' + esc(nombre) + '</span></a>';
     }
 
-    function bubbleHTML(propio, showAutor, autorNombre, contenido, hora, adj, editado, eliminado) {
+    function bubbleHTML(propio, showAutor, autorNombre, contenido, hora, adj, editado, eliminado, msgId, leido) {
         const author = (propio || !showAutor) ? '' : '<span class="wa-author">' + esc(autorNombre) + '</span>';
         const editBadge = editado ? ' <span class="wa-edit-badge">editado</span>' : '';
+        const leidoBadge = (propio && leido && !eliminado) ? ' <span class="wa-leido">Leído</span>' : '';
         const deletedHtml = eliminado ? '<span class="wa-deleted">Este mensaje fue eliminado.</span>' : '';
         const adjHtml = adj ? adjuntoHTML(adj) : '';
         const mostrarTexto = !(adj && adj.tipomsg === 'archivo' && (!contenido || contenido.indexOf('Archivo:') === 0));
-        const htmlTexto = mostrarTexto
+        const htmlTexto = (mostrarTexto && !eliminado)
             ? '<span class="wa-text">' + esc(contenido || '').replace(/\n/g, '<br>') + '</span>' : '';
+        let actions = '';
+        if (propio && !eliminado) {
+            if (leido) {
+                actions = '<div class="wa-actions" style="display:inline-flex;" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><span class="wa-locked"><i class="fas fa-lock"></i></span></div>';
+            } else {
+                actions = '<div class="wa-actions"><button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>';
+            }
+        }
         return `
-            <div class="wa-bubble ${propio ? 'wa-bubble-own' : ''}" data-msg-id="${adj && adj.id ? adj.id : ''}">
+            <div class="wa-bubble ${propio ? 'wa-bubble-own' : ''}" data-msg-id="${msgId || (adj && adj.id ? adj.id : '')}">
                 ${author}
                 ${adjHtml}
                 ${htmlTexto}
                 ${editBadge}
                 ${deletedHtml}
-                <span class="wa-meta">${esc(hora || 'ahora')}${editBadge}</span>
-                ${propio && !eliminado ? '<div class="wa-actions"><button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>' : ''}
+                <span class="wa-meta">${esc(hora || 'ahora')}${editBadge}${leidoBadge}</span>
+                ${actions}
             </div>`;
     }
 
@@ -557,7 +596,7 @@
         const adj = { tipomsg: data.tipomsg || 'texto', adjunto_url: data.adjunto_url || '',
             adjunto_nombre: data.adjunto_nombre || '', adjunto_es_imagen: data.adjunto_es_imagen || false,
             adjunto_es_pdf: data.adjunto_es_pdf || false };
-        row.innerHTML = bubbleHTML(propio, showAutor, data.username, data.message, data.created_at, adj, data.editado, data.eliminado);
+        row.innerHTML = bubbleHTML(propio, showAutor, data.username, data.message, data.created_at, adj, data.editado, data.eliminado, data.id, data.leido);
         insertBeforeTyping(row);
         scrollBottom();
     }
@@ -583,7 +622,7 @@
             if (!propio && m.autor_id !== lastAutor) { showAutor = true; lastAutor = m.autor_id; }
             const row = document.createElement('div');
             row.className = 'wa-row' + (propio ? ' wa-row-own' : '');
-            row.innerHTML = bubbleHTML(propio, showAutor, m.autor_nombre, m.contenido, m.created_at, m, m.editado, m.eliminado);
+            row.innerHTML = bubbleHTML(propio, showAutor, m.autor_nombre, m.contenido, m.created_at, m, m.editado, m.eliminado, m.id, m.leido);
             messagesDiv.appendChild(row);
         });
         messagesDiv.appendChild(typingEl);
@@ -648,13 +687,17 @@
                 const bubble = messagesDiv.querySelector('.wa-bubble[data-msg-id="' + m.id + '"]');
                 if (bubble) {
                     const textSpan = bubble.querySelector('.wa-text');
-                    if (textSpan) textSpan.innerHTML = esc(m.message || '').replace(/\n/g, '<br>');
+                    if (textSpan) textSpan.innerHTML = esc(m.contenido || '').replace(/\n/g, '<br>');
                     const meta = bubble.querySelector('.wa-meta');
                     if (meta) {
                         const editBadge = m.editado ? ' <span class="wa-edit-badge">editado</span>' : '';
                         meta.innerHTML = esc(m.created_at || 'ahora') + editBadge;
                     }
                 }
+                return;
+            }
+            if (data.type === 'error') {
+                alert(data.mensaje || 'No se pudo completar la acción.');
                 return;
             }
             if (data.type === 'mensaje_eliminado') {

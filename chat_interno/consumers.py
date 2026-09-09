@@ -99,7 +99,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             nuevo_contenido = data.get('contenido', '').strip()
             if not mensaje_id or not nuevo_contenido:
                 return
-            mensaje = await self.editar_mensaje(mensaje_id, nuevo_contenido)
+            mensaje, motivo = await self.editar_mensaje(mensaje_id, nuevo_contenido)
             if mensaje:
                 await self.channel_layer.group_send(
                     self.group_name,
@@ -108,12 +108,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'mensaje': mensaje,
                     }
                 )
+            elif motivo:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'mensaje': motivo,
+                }))
 
         elif tipo == 'eliminar_mensaje':
             mensaje_id = data.get('mensaje_id')
             if not mensaje_id:
                 return
-            ok = await self.eliminar_mensaje(mensaje_id)
+            ok, motivo = await self.eliminar_mensaje(mensaje_id)
             if ok:
                 await self.channel_layer.group_send(
                     self.group_name,
@@ -122,6 +127,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'mensaje_id': mensaje_id,
                     }
                 )
+            elif motivo:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'mensaje': motivo,
+                }))
 
         elif tipo == 'typing':
             # Indicador de escritura (no se persiste); quien no puede escribir no lo envía
@@ -141,6 +151,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         m = event['mensaje']
         await self.send(text_data=json.dumps({
             'type': 'mensaje',
+            'id': m.get('id'),
             'autor_id': m.get('autor_id'),
             'username': m.get('autor_nombre', ''),
             'message': m.get('contenido', ''),
@@ -154,6 +165,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'created_at_full': m.get('created_at_full', ''),
             'editado': m.get('editado'),
             'eliminado': m.get('eliminado', False),
+            'leido': m.get('leido', False),
         }))
 
     async def typing_indicator(self, event):
@@ -185,14 +197,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from django.utils import timezone
         try:
             mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
-            if not mensaje.puede_editar(self.user):
-                return None
+            motivo = mensaje.motivo_no_editable(self.user)
+            if motivo is not None:
+                if motivo == 'leido':
+                    return None, 'Ya fue leído por el destinatario: no se puede editar.'
+                if motivo == 'ya_editado':
+                    return None, 'Este mensaje ya fue editado una vez.'
+                return None, 'Ya pasó el tiempo de edición (15 minutos).'
             mensaje.contenido = nuevo_contenido
             mensaje.editado = timezone.now()
             mensaje.save(update_fields=['contenido', 'editado'])
-            return mensaje.to_dict()
+            return mensaje.to_dict(), None
         except MensajeChat.DoesNotExist:
-            return None
+            return None, None
 
     @database_sync_to_async
     def eliminar_mensaje(self, mensaje_id):
@@ -200,13 +217,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
             if not mensaje.puede_eliminar(self.user):
-                return False
+                return False, 'Ya fue leído por el destinatario: no se puede eliminar.'
             mensaje.eliminado = True
             mensaje.contenido = 'Este mensaje fue eliminado.'
             mensaje.save(update_fields=['eliminado', 'contenido'])
-            return True
+            return True, None
         except MensajeChat.DoesNotExist:
-            return False
+            return False, None
 
     @database_sync_to_async
     def verificar_acceso(self):
@@ -266,7 +283,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from chat_interno.models import SalaChat
         try:
             sala = SalaChat.objects.get(pk=self.sala_id)
-            mensajes = sala.mensajes.order_by('-created_at')[:50]
+            mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('-created_at')[:50]
             return [m.to_dict() for m in reversed(list(mensajes))]
         except SalaChat.DoesNotExist:
             return []

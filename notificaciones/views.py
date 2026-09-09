@@ -17,10 +17,12 @@ def notificaciones_list(request):
     No marca todo como leído automáticamente para que el usuario pueda
     distinguir lo pendiente. El leído se gestiona por item o con el botón
     "Marcar todas leídas".
+
+    Los mensajes de chat no se listan aquí: viven en el icono de mensajes.
     """
     notificaciones = Notificacion.objects.filter(
         destinatario=request.user
-    ).order_by('-created_at')
+    ).exclude(tipo='mensaje_chat').order_by('-created_at')
 
     paginator = Paginator(notificaciones, 20)
     page = request.GET.get('page', 1)

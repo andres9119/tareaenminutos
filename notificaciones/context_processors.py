@@ -7,16 +7,19 @@ from notificaciones.models import Notificacion
 
 
 def notificaciones_no_leidas(request):
-    """Añade conteo de notificaciones no leídas al contexto de todos los templates."""
+    """Añade conteo de notificaciones no leídas al contexto de todos los templates.
+
+    Los mensajes de chat (tipo 'mensaje_chat') NO entran en la campanita:
+    se avisan solo por el icono de mensajes (badge + sonido + punto móvil).
+    Las filas se conservan (email y auditoría siguen funcionando).
+    """
     if request.user.is_authenticated:
-        count = Notificacion.objects.filter(
+        qs = Notificacion.objects.filter(
             destinatario=request.user,
             leida=False
-        ).count()
-        ultimas = Notificacion.objects.filter(
-            destinatario=request.user,
-            leida=False
-        ).order_by('-created_at')[:5]
+        ).exclude(tipo='mensaje_chat')
+        count = qs.count()
+        ultimas = qs.order_by('-created_at')[:5]
         return {
             'notificaciones_count': count,
             'notificaciones_recientes': ultimas,

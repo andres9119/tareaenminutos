@@ -519,6 +519,14 @@ footer {
 .cw-row-own .cw-bubble { background: var(--primary); border-color: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
 .cw-row:not(.cw-row-own) .cw-bubble { border-bottom-left-radius: 4px; }
 .cw-meta { display: block; font-size: 0.58rem; opacity: 0.7; margin-top: 2px; text-align: right; }
+.cw-editado { font-size: 0.58rem; opacity: 0.75; font-style: italic; margin-left: 0.25rem; }
+.cw-leido { font-size: 0.58rem; font-weight: 700; margin-left: 0.25rem; }
+.cw-deleted { font-style: italic; opacity: 0.75; font-size: 0.78rem; }
+.cw-actions { display: none; gap: 0.15rem; margin-top: 2px; justify-content: flex-end; }
+.cw-row-own .cw-bubble:hover .cw-actions { display: inline-flex; }
+.cw-actions button { background: transparent; border: none; cursor: pointer; font-size: 0.66rem; padding: 0.1rem 0.25rem; border-radius: 4px; color: inherit; opacity: 0.75; }
+.cw-actions button:hover { opacity: 1; background: rgba(255,255,255,0.18); }
+.cw-locked { font-size: 0.62rem; opacity: 0.7; cursor: help; }
 .cw-date-sep { display: flex; justify-content: center; margin: 0.45rem 0 0.15rem; }
 .cw-date-sep span { background: var(--bg-base); color: var(--text-muted); border: 1px solid var(--border-glow); border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.64rem; font-weight: 500; }
 .cw-empty { margin: auto; text-align: center; color: var(--text-muted); font-size: 0.82rem; }
@@ -1171,6 +1179,8 @@ footer {
             function agregarNotif(notif) {
                 const dropdown = document.getElementById('notifDropdown');
                 if (!dropdown) return;
+                // Defensa: los mensajes de chat nunca entran a la campanita
+                if (notif && notif.tipo === 'mensaje_chat') return;
                 const empty = dropdown.querySelector('.notif-dropdown-empty');
                 if (empty) empty.remove();
                 let footer = dropdown.querySelector('.notif-dropdown-footer');
@@ -1263,6 +1273,13 @@ footer {
                 notifSocket.onmessage = function(e) {
                     const data = JSON.parse(e.data);
                     if (data.type === 'notificacion') {
+                        // Los mensajes de chat NO van a la campanita: solo refrescan
+                        // el icono de mensajes (badge + sonido lo pone el polling).
+                        if (data.notif && data.notif.tipo === 'mensaje_chat') {
+                            if (window.__actualizarChats) window.__actualizarChats();
+                            if (window.actualizarIndicadorMovil) window.actualizarIndicadorMovil();
+                            return;
+                        }
                         const count = parseInt(notifBadge.textContent) || 0;
                         const newCount = count + 1;
                         notifBadge.textContent = newCount;
@@ -1476,11 +1493,12 @@ footer {
             }
 
             function fechaMensaje(d) {
-                return { autor_id: d.autor_id, autor_nombre: d.autor_nombre,
+                return { id: d.id, autor_id: d.autor_id, autor_nombre: d.autor_nombre,
                     contenido: d.contenido, hora: d.created_at, fecha: d.fecha,
                     tipomsg: d.tipo || 'texto', adjunto_url: d.adjunto_url || '',
                     adjunto_nombre: d.adjunto_nombre || '', adjunto_es_imagen: d.adjunto_es_imagen || false,
-                    adjunto_es_pdf: d.adjunto_es_pdf || false };
+                    adjunto_es_pdf: d.adjunto_es_pdf || false,
+                    editado: d.editado || null, eliminado: !!d.eliminado, leido: !!d.leido };
             }
 
             function burbujaHTML(m, prevFecha) {
@@ -1492,13 +1510,29 @@ footer {
                     sep = '<div class="cw-date-sep"><span>' + esc(m.fecha) + '</span></div>';
                 }
                 var adj = adjuntoHTML(m);
-                var texto = (m.tipomsg === 'archivo' && adj)
-                    ? (m.contenido && m.contenido.indexOf('Archivo:') !== 0 ? '<div class="cw-adj-msg">' + esc(m.contenido) + '</div>' : '')
-                    : esc(m.contenido || '');
+                var texto;
+                if (m.eliminado) {
+                    texto = '<span class="cw-deleted">Este mensaje fue eliminado.</span>';
+                } else if (m.tipomsg === 'archivo' && adj) {
+                    texto = (m.contenido && m.contenido.indexOf('Archivo:') !== 0 ? '<div class="cw-adj-msg">' + esc(m.contenido) + '</div>' : '');
+                } else {
+                    texto = esc(m.contenido || '');
+                }
+                var meta = '<span class="cw-meta">' + esc(m.hora || '') +
+                    (m.editado && !m.eliminado ? '<span class="cw-editado">editado</span>' : '') +
+                    ((propio && m.leido && !m.eliminado) ? '<span class="cw-leido">Leído</span>' : '') + '</span>';
+                var actions = '';
+                if (propio && !m.eliminado) {
+                    if (m.leido) {
+                        actions = '<div class="cw-actions" style="display:inline-flex;" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><span class="cw-locked"><i class="fas fa-lock"></i></span></div>';
+                    } else {
+                        actions = '<div class="cw-actions"><button class="cw-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="cw-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>';
+                    }
+                }
                 return sep + '<div class="cw-row' + (propio ? ' cw-row-own' : '') + '">' +
                     '<div class="cw-col">' + autor +
-                    '<div class="cw-bubble">' + adj + texto +
-                    '<span class="cw-meta">' + esc(m.hora || '') + '</span></div></div></div>';
+                    '<div class="cw-bubble" data-msg-id="' + (m.id || '') + '">' + adj + texto +
+                    meta + actions + '</div></div></div>';
             }
 
             function adjuntoHTML(m) {
@@ -1549,13 +1583,14 @@ footer {
                     var d = JSON.parse(ev.data);
                     if (d.type === 'historial') {
                         st.data.mensajes = d.mensajes.map(function(m) {
-                            return { autor_id: m.autor_id, autor_nombre: m.autor_nombre,
+                            return { id: m.id, autor_id: m.autor_id, autor_nombre: m.autor_nombre,
                                      contenido: m.contenido, hora: m.created_at, fecha: m.fecha,
                                      tipomsg: m.tipo || 'texto',
                                      adjunto_url: m.adjunto_url || '',
                                      adjunto_nombre: m.adjunto_nombre || '',
                                      adjunto_es_imagen: m.adjunto_es_imagen || false,
-                                     adjunto_es_pdf: m.adjunto_es_pdf || false };
+                                     adjunto_es_pdf: m.adjunto_es_pdf || false,
+                                     editado: m.editado || null, eliminado: !!m.eliminado, leido: !!m.leido };
                         });
                         renderHistorial(st);
                         marcarLeido(id);
@@ -1564,13 +1599,14 @@ footer {
                         var vacio = body.querySelector('.cw-empty');
                         if (vacio) vacio.remove();
                         var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
-                        var nm = { autor_id: d.autor_id, autor_nombre: d.username,
+                        var nm = { id: d.id, autor_id: d.autor_id, autor_nombre: d.username,
                             contenido: d.message, hora: d.created_at, fecha: d.fecha,
                             tipomsg: d.tipomsg || 'texto',
                             adjunto_url: d.adjunto_url || '',
                             adjunto_nombre: d.adjunto_nombre || '',
                             adjunto_es_imagen: d.adjunto_es_imagen || false,
-                            adjunto_es_pdf: d.adjunto_es_pdf || false };
+                            adjunto_es_pdf: d.adjunto_es_pdf || false,
+                            editado: d.editado || null, eliminado: !!d.eliminado, leido: !!d.leido };
                         body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
                         st.data.mensajes.push(nm);
                         scrollFin(st);
@@ -1578,6 +1614,25 @@ footer {
                             sonidoChat();
                             marcarLeido(id); // ventana visible: queda leído al instante
                         }
+                    } else if (d.type === 'mensaje_editado') {
+                        var em = d.mensaje || {};
+                        var eb = st.el.querySelector('.cw-bubble[data-msg-id="' + em.id + '"]');
+                        if (eb) {
+                            st.data.mensajes.forEach(function(x) {
+                                if (x.id === em.id) { x.contenido = em.contenido; x.editado = em.editado; }
+                            });
+                            renderHistorial(st);
+                        }
+                    } else if (d.type === 'mensaje_eliminado') {
+                        var db = st.el.querySelector('.cw-bubble[data-msg-id="' + d.mensaje_id + '"]');
+                        if (db) {
+                            st.data.mensajes.forEach(function(x) {
+                                if (x.id === d.mensaje_id) { x.eliminado = true; x.contenido = 'Este mensaje fue eliminado.'; }
+                            });
+                            renderHistorial(st);
+                        }
+                    } else if (d.type === 'error') {
+                        alert(d.mensaje || 'No se pudo completar la acción.');
                     }
                 };
                 ws.onclose = function() {
@@ -1616,6 +1671,30 @@ footer {
                 el.querySelector('.cw-head').addEventListener('click', function(e) {
                     if (e.target.closest('.cw-head-actions')) return;
                     minimizar(id);
+                });
+
+                // Editar/eliminar mensajes propios (igual que la ventana ampliada)
+                el.querySelector('.cw-body').addEventListener('click', function(e) {
+                    var editBtn = e.target.closest('.cw-edit-btn');
+                    var deleteBtn = e.target.closest('.cw-delete-btn');
+                    if (!editBtn && !deleteBtn) return;
+                    var bubble = (editBtn || deleteBtn).closest('.cw-bubble');
+                    var msgId = bubble && bubble.getAttribute('data-msg-id');
+                    if (!msgId) return;
+                    var s = abiertos.get(id);
+                    if (!s || !s.ws || s.ws.readyState !== WebSocket.OPEN) return;
+                    if (editBtn) {
+                        var current = '';
+                        s.data.mensajes.forEach(function(x) { if (String(x.id) === String(msgId)) current = x.contenido || ''; });
+                        var nuevo = prompt('Editar mensaje:', current);
+                        if (nuevo !== null && nuevo.trim() !== '' && nuevo.trim() !== current) {
+                            s.ws.send(JSON.stringify({ 'type': 'editar_mensaje', 'mensaje_id': parseInt(msgId, 10), 'contenido': nuevo.trim() }));
+                        }
+                    } else {
+                        if (confirm('¿Eliminar este mensaje?')) {
+                            s.ws.send(JSON.stringify({ 'type': 'eliminar_mensaje', 'mensaje_id': parseInt(msgId, 10) }));
+                        }
+                    }
                 });
 
                 var ta = el.querySelector('textarea');
@@ -1660,12 +1739,14 @@ footer {
                                 return r.json().catch(function() { return { ok: false, error: 'El servidor no respondió correctamente. Revisa si el archivo llegó.' }; });
                             }).then(function(data) {
                                 if (data && data.ok && data.mensaje) {
-                                    var ultFecha = st.data.mensajes.length ? st.data.mensajes[st.data.mensajes.length - 1].fecha : null;
+                                    var sWin = abiertos.get(id);
+                                    var msgs = sWin ? sWin.data.mensajes : [];
+                                    var ultFecha = msgs.length ? msgs[msgs.length - 1].fecha : null;
                                     var nm = fechaMensaje(data.mensaje);
-                                    var body = st.el.querySelector('.cw-body');
+                                    var body = el.querySelector('.cw-body');
                                     body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
-                                    st.data.mensajes.push(nm);
-                                    scrollFin(st);
+                                    msgs.push(nm);
+                                    if (sWin) scrollFin(sWin);
                                 } else if (data && data.error) {
                                     alert(data.error);
                                 }
@@ -1673,8 +1754,8 @@ footer {
                             }).catch(function(e) {
                                 console.error('Error subiendo adjunto:', e);
                                 if (!tArchivo) return;
-                                var yaLlego = Array.prototype.some.call(st.el.querySelectorAll('.cw-att-caja-nombre, .cw-att-img'), function(el) {
-                                    return el.getAttribute('title') === tArchivo.name || (el.alt && el.alt === tArchivo.name);
+                                var yaLlego = Array.prototype.some.call(el.querySelectorAll('.cw-att-caja-nombre, .cw-att-img'), function(node) {
+                                    return node.getAttribute('title') === tArchivo.name || (node.alt && node.alt === tArchivo.name);
                                 });
                                 if (!yaLlego) alert('No se pudo subir el archivo. Revisa tu conexión.');
                             });

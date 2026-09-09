@@ -130,24 +130,39 @@ class MensajeChat(models.Model):
         autor = self.autor.username if self.autor else 'Usuario eliminado'
         return f"{autor}: {self.contenido[:50]}"
 
+    def fue_leido_por_otro(self):
+        """True si alguien distinto del autor ya leyó el mensaje."""
+        return self.leido_por.exclude(pk=self.autor_id).exists()
+
+    def motivo_no_editable(self, user):
+        """None si puede editar; si no, el motivo en claro para la UI."""
+        if self.eliminado or self.autor_id != getattr(user, 'pk', None):
+            return None
+        if self.fue_leido_por_otro():
+            return 'leido'
+        if self.editado:
+            return 'ya_editado'
+        from django.utils import timezone
+        from datetime import timedelta
+        if timezone.now() - self.created_at >= timedelta(minutes=self.TIEMPO_EDITAR_MINUTOS):
+            return 'tiempo'
+        return None
+
     def puede_editar(self, user):
-        """Verifica si el usuario puede editar este mensaje."""
-        if self.eliminado or self.autor != user:
+        """Verifica si el usuario puede editar este mensaje (solo el autor)."""
+        if self.eliminado or self.autor_id != getattr(user, 'pk', None):
             return False
-        if not self.editado:
-            # Nunca editado: dentro del límite desde created_at
-            from django.utils import timezone
-            from datetime import timedelta
-            return timezone.now() - self.created_at < timedelta(minutes=self.TIEMPO_EDITAR_MINUTOS)
-        # Ya editado: no permitir re-edición (o permitir si se desea)
-        return False
+        return self.motivo_no_editable(user) is None
 
     def puede_eliminar(self, user):
-        """Verifica si el usuario puede eliminar este mensaje."""
+        """Verifica si el usuario puede eliminar este mensaje.
+
+        Solo el autor, y solo mientras nadie más lo haya leído."""
         if self.eliminado:
             return False
-        # Solo el autor puede eliminar sus mensajes
-        return self.autor == user
+        if self.autor_id != getattr(user, 'pk', None):
+            return False
+        return not self.fue_leido_por_otro()
 
     def to_dict(self):
         """Serializa el mensaje para WebSocket y JSON."""
@@ -179,5 +194,6 @@ class MensajeChat(models.Model):
             'fecha': local.strftime('%d/%m/%Y'),
             'editado': self.editado.isoformat() if self.editado else None,
             'eliminado': self.eliminado,
+            'leido': self.fue_leido_por_otro(),
         }
         return data

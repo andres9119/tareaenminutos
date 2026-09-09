@@ -37,7 +37,7 @@ def sala_chat(request, pk):
         m.leido_por.add(request.user)
 
     # Últimos 50 mensajes (se actualizan via WebSocket)
-    mensajes = sala.mensajes.select_related('autor').order_by('created_at')[:50]
+    mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('created_at')[:50]
 
     # Si es sala de solicitud, agregar al tutor asignado si existe
     if sala.solicitud and sala.solicitud.tutor_asignado:
@@ -67,6 +67,8 @@ def sala_chat(request, pk):
         if not propio and m.autor_id != ultimo_autor:
             mostrar_autor = True
             ultimo_autor = m.autor_id
+        leido = m.leido_por.exclude(pk=m.autor_id).exists() if propio else False
+        motivo_bloqueo = m.motivo_no_editable(request.user) if propio else None
         entradas.append({
             'mensaje': m,
             'propio': propio,
@@ -75,6 +77,10 @@ def sala_chat(request, pk):
             'hora': local.strftime('%H:%M'),
             'es_imagen': _adjunto_es_imagen(m),
             'es_pdf': _adjunto_es_pdf(m),
+            'leido': leido,
+            'editable': propio and m.puede_editar(request.user),
+            'eliminable': propio and m.puede_eliminar(request.user),
+            'motivo_bloqueo': motivo_bloqueo,
         })
         fecha_anterior = fecha
 
@@ -110,7 +116,7 @@ def chat_mensajes_json(request, pk):
     for m in sala.mensajes.exclude(autor=request.user):
         m.leido_por.add(request.user)
 
-    mensajes = sala.mensajes.select_related('autor').order_by('-created_at')[:50]
+    mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('-created_at')[:50]
     datos = [m.to_dict() for m in reversed(list(mensajes))]
 
     return JsonResponse({
