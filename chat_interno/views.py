@@ -181,6 +181,26 @@ def chat_mensajes_json(request, pk):
 
 
 @admin_o_tutor_required
+def chat_lectores(request, mensaje_id):
+    """Quiénes leyeron un mensaje (solo administradores).
+
+    Para que el admin sepa quién vio cada anuncio del canal general.
+    """
+    from django.http import Http404, JsonResponse
+    if not es_admin(request.user):
+        raise Http404('No tienes acceso.')
+    m = get_object_or_404(MensajeChat, pk=mensaje_id)
+    sala = m.sala
+    if sala.tipo == 'directa' and not sala.participantes.filter(pk=request.user.pk).exists():
+        raise Http404('No tienes acceso a esta sala.')
+    lectores = [
+        (u.get_full_name() or u.username)
+        for u in m.leido_por.exclude(pk=m.autor_id).order_by('username')
+    ]
+    return JsonResponse({'ok': True, 'total': len(lectores), 'lectores': lectores})
+
+
+@admin_o_tutor_required
 def iniciar_chat_directo(request, user_id):
     """Crea o reutiliza un chat directo entre el usuario actual y el usuario indicado."""
     from django.contrib.auth.models import User

@@ -63,6 +63,9 @@
                     <span class="wa-meta">
                         {{ e.hora }}{% if e.mensaje.editado and not e.mensaje.eliminado %} <span class="wa-edit-badge">editado</span>{% endif %}{% if e.leido and e.propio and not e.mensaje.eliminado %} <span class="wa-leido">Leído</span>{% endif %}
                     </span>
+                    {% if es_admin and sala.tipo == 'general' and not e.mensaje.eliminado %}
+                    <button class="wa-info-btn" data-msg-id="{{ e.mensaje.pk }}" title="Ver quiénes lo leyeron"><i class="fas fa-info-circle"></i></button>
+                    {% endif %}
                     {% if e.propio and not e.mensaje.eliminado %}
                     <div class="wa-actions">
                         {% if e.editable %}
@@ -105,6 +108,8 @@
 
 {{ sala.id|json_script:"sala-id" }}
 {{ user_id|json_script:"user-id" }}
+{{ es_admin|json_script:"es-admin" }}
+{{ sala.tipo|json_script:"sala-tipo" }}
 
 <style>
 .wa-chat {
@@ -318,6 +323,19 @@
     font-weight: 600;
     margin-left: 0.25rem;
 }
+.wa-info-btn {
+    background: none; border: none; cursor: pointer; padding: 0.1rem 0.25rem;
+    color: var(--text-muted); font-size: 0.7rem; opacity: 0.75; vertical-align: middle;
+}
+.wa-info-btn:hover { color: var(--primary); opacity: 1; }
+.wa-readers-pop {
+    position: fixed; z-index: 10000; max-width: 240px;
+    background: var(--bg-surface-opaque); border: 1px solid var(--border-glow);
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--text-main);
+}
+.wa-readers-pop strong { display: block; margin-bottom: 0.3rem; }
+.wa-readers-pop ul { margin: 0; padding-left: 1.1rem; max-height: 160px; overflow-y: auto; }
 
 .wa-empty {
     text-align: center;
@@ -454,6 +472,37 @@
 (function() {
     const salaId = JSON.parse(document.getElementById('sala-id').textContent);
     const userId = JSON.parse(document.getElementById('user-id').textContent);
+    const esAdmin = JSON.parse(document.getElementById('es-admin').textContent);
+    const salaTipo = JSON.parse(document.getElementById('sala-tipo').textContent);
+    // Admin en canal general: edita/elimina sin restricciones y ve quién leyó
+    const ADMIN_GENERAL = !!(esAdmin && salaTipo === 'general');
+
+    function mostrarLectores(msgId, x, y) {
+        document.querySelectorAll('.wa-readers-pop').forEach(function(p) { p.remove(); });
+        const pop = document.createElement('div');
+        pop.className = 'wa-readers-pop';
+        pop.innerHTML = '<strong>Lectores</strong><span>Cargando…</span>';
+        pop.style.left = Math.min(x, window.innerWidth - 250) + 'px';
+        pop.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+        document.body.appendChild(pop);
+        fetch('/app/chat/lectores/' + msgId + '/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.ok) { pop.innerHTML = '<strong>Lectores</strong><span>Sin acceso.</span>'; return; }
+                pop.innerHTML = '<strong>Leído por ' + data.total + '</strong>' +
+                    (data.total ? '<ul>' + data.lectores.map(function(n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>'
+                                : '<span>Nadie lo ha leído aún.</span>');
+            })
+            .catch(function() { pop.innerHTML = '<strong>Lectores</strong><span>No se pudo cargar.</span>'; });
+        setTimeout(function() {
+            document.addEventListener('click', function cerrar(e) {
+                if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', cerrar); }
+            });
+            document.addEventListener('keydown', function esc2(e) {
+                if (e.key === 'Escape') { pop.remove(); document.removeEventListener('keydown', esc2); }
+            });
+        }, 0);
+    }
 
     const messagesDiv = document.getElementById('wa-messages');
     const input = document.getElementById('wa-input');
@@ -545,6 +594,7 @@
         const author = (propio || !showAutor) ? '' : '<span class="wa-author">' + esc(autorNombre) + '</span>';
         const editBadge = editado ? ' <span class="wa-edit-badge">editado</span>' : '';
         const leidoBadge = (propio && leido && !eliminado) ? ' <span class="wa-leido">Leído</span>' : '';
+        const infoBtn = (ADMIN_GENERAL && !eliminado) ? ' <button class="wa-info-btn" data-msg-id="' + (msgId || (adj && adj.id ? adj.id : '')) + '" title="Ver quiénes lo leyeron"><i class="fas fa-info-circle"></i></button>' : '';
         const deletedHtml = eliminado ? '<span class="wa-deleted">Este mensaje fue eliminado.</span>' : '';
         const adjHtml = adj ? adjuntoHTML(adj) : '';
         const mostrarTexto = !(adj && adj.tipomsg === 'archivo' && (!contenido || contenido.indexOf('Archivo:') === 0));
@@ -552,7 +602,7 @@
             ? '<span class="wa-text">' + esc(contenido || '').replace(/\n/g, '<br>') + '</span>' : '';
         let actions = '';
         if (propio && !eliminado) {
-            if (leido) {
+            if (leido && !ADMIN_GENERAL) {
                 actions = '<div class="wa-actions" style="display:inline-flex;" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><span class="wa-locked"><i class="fas fa-lock"></i></span></div>';
             } else {
                 actions = '<div class="wa-actions"><button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>';
@@ -565,7 +615,7 @@
                 ${htmlTexto}
                 ${editBadge}
                 ${deletedHtml}
-                <span class="wa-meta">${esc(hora || 'ahora')}${editBadge}${leidoBadge}</span>
+                <span class="wa-meta">${esc(hora || 'ahora')}${editBadge}${leidoBadge}${infoBtn}</span>
                 ${actions}
             </div>`;
     }
@@ -842,6 +892,12 @@
     messagesDiv.addEventListener('click', function(e) {
         const editBtn = e.target.closest('.wa-edit-btn');
         const deleteBtn = e.target.closest('.wa-delete-btn');
+        const infoBtn = e.target.closest('.wa-info-btn');
+        if (infoBtn) {
+            const mid = infoBtn.getAttribute('data-msg-id');
+            if (mid) mostrarLectores(mid, e.clientX || 100, e.clientY || 100);
+            return;
+        }
         if (editBtn) {
             const bubble = editBtn.closest('.wa-bubble');
             const msgId = bubble?.dataset?.msgId;

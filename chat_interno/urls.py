@@ -7,6 +7,7 @@ urlpatterns = [
     path('general/', views.sala_general, name='sala_general'),
     path('datos/', views.datos_messenger, name='datos_messenger'),
     path('<int:pk>/mensajes/', views.chat_mensajes_json, name='chat_mensajes_json'),
+    path('lectores/<int:mensaje_id>/', views.chat_lectores, name='chat_lectores'),
     path('<int:pk>/adjunto/', views.chat_adjunto_subir, name='chat_adjunto_subir'),
     path('adjunto/<int:mensaje_id>/', views.chat_adjunto_descargar, name='chat_adjunto_descargar'),
     path('<int:pk>/pdf/', views.sala_chat_pdf, name='sala_chat_pdf'),

@@ -145,9 +145,26 @@ class MensajeChat(models.Model):
         """True si alguien distinto del autor ya leyó el mensaje."""
         return self.leido_por.exclude(pk=self.autor_id).exists()
 
+    def _admin_override_general(self, user):
+        """True si `user` es admin y el mensaje es del canal general.
+
+        En el canal de anuncios el admin puede editar/eliminar sin las
+        restricciones normales (leído, tiempo, ya editado)."""
+        if getattr(user, 'pk', None) is None:
+            return False
+        es_admin = getattr(user, 'is_staff', False) or user.groups.filter(name='Administrador').exists()
+        if not es_admin:
+            return False
+        try:
+            return self.sala.tipo == 'general'
+        except Exception:
+            return False
+
     def motivo_no_editable(self, user):
         """None si puede editar; si no, el motivo en claro para la UI."""
         if self.eliminado or self.autor_id != getattr(user, 'pk', None):
+            return None
+        if self._admin_override_general(user):
             return None
         if self.fue_leido_por_otro():
             return 'leido'
@@ -168,11 +185,14 @@ class MensajeChat(models.Model):
     def puede_eliminar(self, user):
         """Verifica si el usuario puede eliminar este mensaje.
 
-        Solo el autor, y solo mientras nadie más lo haya leído."""
+        Solo el autor, y solo mientras nadie más lo haya leído.
+        Excepción: admin en el canal general, siempre."""
         if self.eliminado:
             return False
         if self.autor_id != getattr(user, 'pk', None):
             return False
+        if self._admin_override_general(user):
+            return True
         return not self.fue_leido_por_otro()
 
     def to_dict(self):

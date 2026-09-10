@@ -524,6 +524,16 @@ footer {
 .cw-meta { display: block; font-size: 0.58rem; opacity: 0.7; margin-top: 2px; text-align: right; }
 .cw-editado { font-size: 0.58rem; opacity: 0.75; font-style: italic; margin-left: 0.25rem; }
 .cw-leido { font-size: 0.58rem; font-weight: 700; margin-left: 0.25rem; }
+.cw-info-btn { background: transparent; border: none; cursor: pointer; font-size: 0.62rem; padding: 0 0.15rem; color: inherit; opacity: 0.75; }
+.cw-info-btn:hover { opacity: 1; }
+.cw-readers-pop {
+    position: fixed; z-index: 10000; max-width: 240px;
+    background: var(--bg-surface-opaque); border: 1px solid var(--border-glow);
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--text-main);
+}
+.cw-readers-pop strong { display: block; margin-bottom: 0.3rem; }
+.cw-readers-pop ul { margin: 0; padding-left: 1.1rem; max-height: 160px; overflow-y: auto; }
 .cw-deleted { font-style: italic; opacity: 0.75; font-size: 0.78rem; }
 .cw-actions { display: none; gap: 0.15rem; margin-top: 2px; justify-content: flex-end; }
 .cw-row-own .cw-bubble:hover .cw-actions { display: inline-flex; }
@@ -1560,6 +1570,7 @@ footer {
     </script>
 
     {{ user.pk|json_script:"cw-user-id" }}
+    {{ user.is_staff|json_script:"cw-es-admin" }}
     <script>
         /* Ventanas de chat flotantes (estilo Facebook: solo la forma de mostrarse).
            Cada ventana trae su historial via /mensajes/ y vive vía WebSocket. */
@@ -1578,6 +1589,7 @@ footer {
                 return b;
             })();
             var userId = JSON.parse(document.getElementById('cw-user-id').textContent);
+            var esAdminChat = JSON.parse(document.getElementById('cw-es-admin').textContent);
             var MAX_VISIBLE = 3;
             var abiertos = new Map(); // id -> {data, ws, el, min}
             var pendientes = new Set(); // ids en proceso de abrir (evita duplicados)
@@ -1603,8 +1615,9 @@ footer {
                 return m ? m[1] : '';
             }
 
-            function burbujaHTML(m, prevFecha) {
+            function burbujaHTML(m, prevFecha, esGeneral) {
                 var propio = m.autor_id === userId;
+                var adminGeneral = !!(esAdminChat && esGeneral);
                 var autor = (!propio && m.autor_nombre)
                     ? '<span class="cw-autor">' + esc(m.autor_nombre) + '</span>' : '';
                 var sep = '';
@@ -1622,10 +1635,11 @@ footer {
                 }
                 var meta = '<span class="cw-meta">' + esc(m.hora || '') +
                     (m.editado && !m.eliminado ? '<span class="cw-editado">editado</span>' : '') +
-                    ((propio && m.leido && !m.eliminado) ? '<span class="cw-leido">Leído</span>' : '') + '</span>';
+                    ((propio && m.leido && !m.eliminado) ? '<span class="cw-leido">Leído</span>' : '') +
+                    ((adminGeneral && !m.eliminado) ? ' <button class="cw-info-btn" data-msg-id="' + (m.id || '') + '" title="Ver quiénes lo leyeron"><i class="fas fa-info-circle"></i></button>' : '') + '</span>';
                 var actions = '';
                 if (propio && !m.eliminado) {
-                    if (m.leido) {
+                    if (m.leido && !adminGeneral) {
                         actions = '<div class="cw-actions" style="display:inline-flex;" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><span class="cw-locked"><i class="fas fa-lock"></i></span></div>';
                     } else {
                         actions = '<div class="cw-actions"><button class="cw-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="cw-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>';
@@ -1635,6 +1649,33 @@ footer {
                     '<div class="cw-col">' + autor +
                     '<div class="cw-bubble" data-msg-id="' + (m.id || '') + '">' + adj + texto +
                     meta + actions + '</div></div></div>';
+            }
+
+            function mostrarLectoresChat(msgId, x, y) {
+                document.querySelectorAll('.cw-readers-pop').forEach(function(p) { p.remove(); });
+                var pop = document.createElement('div');
+                pop.className = 'cw-readers-pop';
+                pop.innerHTML = '<strong>Lectores</strong><span>Cargando…</span>';
+                pop.style.left = Math.min(x, window.innerWidth - 250) + 'px';
+                pop.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+                document.body.appendChild(pop);
+                fetch('/app/chat/lectores/' + msgId + '/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (!data.ok) { pop.innerHTML = '<strong>Lectores</strong><span>Sin acceso.</span>'; return; }
+                        pop.innerHTML = '<strong>Leído por ' + data.total + '</strong>' +
+                            (data.total ? '<ul>' + data.lectores.map(function(n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>'
+                                        : '<span>Nadie lo ha leído aún.</span>');
+                    })
+                    .catch(function() { pop.innerHTML = '<strong>Lectores</strong><span>No se pudo cargar.</span>'; });
+                setTimeout(function() {
+                    document.addEventListener('click', function cerrar(e) {
+                        if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', cerrar); }
+                    });
+                    document.addEventListener('keydown', function esc2(e) {
+                        if (e.key === 'Escape') { pop.remove(); document.removeEventListener('keydown', esc2); }
+                    });
+                }, 0);
             }
 
             function adjuntoHTML(m) {
@@ -1665,7 +1706,7 @@ footer {
                 }
                 var prev = null;
                 body.innerHTML = st.data.mensajes.map(function(m) {
-                    var r = burbujaHTML(m, prev);
+                    var r = burbujaHTML(m, prev, st.data.tipo === 'general');
                     prev = m.fecha;
                     return r;
                 }).join('');
@@ -1709,7 +1750,7 @@ footer {
                             adjunto_es_imagen: d.adjunto_es_imagen || false,
                             adjunto_es_pdf: d.adjunto_es_pdf || false,
                             editado: d.editado || null, eliminado: !!d.eliminado, leido: !!d.leido };
-                        body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
+                        body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha, st.data.tipo === 'general'));
                         st.data.mensajes.push(nm);
                         scrollFin(st);
                         if (d.autor_id !== userId) {
@@ -1784,10 +1825,16 @@ footer {
                     minimizar(id);
                 });
 
-                // Editar/eliminar mensajes propios (igual que la ventana ampliada)
+                // Editar/eliminar mensajes propios + info de lectores (igual que la ventana ampliada)
                 el.querySelector('.cw-body').addEventListener('click', function(e) {
                     var editBtn = e.target.closest('.cw-edit-btn');
                     var deleteBtn = e.target.closest('.cw-delete-btn');
+                    var infoBtn = e.target.closest('.cw-info-btn');
+                    if (infoBtn) {
+                        var mid = infoBtn.getAttribute('data-msg-id');
+                        if (mid) mostrarLectoresChat(mid, e.clientX || 100, e.clientY || 100);
+                        return;
+                    }
                     if (!editBtn && !deleteBtn) return;
                     var bubble = (editBtn || deleteBtn).closest('.cw-bubble');
                     var msgId = bubble && bubble.getAttribute('data-msg-id');
