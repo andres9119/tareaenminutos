@@ -28,7 +28,7 @@ class Command(BaseCommand):
         self.stdout.write('  - Creando estados de solicitud...')
         from solicitudes.models import EstadoSolicitud
         estados = [
-            ('nueva',          'Nueva',           '#3b82f6', 1),
+            ('nueva',          'Nueva',           '#64748b', 1),
             ('en_cotizacion',  'Cotización',   '#f59e0b', 2),
             ('cotizada',       'Cotizada',         '#8b5cf6', 3),
             ('en_negociacion', 'En Negociación',   '#06b6d4', 4),
