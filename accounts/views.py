@@ -145,6 +145,8 @@ def dashboard_admin(request):
     from django.contrib.auth.models import User as _User
     tutores_online = []
     for u in obtener_en_linea():
+        if u['id'] == request.user.pk:
+            continue
         try:
             user_obj = _User.objects.select_related('perfil').get(pk=u['id'])
         except _User.DoesNotExist:
@@ -629,13 +631,15 @@ def usuarios_online(request):
 
     online = obtener_en_linea()
 
-    # Enriquecer con datos del modelo User
+    # Enriquecer con datos del modelo User (sin uno mismo: no se chatea consigo)
     from django.contrib.auth.models import User
-    user_ids = [u['id'] for u in online]
+    user_ids = [u['id'] for u in online if u['id'] != request.user.pk]
     users_map = {u.id: u for u in User.objects.filter(id__in=user_ids).select_related('perfil')}
 
     enriched = []
     for u in online:
+        if u['id'] == request.user.pk:
+            continue
         user_obj = users_map.get(u['id'])
         if not user_obj:
             continue

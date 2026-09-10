@@ -189,7 +189,8 @@ def iniciar_chat_directo(request, user_id):
 
     otro = get_object_or_404(User, pk=user_id, is_active=True)
     if otro == request.user:
-        raise Http404('No puedes chatear contigo mismo.')
+        messages.info(request, 'Estás viendo tu propio usuario: elige otro para chatear.')
+        return redirect('mis_chats')
 
     # Buscar sala directa existente entre ambos usuarios
     sala = SalaChat.objects.filter(
