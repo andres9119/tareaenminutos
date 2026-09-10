@@ -1547,15 +1547,6 @@ footer {
                 return m ? m[1] : '';
             }
 
-            function fechaMensaje(d) {
-                return { id: d.id, autor_id: d.autor_id, autor_nombre: d.autor_nombre,
-                    contenido: d.contenido, hora: d.created_at, fecha: d.fecha,
-                    tipomsg: d.tipo || 'texto', adjunto_url: d.adjunto_url || '',
-                    adjunto_nombre: d.adjunto_nombre || '', adjunto_es_imagen: d.adjunto_es_imagen || false,
-                    adjunto_es_pdf: d.adjunto_es_pdf || false,
-                    editado: d.editado || null, eliminado: !!d.eliminado, leido: !!d.leido };
-            }
-
             function burbujaHTML(m, prevFecha) {
                 var propio = m.autor_id === userId;
                 var autor = (!propio && m.autor_nombre)
@@ -1802,16 +1793,9 @@ footer {
                             }).then(function(r) {
                                 return r.json().catch(function() { return { ok: false, error: 'El servidor no respondió correctamente. Revisa si el archivo llegó.' }; });
                             }).then(function(data) {
-                                if (data && data.ok && data.mensaje) {
-                                    var sWin = abiertos.get(id);
-                                    var msgs = sWin ? sWin.data.mensajes : [];
-                                    var ultFecha = msgs.length ? msgs[msgs.length - 1].fecha : null;
-                                    var nm = fechaMensaje(data.mensaje);
-                                    var body = el.querySelector('.cw-body');
-                                    body.insertAdjacentHTML('beforeend', burbujaHTML(nm, ultFecha));
-                                    msgs.push(nm);
-                                    if (sWin) scrollFin(sWin);
-                                } else if (data && data.error) {
+                                // No se pinta aquí: el servidor reenvía el mensaje por WebSocket
+                                // y el handler 'mensaje' lo dibuja una sola vez (como el texto).
+                                if (data && data.error) {
                                     alert(data.error);
                                 }
                                 if (window.__actualizarChats) window.__actualizarChats();

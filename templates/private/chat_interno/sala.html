@@ -777,25 +777,19 @@
 
         // Si hay archivo pendiente, subirlo por HTTP (con mensaje opcional)
         if (pendingFile) {
+            if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+                connect(); // sin socket no hay push de vuelta: reconectar y reintentar
+                return;
+            }
             const fd = new FormData();
             fd.append('archivo', pendingFile);
             if (message) fd.append('mensaje', message);
             fetch('/app/chat/' + salaId + '/adjunto/', {
                 method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken() }, body: fd
             }).then(function(r) { return r.json(); }).then(function(data) {
-                if (data.ok && data.mensaje) {
-                    const lbl = fechaLabel(data.mensaje.created_at_full);
-                    const lastDate = messagesDiv.querySelector('.wa-date:last-of-type');
-                    if (lbl && (!lastDate || lastDate.textContent.trim() !== lbl)) addDateSeparator(lbl);
-                    const act = { tipomsg: data.tipomsg || 'archivo', adjunto_url: data.mensaje.adjunto_url || '',
-                        adjunto_nombre: data.mensaje.adjunto_nombre || '', adjunto_es_imagen: data.mensaje.adjunto_es_imagen || false,
-                        adjunto_es_pdf: data.mensaje.adjunto_es_pdf || false };
-                    const row = document.createElement('div');
-                    row.className = 'wa-row' + (data.mensaje.autor_id === userId ? ' wa-row-own' : '');
-                    row.innerHTML = bubbleHTML(data.mensaje.autor_id === userId, true, data.mensaje.autor_nombre, data.mensaje.contenido, data.mensaje.created_at, act, data.mensaje.editado, data.mensaje.eliminado);
-                    insertBeforeTyping(row);
-                    scrollBottom();
-                } else if (data.error) {
+                // No se pinta aquí: el servidor reenvía el mensaje por WebSocket
+                // y onmessage lo dibuja una sola vez (como el texto).
+                if (data.error) {
                     alert(data.error);
                 }
             }).catch(function(e, file) {
