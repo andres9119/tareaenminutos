@@ -454,7 +454,10 @@ footer {
     text-decoration: none;
     transition: var(--transition-smooth);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    touch-action: none;
+    cursor: grab;
 }
+.whatsapp-float:active { cursor: grabbing; }
 .whatsapp-float::before {
     content: '';
     position: absolute;
@@ -967,10 +970,61 @@ footer {
         </div>
     </footer>
 
-    <!-- Floating WhatsApp button -->
-    <a href="https://wa.me/573128566675?text=Hola,%20necesito%20ayuda%20con%20una%20tarea%20universitaria." target="_blank" aria-label="Contactar por WhatsApp" class="whatsapp-float">
+    <!-- Floating WhatsApp button (arrastrable: guarda su posición) -->
+    <a href="https://wa.me/573128566675?text=Hola,%20necesito%20ayuda%20con%20una%20tarea%20universitaria." target="_blank" aria-label="Contactar por WhatsApp" title="WhatsApp — arrástrame si estorbo" class="whatsapp-float">
         <i class="fab fa-whatsapp"></i>
     </a>
+    <script>
+    (function() {
+        var wa = document.querySelector('.whatsapp-float');
+        if (!wa) return;
+        var KEY = 'tem_wa_pos';
+        function clamp(x, y) {
+            var w = wa.offsetWidth || 68, h = wa.offsetHeight || 68;
+            return [Math.min(Math.max(0, x), window.innerWidth - w),
+                    Math.min(Math.max(0, y), window.innerHeight - h)];
+        }
+        function aplicar(x, y) {
+            var p = clamp(x, y);
+            wa.style.left = p[0] + 'px';
+            wa.style.top = p[1] + 'px';
+            wa.style.right = 'auto';
+            wa.style.bottom = 'auto';
+        }
+        try {
+            var g = JSON.parse(localStorage.getItem(KEY) || 'null');
+            if (g && g.length === 2) aplicar(g[0], g[1]);
+        } catch (e) {}
+        window.addEventListener('resize', function() {
+            if (wa.style.left) aplicar(parseFloat(wa.style.left) || 0, parseFloat(wa.style.top) || 0);
+        });
+        var sx, sy, ox, oy, movido;
+        wa.addEventListener('pointerdown', function(e) {
+            sx = e.clientX; sy = e.clientY;
+            var r = wa.getBoundingClientRect();
+            ox = r.left; oy = r.top; movido = false;
+            try { wa.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        wa.addEventListener('pointermove', function(e) {
+            if (sx === undefined) return;
+            var dx = e.clientX - sx, dy = e.clientY - sy;
+            if (!movido && Math.hypot(dx, dy) < 8) return;
+            movido = true;
+            aplicar(ox + dx, oy + dy);
+        });
+        wa.addEventListener('pointerup', function() {
+            if (movido) {
+                try { localStorage.setItem(KEY, JSON.stringify([parseFloat(wa.style.left), parseFloat(wa.style.top)])); } catch (err) {}
+            }
+            sx = undefined;
+        });
+        wa.addEventListener('pointercancel', function() { sx = undefined; });
+        // Si se arrastró, el clic posterior no debe abrir WhatsApp
+        wa.addEventListener('click', function(e) {
+            if (movido) { e.preventDefault(); e.stopPropagation(); movido = false; }
+        }, true);
+    })();
+    </script>
 
     <!-- Theme Toggle + Mobile Menu + Auto-hide Alerts -->
     <script>
