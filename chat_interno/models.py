@@ -76,6 +76,17 @@ class SalaChat(models.Model):
             return None
         return self.participantes.exclude(pk=user.pk).first()
 
+    def get_nombre_para(self, user):
+        """Nombre a mostrar a `user` en headers, ventanas y listas.
+
+        Directa → nombre de la otra persona (no el "Chat: A - B" guardado,
+        que queda obsoleto si cambian los nombres). Demás salas → sala.nombre.
+        """
+        if self.tipo == 'directa':
+            otro = self.get_otro_participante(user)
+            return (otro.get_full_name() or otro.username) if otro else 'Chat Directo'
+        return self.nombre
+
 
 class MensajeChat(models.Model):
     """Mensaje en una sala de chat."""

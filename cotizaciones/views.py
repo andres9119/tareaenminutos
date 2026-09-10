@@ -131,7 +131,7 @@ def cotizacion_aceptar(request, pk):
     # Cambiar solicitud a "En Negociación" (NO asignada aún)
     estado_negociacion, _ = EstadoSolicitud.objects.get_or_create(
         nombre='en_negociacion',
-        defaults={'etiqueta': 'En Negociación', 'color_hex': '#f59e0b', 'orden': 4}
+        defaults={'etiqueta': 'En Negociación', 'color_hex': '#06b6d4', 'orden': 4}
     )
     estado_anterior = cotizacion.solicitud.estado
     cotizacion.solicitud._notif_actor = request.user
@@ -321,10 +321,9 @@ def cotizacion_confirmar_asignacion(request, pk):
 def cotizacion_cancelar_negociacion(request, pk):
     """Cancelar la negociación: el cliente NO aceptó (solo Admin).
 
-    La solicitud vuelve a 'En Cotización', se libera al tutor provisional y su
-    cotización aceptada vuelve a 'pendiente' (sigue en consideración). Las
-    demás siguen rechazadas desde la aceptación; solo se avisa al tutor
-    provisional.
+    La solicitud pasa a 'Cancelada' (definitiva, sin opción de volver a
+    cotizar), se libera al tutor provisional y se le avisa para que no
+    empiece a trabajar. Su cotización aceptada se conserva como historial.
     """
     from solicitudes.models import SolicitudAcademica, EstadoSolicitud, HistorialEstado
     from cotizaciones.models import Cotizacion
@@ -336,44 +335,37 @@ def cotizacion_cancelar_negociacion(request, pk):
 
     if request.method == 'POST':
         tutor_provisional = solicitud.tutor_asignado
-        cotizacion_ganadora = Cotizacion.objects.filter(
-            solicitud=solicitud, estado='aceptada'
-        ).first()
 
-        estado_cotizacion = EstadoSolicitud.objects.get(nombre='en_cotizacion')
+        estado_cancelada = EstadoSolicitud.objects.get(nombre='cancelada')
         estado_anterior = solicitud.estado
         solicitud._notif_actor = request.user
-        solicitud.estado = estado_cotizacion
+        solicitud.estado = estado_cancelada
         solicitud.tutor_asignado = None
         solicitud.precio_final = None
         solicitud.save()
-
-        if cotizacion_ganadora:
-            cotizacion_ganadora.estado = 'pendiente'
-            cotizacion_ganadora.save(update_fields=['estado', 'updated_at'])
 
         nombre_tutor = (tutor_provisional.get_full_name() or tutor_provisional.username) if tutor_provisional else '—'
         HistorialEstado.objects.create(
             solicitud=solicitud,
             estado_anterior=estado_anterior,
-            estado_nuevo=estado_cotizacion,
+            estado_nuevo=estado_cancelada,
             cambiado_por=request.user,
-            comentario=f'El cliente no aceptó la propuesta en negociación. Tutor provisional liberado: {nombre_tutor}. La solicitud vuelve a cotización.'
+            comentario=f'El cliente no aceptó la propuesta en negociación. Tutor provisional liberado: {nombre_tutor}. La solicitud queda cancelada (sin opción de volver a cotizar).'
         )
 
-        # Avisar al tutor provisional: que NO empiece y que sigue en consideración
+        # Avisar al tutor provisional: que NO empiece a trabajar
         if tutor_provisional:
             from notificaciones.utils import crear_notificacion
             crear_notificacion(
                 destinatario=tutor_provisional,
                 tipo='cotizacion_rechazada',
                 titulo=f'El cliente no aceptó — {solicitud.codigo}',
-                mensaje=f'El cliente no aceptó la propuesta en negociación para "{solicitud.titulo}". NO empieces a trabajar: tu cotización vuelve a estar en consideración junto a las demás. ¡Sigue participando!',
+                mensaje=f'El cliente no aceptó la propuesta en negociación para "{solicitud.titulo}". NO empieces a trabajar: la solicitud quedó cancelada.',
                 url_accion=reverse('solicitud_detalle', args=[solicitud.pk]),
                 solicitud_id=solicitud.pk,
             )
 
-        messages.success(request, f'Negociación de {solicitud.codigo} cancelada. Volvió a "En Cotización" y se avisó al tutor provisional.')
+        messages.success(request, f'Negociación de {solicitud.codigo} cancelada. Quedó "Cancelada" y se avisó al tutor provisional.')
         return redirect('solicitud_detalle', pk=pk)
 
     return render(request, 'private/cotizaciones/cancelar_negociacion.html', {

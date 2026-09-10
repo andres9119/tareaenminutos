@@ -807,6 +807,7 @@ footer {
                                 <a href="{% url 'sala_chat' chat.id %}" class="notif-dropdown-item notif-item-link" data-id="{{ chat.id }}">
                                     <div class="notif-item-icon {{ chat.tipo }}">
                                         {% if chat.tipo == 'general' %}<i class="fas fa-bullhorn"></i>
+                                        {% elif chat.tipo == 'directa' %}<i class="fas fa-user"></i>
                                         {% else %}<i class="fas fa-file-alt"></i>{% endif %}
                                     </div>
                                     <div class="notif-item-content">
@@ -1685,6 +1686,15 @@ footer {
                             });
                             renderHistorial(st);
                         }
+                    } else if (d.type === 'mensajes_leidos') {
+                        // El destino leyó: pintar "Leído" en mis burbujas sin recargar
+                        var cambio = false;
+                        st.data.mensajes.forEach(function(x) {
+                            if (x.autor_id === userId && !x.eliminado && (d.mensaje_ids || []).indexOf(x.id) !== -1 && !x.leido) {
+                                x.leido = true; cambio = true;
+                            }
+                        });
+                        if (cambio) renderHistorial(st);
                     } else if (d.type === 'error') {
                         alert(d.mensaje || 'No se pudo completar la acción.');
                     }

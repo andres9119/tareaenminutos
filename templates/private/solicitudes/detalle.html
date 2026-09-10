@@ -155,7 +155,7 @@
                         <a href="{% url 'cotizacion_confirmar_asignacion' solicitud.pk %}" class="btn-tem btn-success-tem" style="width:100%;justify-content:center;" title="El cliente aceptó: la asignación queda en firme y el tutor podrá empezar">
                             <i class="fas fa-check-circle"></i> Poner en Firme (cliente aceptó)
                         </a>
-                        <a href="{% url 'cotizacion_cancelar_negociacion' solicitud.pk %}" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;border-color:var(--highlight);color:var(--highlight);" title="El cliente no aceptó: vuelve a cotización y se avisa al tutor provisional">
+                        <a href="{% url 'cotizacion_cancelar_negociacion' solicitud.pk %}" class="btn-tem btn-outline-tem" style="width:100%;justify-content:center;border-color:var(--highlight);color:var(--highlight);" title="El cliente no aceptó: queda cancelada sin opción de volver a cotizar y se avisa al tutor provisional">
                             <i class="fas fa-times-circle"></i> Cancelar Negociación
                         </a>
                         {% endif %}

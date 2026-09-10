@@ -14,6 +14,45 @@ from accounts.utils import es_admin
 from .context_processors import _salas_con_datos
 
 
+def _marcar_leidos_y_avisar(sala, user):
+    """Marca como leídos los mensajes ajenos + sus notificaciones de chat.
+
+    Además: (a) re-estampa la ventana anti-spam de emails (mientras lees
+    activamente no salen correos inmediatos); (b) avisa por WebSocket al
+    grupo con los ids recién leídos para que el autor vea "Leído" en vivo.
+    Retorna la lista de ids recién marcados.
+    """
+    ajenos = sala.mensajes.exclude(autor=user).exclude(leido_por=user)
+    ids = list(ajenos.values_list('pk', flat=True))
+    for m in ajenos:
+        m.leido_por.add(user)
+
+    from django.urls import reverse as _reverse
+    from notificaciones.models import Notificacion as _Notificacion
+    _Notificacion.objects.filter(
+        destinatario=user,
+        tipo='mensaje_chat',
+        url_accion=_reverse('sala_chat', args=[sala.pk]),
+    ).update(leida=True)
+
+    if ids:
+        try:
+            from notificaciones.signals import _marcar_ventana_chat
+            _marcar_ventana_chat(user)
+        except Exception:
+            pass
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            async_to_sync(get_channel_layer().group_send)(
+                f"chat_{sala.pk}",
+                {'type': 'mensajes_leidos', 'lector_id': user.pk, 'mensaje_ids': ids},
+            )
+        except Exception:
+            pass
+    return ids
+
+
 @admin_o_tutor_required
 def sala_chat(request, pk):
     """Vista de una sala de chat específica."""
@@ -42,19 +81,8 @@ def sala_chat(request, pk):
     # Agregar usuario como participante si aún no está
     sala.participantes.add(request.user)
 
-    # Marcar como leídos los mensajes ajenos al abrir la sala
-    for m in sala.mensajes.exclude(autor=request.user):
-        m.leido_por.add(request.user)
-
-    # Las notificaciones de chat de esta sala ya se vieron: no deben contar
-    # para el resumen de emails (anti-spam) ni reaparecer como pendientes.
-    from django.urls import reverse as _reverse
-    from notificaciones.models import Notificacion as _Notificacion
-    _Notificacion.objects.filter(
-        destinatario=request.user,
-        tipo='mensaje_chat',
-        url_accion=_reverse('sala_chat', args=[sala.pk]),
-    ).update(leida=True)
+    # Marcar como leídos los mensajes ajenos (+ avisar "Leído" en vivo)
+    _marcar_leidos_y_avisar(sala, request.user)
 
     # Últimos 50 mensajes (se actualizan via WebSocket)
     mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('created_at')[:50]
@@ -106,6 +134,7 @@ def sala_chat(request, pk):
 
     context = {
         'sala': sala,
+        'nombre_chat': sala.get_nombre_para(request.user),
         'mensajes': mensajes,
         'entradas': entradas,
         'es_admin': user_is_admin,
@@ -137,23 +166,14 @@ def chat_mensajes_json(request, pk):
             raise Http404('No tienes acceso a esta sala.')
 
     sala.participantes.add(request.user)
-    for m in sala.mensajes.exclude(autor=request.user):
-        m.leido_por.add(request.user)
-
-    from django.urls import reverse as _reverse
-    from notificaciones.models import Notificacion as _Notificacion
-    _Notificacion.objects.filter(
-        destinatario=request.user,
-        tipo='mensaje_chat',
-        url_accion=_reverse('sala_chat', args=[sala.pk]),
-    ).update(leida=True)
+    _marcar_leidos_y_avisar(sala, request.user)
 
     mensajes = sala.mensajes.select_related('autor').prefetch_related('leido_por').order_by('-created_at')[:50]
     datos = [m.to_dict() for m in reversed(list(mensajes))]
 
     return JsonResponse({
         'id': sala.pk,
-        'nombre': sala.nombre,
+        'nombre': sala.get_nombre_para(request.user),
         'tipo': sala.tipo,
         'puede_escribir': user_is_admin or bool(sala.solicitud_id) or sala.tipo == 'directa',
         'mensajes': datos,
@@ -258,6 +278,7 @@ def mis_chats(request):
                 autor_ultimo = 'Usuario eliminado'
         salas_datos.append({
             'sala': s,
+            'nombre': s.get_nombre_para(request.user),
             'no_leidos': s.unread_count(request.user),
             'cerrada': cerrada,
             'estado': (s.solicitud.estado if s.solicitud else None),

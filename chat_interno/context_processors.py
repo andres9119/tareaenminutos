@@ -39,10 +39,7 @@ def _construir_datos_sala(sala, user):
         and sala.solicitud.estado
         and sala.solicitud.estado.nombre in CERRADAS
     )
-    nombre = sala.nombre
-    if sala.tipo == 'directa':
-        otro = sala.get_otro_participante(user)
-        nombre = (otro.get_full_name() or otro.username) if otro else 'Chat Directo'
+    nombre = sala.get_nombre_para(user)
     return {
         'id': sala.pk,
         'nombre': nombre,

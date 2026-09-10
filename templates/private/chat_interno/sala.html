@@ -1,6 +1,6 @@
 {% extends "main_app/base.html" %}
 {% load static %}
-{% block title %}{{ sala.nombre }} - Chat TEM{% endblock %}
+{% block title %}{{ nombre_chat }} - Chat TEM{% endblock %}
 {% block content %}
 <div class="container-tem">
     <div class="breadcrumb">
@@ -8,17 +8,17 @@
         <span>›</span>
         <a href="{% url 'mis_chats' %}">Mensajes</a>
         <span>›</span>
-        <span>{{ sala.nombre|truncatechars:30 }}</span>
+        <span>{{ nombre_chat|truncatechars:30 }}</span>
     </div>
 </div>
 <div class="wa-chat">
     <div class="wa-header">
         <a href="{% url 'mis_chats' %}" class="wa-back" title="Volver a chats"><i class="fas fa-arrow-left"></i></a>
         <div class="wa-avatar wa-avatar-header">
-            <span>{{ sala.nombre|slice:":1"|upper }}</span>
+            <span>{{ nombre_chat|slice:":1"|upper }}</span>
         </div>
         <div class="wa-header-info">
-            <h2>{{ sala.nombre|truncatechars:30 }}</h2>
+            <h2>{{ nombre_chat|truncatechars:30 }}</h2>
             <span class="wa-sub">
                 {% if sala.solicitud %}
                     {{ sala.solicitud.codigo }} — {{ sala.solicitud.titulo|truncatechars:40 }}
@@ -679,7 +679,24 @@
             }
             if (data.type === 'mensaje') {
                 appendMensaje(data);
-                if (data.autor_id !== userId) playChatSound();
+                if (data.autor_id !== userId) {
+                    playChatSound();
+                    // Estoy leyendo este chat: limpiar campana al instante
+                    fetch('/app/chat/' + salaId + '/mensajes/').catch(function() {});
+                }
+                return;
+            }
+            if (data.type === 'mensajes_leidos') {
+                // El destino leyó: pintar "Leído" en mis burbujas sin recargar
+                (data.mensaje_ids || []).forEach(function(mid) {
+                    const bubble = messagesDiv.querySelector('.wa-bubble[data-msg-id="' + mid + '"]');
+                    if (!bubble || !bubble.classList.contains('wa-bubble-own')) return;
+                    if (bubble.querySelector('.wa-leido')) return;
+                    const meta = bubble.querySelector('.wa-meta');
+                    if (meta) meta.innerHTML += ' <span class="wa-leido">Leído</span>';
+                    const actions = bubble.querySelector('.wa-actions');
+                    if (actions) actions.innerHTML = '<span class="wa-locked" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><i class="fas fa-lock"></i></span>';
+                });
                 return;
             }
             if (data.type === 'mensaje_editado') {

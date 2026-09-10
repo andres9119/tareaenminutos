@@ -51,13 +51,15 @@
             <div class="sala-icon">
                 {% if d.sala.tipo == 'general' %}
                     <i class="fas fa-bullhorn"></i>
+                {% elif d.sala.tipo == 'directa' %}
+                    <i class="fas fa-user"></i>
                 {% else %}
                     <i class="fas fa-file-alt"></i>
                 {% endif %}
             </div>
             <div class="sala-info">
                 <div class="sala-titulo">
-                    <h3>{{ d.sala.nombre }}</h3>
+                    <h3>{{ d.nombre }}</h3>
                     {% if d.estado %}
                         <span class="badge-tem" style="background: {{ d.estado.color_hex }}; font-size:0.65rem;">{{ d.estado.etiqueta }}</span>
                     {% endif %}

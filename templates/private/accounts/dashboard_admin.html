@@ -825,7 +825,7 @@
         </div>
         <div class="action-card">
             <h5>Tutores Conectados</h5>
-            <p>{{ tutores_online|length }} tutor{{ tutores_online|length|pluralize }} en línea ahora</p>
+            <p>{% if tutores_online|length == 1 %}1 tutor en línea ahora{% else %}{{ tutores_online|length }} tutores en línea ahora{% endif %}</p>
             {% if tutores_online %}
             <div style="display: flex; flex-direction: column; gap: 0.45rem; margin: 0.75rem 0;">
                 {% for t in tutores_online|slice:":5" %}

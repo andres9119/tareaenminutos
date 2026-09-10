@@ -191,6 +191,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'mensaje_id': event['mensaje_id'],
         }))
 
+    async def mensajes_leidos(self, event):
+        """Avisar que el lector leyó mensajes (para pintar "Leído" en vivo)."""
+        if event.get('lector_id') == self.user.id:
+            return
+        await self.send(text_data=json.dumps({
+            'type': 'mensajes_leidos',
+            'mensaje_ids': event.get('mensaje_ids', []),
+        }))
+
     @database_sync_to_async
     def editar_mensaje(self, mensaje_id, nuevo_contenido):
         from chat_interno.models import MensajeChat
