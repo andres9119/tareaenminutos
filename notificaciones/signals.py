@@ -74,6 +74,9 @@ def _marcar_ventana_chat(usuario):
 def _email_chat_agrupado(instance, usuario):
     """Email de chat con ventana anti-spam por destinatario.
 
+    - Destinatario EN LÍNEA (app abierta: campana + sonido llegan al
+      instante): no se envía correo inmediato. Si deja sin leer, igual
+      saldrá el resumen de flush_resumenes_chat al vencer la ventana.
     - Sin ventana activa (o vencida): envía este mensaje de inmediato y abre
       la ventana (estampa ultimo_email_chat).
     - Dentro de la ventana: no envía nada; el mensaje queda acumulado como
@@ -82,6 +85,15 @@ def _email_chat_agrupado(instance, usuario):
     from datetime import timedelta
     from django.utils import timezone
     from accounts.models import PerfilUsuario
+
+    try:
+        from accounts.presence import obtener_en_linea
+        en_linea_ids = {u['id'] for u in obtener_en_linea()}
+    except Exception:
+        en_linea_ids = set()
+    if usuario.pk in en_linea_ids:
+        logger.info(f"Email chat omitido (destinatario en línea) para {usuario.email} — notif {instance.pk}")
+        return
 
     perfil, _ = PerfilUsuario.objects.get_or_create(user=usuario)
     ahora = timezone.now()
