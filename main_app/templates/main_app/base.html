@@ -1083,7 +1083,7 @@ footer {
                 }).then(function(r) { return r.json(); }).then(function(res) {
                     if (res.ok && notifBadge) {
                         var n = parseInt(notifBadge.textContent) || 0;
-                        n = Math.max(0, n - 1);
+                        n = Math.max(0, n - (res.marcadas || 1));
                         notifBadge.textContent = n;
                         if (n === 0) notifBadge.classList.add('hidden');
                     }

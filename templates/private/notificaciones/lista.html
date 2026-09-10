@@ -23,7 +23,7 @@
     <div class="card-tem">
         {% if notificaciones %}
             {% for notif in notificaciones %}
-            <div class="notif-item {% if not notif.leida %}notif-unread{% endif %}" data-id="{{ notif.pk }}">
+            <div class="notif-item {% if not notif.leida %}notif-unread{% endif %}" data-id="{{ notif.pk }}"{% if notif.solicitud_id %} data-solicitud="{{ notif.solicitud_id }}"{% endif %}>
                 <div class="notif-icon">
                     <i class="fas {{ notif.icono }}"></i>
                 </div>
@@ -39,7 +39,7 @@
                         <i class="fas fa-arrow-right"></i>
                     </a>
                     {% if not notif.leida %}
-                    <button type="button" class="btn-tem btn-sm-tem notif-mark-read" data-id="{{ notif.pk }}" title="Marcar como leída">
+                    <button type="button" class="btn-tem btn-sm-tem notif-mark-read" data-id="{{ notif.pk }}"{% if notif.solicitud_id %} data-solicitud="{{ notif.solicitud_id }}"{% endif %} title="Marcar leídas todas las de este código">
                         <i class="fas fa-check"></i>
                     </button>
                     {% endif %}
@@ -156,10 +156,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (n <= 0) badge.classList.add('hidden');
         else badge.classList.remove('hidden');
     }
-    function decBadge() {
+    function decBadge(n) {
         if (!badge) return;
-        var n = parseInt(badge.textContent) || 0;
-        setBadge(Math.max(0, n - 1));
+        var cur = parseInt(badge.textContent) || 0;
+        setBadge(Math.max(0, cur - (n || 1)));
+    }
+    // Limpia visualmente todas las filas no leídas del mismo código.
+    function limpiarGrupo(solicitudId) {
+        var sel = '.notif-item[data-solicitud="' + solicitudId + '"].notif-unread';
+        document.querySelectorAll(sel).forEach(function(item) {
+            item.classList.remove('notif-unread');
+            var b = item.querySelector('.notif-mark-read');
+            if (b) b.remove();
+        });
     }
     document.getElementById('formMarcarTodas').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -200,7 +209,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     var item = btn.closest('.notif-item');
                     item.classList.remove('notif-unread');
                     btn.remove();
-                    decBadge();
+                    if (res.solicitud_id) limpiarGrupo(res.solicitud_id);
+                    decBadge(res.marcadas || 1);
                 }
             });
         });
@@ -225,7 +235,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         item.classList.remove('notif-unread');
                         var mb = item.querySelector('.notif-mark-read');
                         if (mb) mb.remove();
-                        decBadge();
+                        if (res.solicitud_id) limpiarGrupo(res.solicitud_id);
+                        decBadge(res.marcadas || 1);
                     }
                     window.location.href = url;
                 }).catch(function() { window.location.href = url; });

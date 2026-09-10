@@ -34,10 +34,21 @@ def notificaciones_list(request):
 @require_POST
 @admin_o_tutor_required
 def marcar_leida(request, pk):
-    """Marcar una notificación específica como leída (AJAX)."""
+    """Marcar como leída (AJAX).
+
+    Si la notificación pertenece a una solicitud (solicitud_id), se marcan
+    TODAS las no leídas de ese mismo código de una vez, para no tener que
+    verlas una por una (ej. varias cotizaciones del mismo TEM). Las de otros
+    códigos quedan intactas. Retorna cuántas se marcaron.
+    """
     notif = get_object_or_404(Notificacion, pk=pk, destinatario=request.user)
+    if notif.solicitud_id:
+        marcadas = Notificacion.objects.filter(
+            destinatario=request.user, leida=False, solicitud_id=notif.solicitud_id
+        ).update(leida=True)
+        return JsonResponse({'ok': True, 'marcadas': marcadas, 'solicitud_id': notif.solicitud_id})
     notif.marcar_leida()
-    return JsonResponse({'ok': True})
+    return JsonResponse({'ok': True, 'marcadas': 1, 'solicitud_id': None})
 
 
 @require_POST
