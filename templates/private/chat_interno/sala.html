@@ -331,13 +331,14 @@
 }
 .wa-info-btn:hover { color: var(--primary); opacity: 1; }
 .wa-readers-pop {
-    position: fixed; z-index: 10000; max-width: 240px;
+    position: fixed; z-index: 10000; width: 240px; max-height: 50vh;
+    display: flex; flex-direction: column;
     background: var(--bg-surface-opaque); border: 1px solid var(--border-glow);
     border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--text-main);
 }
-.wa-readers-pop strong { display: block; margin-bottom: 0.3rem; }
-.wa-readers-pop ul { margin: 0; padding-left: 1.1rem; max-height: 160px; overflow-y: auto; }
+.wa-readers-pop strong { display: block; margin-bottom: 0.3rem; flex-shrink: 0; }
+.wa-readers-pop ul { margin: 0; padding-left: 1.1rem; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 
 .wa-empty {
     text-align: center;
@@ -485,17 +486,23 @@
         pop.className = 'wa-readers-pop';
         pop.innerHTML = '<strong>Lectores</strong><span>Cargando…</span>';
         pop.style.left = Math.min(x, window.innerWidth - 250) + 'px';
-        pop.style.top = Math.min(y, window.innerHeight - 120) + 'px';
         document.body.appendChild(pop);
+        // Subir el modal si no cabe hacia abajo; el alto se recalcula al cargar la lista
+        const reubicar = function() {
+            const h = pop.offsetHeight || 120;
+            pop.style.top = Math.max(12, Math.min(y, window.innerHeight - h - 12)) + 'px';
+        };
+        reubicar();
         fetch('/app/chat/lectores/' + msgId + '/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (!data.ok) { pop.innerHTML = '<strong>Lectores</strong><span>Sin acceso.</span>'; return; }
+                if (!data.ok) { pop.innerHTML = '<strong>Lectores</strong><span>Sin acceso.</span>'; reubicar(); return; }
                 pop.innerHTML = '<strong>Leído por ' + data.total + '</strong>' +
                     (data.total ? '<ul>' + data.lectores.map(function(n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>'
                                 : '<span>Nadie lo ha leído aún.</span>');
+                reubicar();
             })
-            .catch(function() { pop.innerHTML = '<strong>Lectores</strong><span>No se pudo cargar.</span>'; });
+            .catch(function() { pop.innerHTML = '<strong>Lectores</strong><span>No se pudo cargar.</span>'; reubicar(); });
         setTimeout(function() {
             document.addEventListener('click', function cerrar(e) {
                 if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', cerrar); }
