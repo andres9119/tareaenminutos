@@ -209,15 +209,15 @@ def obtener_en_linea():
 
 
 def resumen_online_para(user, limite=5):
-    """Usuarios en línea para el desplegable de mensajes (sync).
+    """Usuarios para el desplegable de mensajes (sync).
 
-    Retorna hasta `limite` dicts {id, nombre, directa_id} excluyendo al
-    propio usuario. `directa_id` es la sala directa existente con ese
-    usuario (para abrir la ventana flotante) o None (se crea al visitar
+    Retorna dicts {id, nombre, directa_id, en_linea} excluyendo al propio
+    usuario. `directa_id` es la sala directa existente con ese usuario
+    (para abrir la ventana flotante) o None (se crea al visitar
     iniciar_chat_directo).
 
-    Los tutores solo ven admins (los directos son con el equipo
-    administrador); los admins ven a todo el personal.
+    Los tutores ven a TODOS los admins (en línea primero) para poder
+    escribirles directo; los admins ven al personal en línea.
     """
     todos = [u for u in obtener_en_linea() if u['id'] != user.pk]
     from django.contrib.auth.models import User as _User
@@ -230,17 +230,28 @@ def resumen_online_para(user, limite=5):
         )
     except Exception:
         viewer_es_admin = False
-    if not viewer_es_admin:
+    if viewer_es_admin:
+        de_linea = todos[:limite]
+        base = [(u['id'], u.get('full_name') or u.get('username') or 'Usuario', True) for u in de_linea]
+        total = len(todos)
+    else:
         try:
-            admin_ids = set(_User.objects.filter(
+            admins = list(_User.objects.filter(
                 Q(is_staff=True) | Q(is_superuser=True) | Q(groups__name='Administrador'),
                 is_active=True,
-            ).values_list('id', flat=True))
+            ).exclude(pk=user.pk).distinct().order_by('first_name', 'username'))
         except Exception:
-            admin_ids = set()
-        todos = [u for u in todos if u['id'] in admin_ids or u.get('is_staff')]
-    de_linea = todos[:limite]
-    if not de_linea:
+            admins = []
+        online_ids = {u['id'] for u in todos}
+        base = [(
+            a.pk,
+            a.get_full_name() or a.username,
+            a.pk in online_ids,
+        ) for a in admins]
+        base.sort(key=lambda x: (not x[2], x[1].lower()))
+        base = base[:limite * 2]
+        total = len(online_ids)
+    if not base:
         return [], 0
     from chat_interno.models import SalaChat
     mapa = {}
@@ -251,8 +262,9 @@ def resumen_online_para(user, limite=5):
             if p.id != user.pk and p.id not in mapa:
                 mapa[p.id] = sala.id
     resumen = [{
-        'id': u['id'],
-        'nombre': u.get('full_name') or u.get('username') or 'Usuario',
-        'directa_id': mapa.get(u['id']),
-    } for u in de_linea]
-    return resumen, len(todos)
+        'id': uid,
+        'nombre': nombre,
+        'directa_id': mapa.get(uid),
+        'en_linea': en_linea,
+    } for uid, nombre, en_linea in base]
+    return resumen, total

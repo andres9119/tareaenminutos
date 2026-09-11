@@ -838,7 +838,7 @@ footer {
                                 </a>
                                 {% endfor %}
                                 {% if online_resumen %}
-                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores{% endif %}</div>
                                 {% for u in online_resumen %}
                                     {% if u.directa_id %}
                                     <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
@@ -848,7 +848,7 @@ footer {
                                         <div class="notif-item-icon"><i class="fas fa-user"></i></div>
                                         <div class="notif-item-content">
                                             <strong>{{ u.nombre }}</strong>
-                                            <p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>
+                                            {% if u.en_linea %}<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>{% else %}<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:0.35rem;opacity:0.6;"></span>Desconectado — clic para escribirle</p>{% endif %}
                                         </div>
                                     </a>
                                 {% endfor %}
@@ -863,7 +863,7 @@ footer {
                                     <p>No tienes chats aún</p>
                                 </div>
                                 {% if online_resumen %}
-                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores{% endif %}</div>
                                 {% for u in online_resumen %}
                                     {% if u.directa_id %}
                                     <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
@@ -873,7 +873,7 @@ footer {
                                         <div class="notif-item-icon"><i class="fas fa-user"></i></div>
                                         <div class="notif-item-content">
                                             <strong>{{ u.nombre }}</strong>
-                                            <p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>
+                                            {% if u.en_linea %}<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>{% else %}<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:0.35rem;opacity:0.6;"></span>Desconectado — clic para escribirle</p>{% endif %}
                                         </div>
                                     </a>
                                 {% endfor %}
@@ -1483,15 +1483,18 @@ footer {
                             var onlineUrl = "{% url 'usuarios_online' %}";
                             var onlineHtml = '';
                             if (data.online && data.online.length) {
-                                onlineHtml = '<div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>' +
+                                onlineHtml = '<div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores{% endif %}</div>' +
                                     data.online.map(function(u) {
                                         var href = u.directa_id ? ('/app/chat/' + u.directa_id + '/') : ('/app/chat/directo/' + u.id + '/');
                                         var cls = u.directa_id ? 'notif-dropdown-item notif-item-link' : 'notif-dropdown-item';
                                         var did = u.directa_id ? ' data-id="' + u.directa_id + '"' : '';
+                                        var estado = u.en_linea
+                                            ? '<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p>'
+                                            : '<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:0.35rem;opacity:0.6;"></span>Desconectado — clic para escribirle</p>';
                                         return '<a href="' + href + '" class="' + cls + '"' + did + '>' +
                                             '<div class="notif-item-icon"><i class="fas fa-user"></i></div>' +
                                             '<div class="notif-item-content"><strong>' + u.nombre + '</strong>' +
-                                            '<p><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.35rem;"></span>En línea — clic para chatear</p></div></a>';
+                                            estado + '</div></a>';
                                     }).join('');
                             }
                             var conectadosTxt = data.online_total ? 'Conectados (' + data.online_total + ')' : 'Conectados';

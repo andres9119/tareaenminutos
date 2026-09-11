@@ -158,15 +158,24 @@ class MensajeChat(models.Model):
         return self.leido_por.exclude(pk=self.autor_id).exists()
 
     def _admin_override(self, user):
-        """True si `user` es admin: puede moderar CUALQUIER mensaje
-        (editar/eliminar sin restricciones de autor, lectura, tiempo o
-        edición previa). Aplica en todos los chats."""
+        """True si `user` es admin y el mensaje tiene menos de 15 minutos.
+
+        El admin puede moderar CUALQUIER mensaje (editar/eliminar sin
+        restricciones de autor, lectura o edición previa), pero solo
+        dentro de los 15 minutos de enviado (`TIEMPO_EDITAR_MINUTOS`).
+        Pasado ese tiempo, ni el admin puede tocarlo."""
         if getattr(user, 'pk', None) is None:
             return False
-        if getattr(user, 'is_staff', False):
-            return True
         try:
-            return user.groups.filter(name='Administrador').exists()
+            es_admin = bool(getattr(user, 'is_staff', False)) or user.groups.filter(name='Administrador').exists()
+        except Exception:
+            return False
+        if not es_admin:
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        try:
+            return timezone.now() - self.created_at < timedelta(minutes=self.TIEMPO_EDITAR_MINUTOS)
         except Exception:
             return False
 
