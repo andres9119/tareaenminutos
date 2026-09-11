@@ -55,31 +55,14 @@ async def mark_offline(user_id: int):
     """Marcar usuario como offline."""
     key = f"{PRESENCE_KEY}:{user_id}"
     cache.delete(key)
-    
+
     online_set = cache.get(PRESENCE_KEY, set())
     online_set.discard(user_id)
     cache.set(PRESENCE_KEY, online_set, PRESENCE_TTL * 2)
-    
-    # Actualizar última conexión en BD
-    await _update_ultima_conexion(user_id)
-
-
-async def _update_ultima_conexion(user_id: int):
-    """Actualiza el campo ultima_conexion en el perfil del usuario."""
-    from asgiref.sync import sync_to_async
-    from accounts.models import PerfilUsuario
-    from django.utils import timezone
-    
-    @sync_to_async
-    def _do_update():
-        try:
-            perfil = PerfilUsuario.objects.get(user_id=user_id)
-            perfil.ultima_conexion = timezone.now()
-            perfil.save(update_fields=['ultima_conexion'])
-        except PerfilUsuario.DoesNotExist:
-            pass
-    
-    await _do_update()
+    # OJO: aquí NO se toca ultima_conexion a propósito. Antes se estampaba
+    # con "ahora" al desconectar y eso regalaba 1 min fantasma en línea
+    # (la ventana HTTP). La última conexión real la escribe el middleware
+    # en cada navegación; para mostrar es igual de válida.
 
 
 async def get_online_users():
