@@ -704,6 +704,14 @@ footer {
         .notif-dropdown-footer { text-align: center; padding: 0.6rem; }
         .notif-dropdown-footer a { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
         .notif-dropdown-footer a:hover { text-decoration: underline; }
+        /* Con ID para vencer a las reglas del menú móvil (nav.nav-links a),
+           que agrandaban estos enlaces hasta 19px en móvil */
+        #notifDropdown .notif-dropdown-footer a,
+        #msgDropdown .notif-dropdown-footer a {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0;
+        }
         .notif-dropdown-footer.notif-footer-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 0.8rem; }
         .notif-clear-all { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--primary); font-weight: 600; font-family: var(--font-body); padding: 0; }
         .notif-clear-all:hover { text-decoration: underline; }
