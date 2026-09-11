@@ -838,7 +838,7 @@ footer {
                                 </a>
                                 {% endfor %}
                                 {% if online_resumen %}
-                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>
                                 {% for u in online_resumen %}
                                     {% if u.directa_id %}
                                     <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
@@ -863,7 +863,7 @@ footer {
                                     <p>No tienes chats aún</p>
                                 </div>
                                 {% if online_resumen %}
-                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>
+                                <div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>
                                 {% for u in online_resumen %}
                                     {% if u.directa_id %}
                                     <a href="{% url 'sala_chat' u.directa_id %}" class="notif-dropdown-item notif-item-link" data-id="{{ u.directa_id }}">
@@ -1483,7 +1483,7 @@ footer {
                             var onlineUrl = "{% url 'usuarios_online' %}";
                             var onlineHtml = '';
                             if (data.online && data.online.length) {
-                                onlineHtml = '<div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">En línea ahora</div>' +
+                                onlineHtml = '<div style="padding: 0.5rem 1rem 0.1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">{% if user.is_staff %}En línea ahora{% else %}Administradores en línea{% endif %}</div>' +
                                     data.online.map(function(u) {
                                         var href = u.directa_id ? ('/app/chat/' + u.directa_id + '/') : ('/app/chat/directo/' + u.id + '/');
                                         var cls = u.directa_id ? 'notif-dropdown-item notif-item-link' : 'notif-dropdown-item';
