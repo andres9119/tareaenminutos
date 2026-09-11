@@ -23,7 +23,7 @@
         <div class="card-tem-body">
             <form method="get" style="display:flex; flex-wrap:wrap; gap:0.6rem; align-items:center;">
                 <input type="text" name="q" value="{{ q }}" placeholder="Buscar por código TEM, título o cliente..."
-                       class="form-control-tem" style="flex:1; min-width:220px;">
+                       class="form-control-tem" style="flex:1; min-width:min(220px,100%);">
                 <input type="hidden" name="filtro" value="{{ filtro }}">
                 <button type="submit" class="btn-tem btn-primary-tem"><i class="fas fa-search"></i> Buscar</button>
             </form>
@@ -52,13 +52,13 @@
             {% if equipo_admin %}
             <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem;">
                 {% for a in equipo_admin %}
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="admin-row" style="display: flex; align-items: center; gap: 0.6rem;">
                     {% if a.foto %}
                         <img src="{{ a.foto }}" alt="Foto de {{ a.nombre }}" class="avatar-mini">
                     {% else %}
                         <span class="avatar-mini avatar-inicial">{{ a.nombre|first|upper }}</span>
                     {% endif %}
-                    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.nombre }}</span>
+                    <span class="admin-nombre" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.nombre }}</span>
                     {% if a.en_linea %}
                         <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0;" title="En línea ahora"></span>
                         <span style="font-size: 0.78rem; color: var(--success); font-weight: 600;">En línea</span>
@@ -258,6 +258,11 @@
         height: 40px;
         font-size: 1.1rem;
     }
+    /* Filas de administradores: si no caben, estado + botón bajan solos */
+    .admin-row {
+        flex-wrap: wrap;
+        row-gap: 0.35rem;
+    }
 }
 .empty-state {
     text-align: center;
@@ -268,6 +273,11 @@
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.4;
+}
+/* Paginación: que envuelva en pantallas angostas en vez de desbordar */
+.paginacion-tem {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
 }
 </style>
 {% endblock %}
