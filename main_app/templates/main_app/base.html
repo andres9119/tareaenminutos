@@ -853,9 +853,9 @@ footer {
                                     </a>
                                 {% endfor %}
                                 {% endif %}
-                                <div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">
+                                <div class="notif-dropdown-footer" style="display: flex; justify-content: {% if user.is_staff %}space-between{% else %}center{% endif %}; gap: 0.5rem;">
                                     <a href="{% url 'mis_chats' %}">Ver todos los chats</a>
-                                    <a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>
+                                    {% if user.is_staff %}<a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>{% endif %}
                                 </div>
                             {% else %}
                                 <div class="notif-dropdown-empty">
@@ -878,9 +878,9 @@ footer {
                                     </a>
                                 {% endfor %}
                                 {% endif %}
-                                <div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">
+                                <div class="notif-dropdown-footer" style="display: flex; justify-content: {% if user.is_staff %}space-between{% else %}center{% endif %}; gap: 0.5rem;">
                                     <a href="{% url 'mis_chats' %}">Ver todos los chats</a>
-                                    <a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>
+                                    {% if user.is_staff %}<a href="{% url 'usuarios_online' %}">Conectados{% if online_total %} ({{ online_total }}){% endif %}</a>{% endif %}
                                 </div>
                             {% endif %}
                         </div>
@@ -1495,9 +1495,10 @@ footer {
                                     }).join('');
                             }
                             var conectadosTxt = data.online_total ? 'Conectados (' + data.online_total + ')' : 'Conectados';
-                            var footerHtml = '<div class="notif-dropdown-footer" style="display: flex; justify-content: space-between; gap: 0.5rem;">' +
+                            var esAdmin = window.__TEM_ES_ADMIN === true;
+                            var footerHtml = '<div class="notif-dropdown-footer" style="display: flex; justify-content: ' + (esAdmin ? 'space-between' : 'center') + '; gap: 0.5rem;">' +
                                 '<a href="{% url 'mis_chats' %}">Ver todos los chats</a>' +
-                                '<a href="' + onlineUrl + '">' + conectadosTxt + '</a></div>';
+                                (esAdmin ? '<a href="' + onlineUrl + '">' + conectadosTxt + '</a>' : '') + '</div>';
                             if (data.chats.length === 0) {
                                 msgDropdown.innerHTML = '<div class="notif-dropdown-empty"><i class="fas fa-comment-slash"></i><p>No tienes chats aún</p></div>' +
                                     onlineHtml + footerHtml;
@@ -1575,6 +1576,7 @@ footer {
 
     {{ user.pk|json_script:"cw-user-id" }}
     {{ user.is_staff|json_script:"cw-es-admin" }}
+    <script>window.__TEM_ES_ADMIN = {% if user.is_staff %}true{% else %}false{% endif %};</script>
     <script>
         /* Ventanas de chat flotantes (estilo Facebook: solo la forma de mostrarse).
            Cada ventana trae su historial via /mensajes/ y vive vía WebSocket. */
