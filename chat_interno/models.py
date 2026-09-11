@@ -76,6 +76,18 @@ class SalaChat(models.Model):
             return None
         return self.participantes.exclude(pk=user.pk).first()
 
+    def es_directa_sin_admin(self):
+        """Directa solo entre tutores (sin ningún admin participando).
+
+        No permitidas: los chats directos son siempre con el equipo
+        administrador."""
+        if self.tipo != 'directa':
+            return False
+        from django.db.models import Q
+        return not self.participantes.filter(
+            Q(is_staff=True) | Q(groups__name='Administrador')
+        ).exists()
+
     def get_nombre_para(self, user):
         """Nombre a mostrar a `user` en headers, ventanas y listas.
 

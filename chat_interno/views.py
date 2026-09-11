@@ -147,9 +147,12 @@ def chat_mensajes_json(request, pk):
     user_is_admin = es_admin(request.user)
 
     sala = get_object_or_404(SalaChat, pk=pk)
-    # Chats directos: SOLO participantes (ni admins ajenos).
+    # Chats directos: SOLO participantes (ni admins ajenos),
+    # y nunca solo entre tutores.
     if sala.tipo == 'directa':
         if not sala.participantes.filter(pk=request.user.pk).exists():
+            raise Http404('No tienes acceso a esta sala.')
+        if sala.es_directa_sin_admin():
             raise Http404('No tienes acceso a esta sala.')
     # Chat de solicitud: solo existe cuando ya hay tutor asignado (para todos).
     if sala.solicitud_id and not sala.solicitud.tutor_asignado:
@@ -203,6 +206,12 @@ def iniciar_chat_directo(request, user_id):
     otro = get_object_or_404(User, pk=user_id, is_active=True)
     if otro == request.user:
         messages.info(request, 'Estás viendo tu propio usuario: elige otro para chatear.')
+        return redirect('mis_chats')
+
+    # Los chats directos son siempre con el equipo administrador:
+    # entre tutores no se pueden iniciar.
+    if not (es_admin(request.user) or es_admin(otro)):
+        messages.info(request, 'Los chats directos son con el equipo administrador.')
         return redirect('mis_chats')
 
     # Buscar sala directa existente entre ambos usuarios
@@ -275,6 +284,7 @@ def mis_chats(request):
         )
 
     salas_qs = (base.select_related('solicitud', 'solicitud__estado')
+                .prefetch_related('participantes')
                 .annotate(ultima_act=Max('mensajes__created_at'))
                 .order_by(F('ultima_act').desc(nulls_last=True), '-created_at'))
 
@@ -282,6 +292,9 @@ def mis_chats(request):
 
     salas_datos = []
     for s in pagina.object_list:
+        # Directas solo entre tutores: no se listan (ni se acceden).
+        if s.tipo == 'directa' and not user_is_admin and s.es_directa_sin_admin():
+            continue
         ultimo = s.last_message()
         cerrada = bool(s.solicitud and s.solicitud.estado.nombre in CERRADAS)
         autor_ultimo = ''
@@ -350,9 +363,12 @@ def sala_chat_pdf(request, pk):
     user_is_admin = es_admin(request.user)
 
     sala = get_object_or_404(SalaChat, pk=pk)
-    # Chats directos: SOLO participantes (ni admins ajenos).
+    # Chats directos: SOLO participantes (ni admins ajenos),
+    # y nunca solo entre tutores.
     if sala.tipo == 'directa':
         if not sala.participantes.filter(pk=request.user.pk).exists():
+            raise Http404('No tienes acceso a esta sala.')
+        if sala.es_directa_sin_admin():
             raise Http404('No tienes acceso a esta sala.')
     if not user_is_admin:
         if sala.solicitud and sala.solicitud.tutor_asignado != request.user:
@@ -434,9 +450,12 @@ def _esc_pdf(texto):
 
 def _usuario_puede_ver_sala(user, sala):
     """Control de acceso a una sala (copiado de sala_chat / consumers.verificar_acceso)."""
-    # Salas directas: SOLO participantes (ni admins ajenos)
+    # Salas directas: SOLO participantes (ni admins ajenos), y nunca solo
+    # entre tutores (los directos son con el equipo administrador).
     if sala.tipo == 'directa':
-        return sala.participantes.filter(pk=user.pk).exists()
+        if not sala.participantes.filter(pk=user.pk).exists():
+            return False
+        return not sala.es_directa_sin_admin()
     # Salas de solicitud: SOLO si hay tutor asignado
     if sala.solicitud:
         if not sala.solicitud.tutor_asignado:

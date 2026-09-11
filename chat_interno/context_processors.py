@@ -59,13 +59,21 @@ def _salas_con_datos(user, limite=25):
     # Trae un grupo amplio y ordena por relevancia para el flotante:
     # 1) Canal General siempre primero, 2) con mensajes sin leer,
     # 3) chats abiertos, 4) actividad reciente.
+    from accounts.utils import es_admin as _es_admin
+    viewer_es_admin = _es_admin(user)
     pool_size = max(limite * 4, 80)
     salas = list(_base_salas(user)
                  .select_related('solicitud', 'solicitud__estado')
+                 .prefetch_related('participantes')
                  .annotate(ultima_act=Max('mensajes__created_at'))
                  .order_by(F('ultima_act').desc(nulls_last=True), '-created_at')[:pool_size])
 
-    datos = [_construir_datos_sala(s, user) for s in salas]
+    datos = []
+    for s in salas:
+        # Directas solo entre tutores: no se listan (ni se acceden).
+        if s.tipo == 'directa' and not viewer_es_admin and s.es_directa_sin_admin():
+            continue
+        datos.append(_construir_datos_sala(s, user))
 
     # Separar el canal general para siempre ponerlo primero
     general = None
@@ -91,8 +99,12 @@ def _salas_con_datos(user, limite=25):
 
 def mensajes_no_leidos_chats(user):
     """Total de mensajes no leídos en todos los chats del usuario."""
+    from accounts.utils import es_admin as _es_admin
+    viewer_es_admin = _es_admin(user)
     total = 0
-    for s in _base_salas(user):
+    for s in _base_salas(user).prefetch_related('participantes'):
+        if s.tipo == 'directa' and not viewer_es_admin and s.es_directa_sin_admin():
+            continue
         total += s.unread_count(user)
     return total
 

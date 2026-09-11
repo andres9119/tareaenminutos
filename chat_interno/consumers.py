@@ -243,9 +243,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from chat_interno.models import SalaChat
         try:
             sala = SalaChat.objects.get(pk=self.sala_id)
-            # Salas directas: SOLO participantes (ni admins ajenos)
+            # Salas directas: SOLO participantes (ni admins ajenos),
+            # y nunca solo entre tutores.
             if sala.tipo == 'directa':
-                return sala.participantes.filter(pk=self.user.pk).exists()
+                if not sala.participantes.filter(pk=self.user.pk).exists():
+                    return False
+                return not sala.es_directa_sin_admin()
             # Salas de solicitud: SOLO si hay tutor asignado (y el usuario es ese tutor o admin)
             if sala.solicitud:
                 if not sala.solicitud.tutor_asignado:

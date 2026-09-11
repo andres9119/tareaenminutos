@@ -215,8 +215,30 @@ def resumen_online_para(user, limite=5):
     propio usuario. `directa_id` es la sala directa existente con ese
     usuario (para abrir la ventana flotante) o None (se crea al visitar
     iniciar_chat_directo).
+
+    Los tutores solo ven admins (los directos son con el equipo
+    administrador); los admins ven a todo el personal.
     """
     todos = [u for u in obtener_en_linea() if u['id'] != user.pk]
+    from django.contrib.auth.models import User as _User
+    from django.db.models import Q
+    try:
+        viewer_es_admin = (
+            user.is_superuser or user.is_staff
+            or _User.objects.filter(pk=user.pk).filter(
+                Q(is_staff=True) | Q(groups__name='Administrador')).exists()
+        )
+    except Exception:
+        viewer_es_admin = False
+    if not viewer_es_admin:
+        try:
+            admin_ids = set(_User.objects.filter(
+                Q(is_staff=True) | Q(is_superuser=True) | Q(groups__name='Administrador'),
+                is_active=True,
+            ).values_list('id', flat=True))
+        except Exception:
+            admin_ids = set()
+        todos = [u for u in todos if u['id'] in admin_ids or u.get('is_staff')]
     de_linea = todos[:limite]
     if not de_linea:
         return [], 0
