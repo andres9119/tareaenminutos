@@ -9,13 +9,14 @@ from django.core.cache import cache
 
 
 PRESENCE_KEY = "presence:online_users"
-PRESENCE_TTL = 300  # 5 minutos (debe ser mayor que heartbeat interval)
+PRESENCE_TTL = 90  # 90 segundos (debe ser mayor que el heartbeat de 30s;
+# si el socket muere sin aviso, el fantasma dura máximo ~90s, no 5 min)
 
 # Ventana de actividad HTTP que también cuenta como "en línea" (minutos).
 # Respaldo cuando el WebSocket no conecta (pestaña sin socket, caché
 # fragmentada entre procesos, etc.): si el usuario navegó hace poco,
 # está en línea aunque no tenga socket abierto.
-ONLINE_ACTIVIDAD_MINUTOS = 3
+ONLINE_ACTIVIDAD_MINUTOS = 1
 
 
 def _get_redis():
