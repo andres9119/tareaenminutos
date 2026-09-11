@@ -9,8 +9,8 @@ from django.core.cache import cache
 
 
 PRESENCE_KEY = "presence:online_users"
-PRESENCE_TTL = 90  # 90 segundos (debe ser mayor que el heartbeat de 30s;
-# si el socket muere sin aviso, el fantasma dura máximo ~90s, no 5 min)
+PRESENCE_TTL = 60  # 60 segundos (el heartbeat de 15s lo renueva; margen de
+# ~4 ciclos. Si el socket muere sin aviso, el fantasma dura máximo ~60s)
 
 # Ventana de actividad HTTP que también cuenta como "en línea" (minutos).
 # Respaldo cuando el WebSocket no conecta (pestaña sin socket, caché

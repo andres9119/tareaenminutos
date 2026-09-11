@@ -7,9 +7,11 @@ import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from accounts.presence import mark_online, mark_offline, heartbeat
 
-# Vida de presencia: ping cada 30 s, 12 s de gracia para el pong.
-PING_CADA_SEG = 30
-PONG_ESPERA_SEG = 12
+# Vida de presencia: ping cada 15 s, 8 s de gracia para el pong.
+# Tráfico mínimo (2 tramas por conexión cada 15 s); una conexión muerta
+# se detecta en ~23 s como máximo.
+PING_CADA_SEG = 15
+PONG_ESPERA_SEG = 8
 
 
 class NotificacionConsumer(AsyncWebsocketConsumer):
@@ -89,9 +91,9 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
         await _marcar()
 
     async def _heartbeat_loop(self):
-        """Renovar TTL de presencia cada 30 segundos, exigiendo pong.
+        """Renovar TTL de presencia cada 15 segundos, exigiendo pong.
 
-        Sin respuesta en 12 s se cierra la conexión para no dejar
+        Sin respuesta en 8 s se cierra la conexión para no dejar
         fantasmas "en línea"."""
         try:
             while True:

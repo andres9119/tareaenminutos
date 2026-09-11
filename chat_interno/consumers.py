@@ -9,9 +9,11 @@ from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from accounts.presence import mark_online, mark_offline, heartbeat
 
-# Vida de presencia: ping cada 30 s, 12 s de gracia para el pong.
-PING_CADA_SEG = 30
-PONG_ESPERA_SEG = 12
+# Vida de presencia: ping cada 15 s, 8 s de gracia para el pong.
+# Tráfico mínimo (2 tramas por conexión cada 15 s); una conexión muerta
+# se detecta en ~23 s como máximo.
+PING_CADA_SEG = 15
+PONG_ESPERA_SEG = 8
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -316,9 +318,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return []
 
     async def _heartbeat_loop(self):
-        """Renovar TTL de presencia cada 30 segundos, exigiendo pong.
+        """Renovar TTL de presencia cada 15 segundos, exigiendo pong.
 
-        Si el cliente no responde al ping en 12 s se cierra la conexión:
+        Si el cliente no responde al ping en 8 s se cierra la conexión:
         así una pestaña muerta (suspendida, red caída) no queda "en línea"
         para siempre renovando el TTL a ciegas.
         """
