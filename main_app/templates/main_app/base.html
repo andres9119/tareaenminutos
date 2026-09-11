@@ -1380,6 +1380,10 @@ footer {
 
                 notifSocket.onmessage = function(e) {
                     const data = JSON.parse(e.data);
+                    if (data.type === 'ping') {
+                        try { notifSocket.send(JSON.stringify({ type: 'pong' })); } catch (err) {}
+                        return;
+                    }
                     if (data.type === 'notificacion') {
                         // Los mensajes de chat NO van a la campanita: solo refrescan
                         // el icono de mensajes (badge + sonido lo pone el polling).
@@ -1738,6 +1742,10 @@ footer {
                 st.ws = ws;
                 ws.onmessage = function(ev) {
                     var d = JSON.parse(ev.data);
+                    if (d.type === 'ping') {
+                        try { ws.send(JSON.stringify({ type: 'pong' })); } catch (err) {}
+                        return;
+                    }
                     if (d.type === 'historial') {
                         st.data.mensajes = d.mensajes.map(function(m) {
                             return { id: m.id, autor_id: m.autor_id, autor_nombre: m.autor_nombre,

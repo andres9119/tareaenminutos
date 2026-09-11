@@ -9,6 +9,10 @@ from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from accounts.presence import mark_online, mark_offline, heartbeat
 
+# Vida de presencia: ping cada 30 s, 12 s de gracia para el pong.
+PING_CADA_SEG = 30
+PONG_ESPERA_SEG = 12
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer para el chat interno por sala."""
@@ -18,6 +22,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.group_name = f"chat_{self.sala_id}"
         self.user = self.scope['user']
         self._heartbeat_task = None
+        self._pong_ok = True
 
         # Rechazar conexiones de usuarios no autenticados
         if not self.user.is_authenticated:
@@ -72,6 +77,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Recibir mensaje del WebSocket y distribuirlo al grupo."""
         data = json.loads(text_data)
         tipo = data.get('type', 'mensaje')
+
+        # Pong de vida: el servidor lo exige cada 30 s; sin pong se cierra
+        # la conexión para no dejar fantasmas "en línea".
+        if tipo == 'pong':
+            self._pong_ok = True
+            return
 
         if tipo == 'mensaje':
             contenido = data.get('message', '').strip()
@@ -305,10 +316,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return []
 
     async def _heartbeat_loop(self):
-        """Renovar TTL de presencia cada 30 segundos."""
+        """Renovar TTL de presencia cada 30 segundos, exigiendo pong.
+
+        Si el cliente no responde al ping en 12 s se cierra la conexión:
+        así una pestaña muerta (suspendida, red caída) no queda "en línea"
+        para siempre renovando el TTL a ciegas.
+        """
         try:
             while True:
-                await asyncio.sleep(30)
+                await asyncio.sleep(PING_CADA_SEG)
+                self._pong_ok = False
+                try:
+                    await self.send(text_data=json.dumps({'type': 'ping'}))
+                except Exception:
+                    break
+                await asyncio.sleep(PONG_ESPERA_SEG)
+                if not self._pong_ok:
+                    try:
+                        await self.close()
+                    except Exception:
+                        pass
+                    break
                 await heartbeat(self.user.id)
         except asyncio.CancelledError:
             pass

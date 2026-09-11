@@ -727,6 +727,10 @@
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
+            if (data.type === 'ping') {
+                try { chatSocket.send(JSON.stringify({ type: 'pong' })); } catch (err) {}
+                return;
+            }
             if (data.type === 'historial') {
                 // Sincronizar: reconstruir con el historial (recupera mensajes perdidos tras reconexión)
                 renderHistorial(data.mensajes, data.username_actual);

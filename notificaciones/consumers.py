@@ -7,6 +7,10 @@ import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from accounts.presence import mark_online, mark_offline, heartbeat
 
+# Vida de presencia: ping cada 30 s, 12 s de gracia para el pong.
+PING_CADA_SEG = 30
+PONG_ESPERA_SEG = 12
+
 
 class NotificacionConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer para notificaciones push de usuario."""
@@ -14,6 +18,7 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
         self._heartbeat_task = None
+        self._pong_ok = True
 
         if not self.user.is_authenticated:
             await self.close()
@@ -51,8 +56,11 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
-        """Marcar notificación como leída."""
+        """Marcar notificación como leída. También responde el ping de vida."""
         data = json.loads(text_data)
+        if data.get('type') == 'pong':
+            self._pong_ok = True
+            return
         if data.get('type') == 'marcar_leida':
             notif_id = data.get('notif_id')
             if notif_id:
@@ -81,10 +89,25 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
         await _marcar()
 
     async def _heartbeat_loop(self):
-        """Renovar TTL de presencia cada 30 segundos."""
+        """Renovar TTL de presencia cada 30 segundos, exigiendo pong.
+
+        Sin respuesta en 12 s se cierra la conexión para no dejar
+        fantasmas "en línea"."""
         try:
             while True:
-                await asyncio.sleep(30)
+                await asyncio.sleep(PING_CADA_SEG)
+                self._pong_ok = False
+                try:
+                    await self.send(text_data=json.dumps({'type': 'ping'}))
+                except Exception:
+                    break
+                await asyncio.sleep(PONG_ESPERA_SEG)
+                if not self._pong_ok:
+                    try:
+                        await self.close()
+                    except Exception:
+                        pass
+                    break
                 await heartbeat(self.user.id)
         except asyncio.CancelledError:
             pass
