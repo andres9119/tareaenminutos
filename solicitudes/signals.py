@@ -212,6 +212,12 @@ def notificar_asignacion_tutor(sender, instance, **kwargs):
     if kwargs.get('created') or not instance.tutor_asignado:
         return
 
+    # Las vistas pueden fijar esta bandera para suprimir el aviso cuando la
+    # asignación es provisional (p. ej. aceptar cotización: pasa a
+    # negociación y ya envía su propia notificación específica).
+    if getattr(instance, '_skip_asignacion_notif', False):
+        return
+
     def _notificar():
         from notificaciones.utils import crear_notificacion
         actor = getattr(instance, '_notif_actor', None)

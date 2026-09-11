@@ -136,6 +136,7 @@ def cotizacion_aceptar(request, pk):
     estado_anterior = cotizacion.solicitud.estado
     cotizacion.solicitud._notif_actor = request.user
     cotizacion.solicitud._skip_estado_notif = True
+    cotizacion.solicitud._skip_asignacion_notif = True  # provisional: no es asignación en firme
     cotizacion.solicitud.estado = estado_negociacion
     cotizacion.solicitud.tutor_asignado = cotizacion.tutor
     cotizacion.solicitud.precio_final = cotizacion.monto
