@@ -290,6 +290,27 @@ def mis_chats(request):
 
     pagina = Paginator(salas_qs, 15).get_page(request.GET.get('page'))
 
+    # Equipo administrador (solo para tutores): con quién pueden chatear
+    # directo y quién está en línea ahora (por si es urgente).
+    equipo_admin = []
+    online_ids = set()
+    if not user_is_admin:
+        from accounts.presence import obtener_en_linea
+        online_ids = {u['id'] for u in obtener_en_linea()}
+        from django.contrib.auth.models import User as _User
+        from django.db.models import Q as _Q
+        for a in _User.objects.filter(
+            _Q(is_staff=True) | _Q(groups__name='Administrador'),
+            is_active=True,
+        ).exclude(pk=request.user.pk).select_related('perfil').distinct().order_by('first_name', 'username'):
+            equipo_admin.append({
+                'id': a.pk,
+                'nombre': a.get_full_name() or a.username,
+                'foto': a.perfil.get_foto_url() if hasattr(a, 'perfil') else '',
+                'en_linea': a.pk in online_ids,
+            })
+        equipo_admin.sort(key=lambda x: (not x['en_linea'], x['nombre'].lower()))
+
     salas_datos = []
     for s in pagina.object_list:
         # Directas solo entre tutores: no se listan (ni se acceden).
@@ -303,11 +324,13 @@ def mis_chats(request):
                 autor_ultimo = ultimo.autor.get_full_name() or ultimo.autor.username
             else:
                 autor_ultimo = 'Usuario eliminado'
+        otro = s.get_otro_participante(request.user) if s.tipo == 'directa' else None
         salas_datos.append({
             'sala': s,
             'nombre': s.get_nombre_para(request.user),
             'no_leidos': s.unread_count(request.user),
             'cerrada': cerrada,
+            'otro_en_linea': bool(otro is not None and otro.pk in online_ids),
             'estado': (s.solicitud.estado if s.solicitud else None),
             'codigo': s.solicitud.codigo if s.solicitud else None,
             'titulo_sol': s.solicitud.titulo if s.solicitud else None,
@@ -321,6 +344,7 @@ def mis_chats(request):
         'pagina': pagina,
         'qs_base': qs_base_sin_pagina(request, 'page'),
         'es_admin': user_is_admin,
+        'equipo_admin': equipo_admin,
         'q': q,
         'filtro': filtro,
     }

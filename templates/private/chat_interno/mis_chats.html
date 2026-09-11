@@ -44,6 +44,40 @@
         </div>
     </div>
 
+    {% if not es_admin %}
+    <div class="card-tem" style="margin-bottom: 1rem;">
+        <div class="card-tem-body">
+            <h3 style="margin-top: 0;">Administradores</h3>
+            <p class="text-muted-tem" style="font-size: 0.85rem;">Tus chats directos son con el equipo administrador. El punto verde indica quién está en línea ahora, por si es algo urgente.</p>
+            {% if equipo_admin %}
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem;">
+                {% for a in equipo_admin %}
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    {% if a.foto %}
+                        <img src="{{ a.foto }}" alt="Foto de {{ a.nombre }}" class="avatar-mini">
+                    {% else %}
+                        <span class="avatar-mini avatar-inicial">{{ a.nombre|first|upper }}</span>
+                    {% endif %}
+                    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.nombre }}</span>
+                    {% if a.en_linea %}
+                        <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0;" title="En línea ahora"></span>
+                        <span style="font-size: 0.78rem; color: var(--success); font-weight: 600;">En línea</span>
+                    {% else %}
+                        <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; opacity: 0.5;" title="Desconectado"></span>
+                    {% endif %}
+                    <a href="{% url 'iniciar_chat_directo' a.id %}" class="btn-tem btn-outline-tem" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; flex-shrink: 0; width: auto;" title="Chatear con {{ a.nombre }}">
+                        <i class="fas fa-comment"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted-tem" style="font-size: 0.85rem;">No hay administradores registrados.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     {% if salas_datos %}
     <div class="salas-grid">
         {% for d in salas_datos %}
@@ -60,6 +94,14 @@
             <div class="sala-info">
                 <div class="sala-titulo">
                     <h3>{{ d.nombre }}</h3>
+                    {% if not es_admin and d.sala.tipo == 'directa' %}
+                        {% if d.otro_en_linea %}
+                            <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0;" title="El administrador está en línea ahora"></span>
+                            <span style="font-size: 0.72rem; color: var(--success); font-weight: 600;">En línea</span>
+                        {% else %}
+                            <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; opacity: 0.5;" title="Administrador desconectado"></span>
+                        {% endif %}
+                    {% endif %}
                     {% if d.estado %}
                         <span class="badge-tem" style="background: {{ d.estado.color_hex }}; font-size:0.65rem;">{{ d.estado.etiqueta }}</span>
                     {% endif %}
