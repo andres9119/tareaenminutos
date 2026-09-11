@@ -703,6 +703,18 @@ footer {
             margin-top: 0.1rem;
         }
         .notif-dropdown-footer { text-align: center; padding: 0.6rem; }
+        /* Sticky: siempre visible al fondo aunque la lista tenga scroll interno */
+        .notif-dropdown-footer {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-surface-opaque);
+        }
+        /* En pantallas angostas el dropdown fijo de 340px se salía: ancho fluido */
+        @media (max-width: 420px) {
+            .notif-dropdown {
+                width: calc(100vw - 3rem);
+            }
+        }
         .notif-dropdown-footer a { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
         .notif-dropdown-footer a:hover { text-decoration: underline; }
         /* Con ID para vencer a las reglas del menú móvil (nav.nav-links a),
