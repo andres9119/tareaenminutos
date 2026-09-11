@@ -150,6 +150,12 @@
     grid-template-columns: 1fr;
     gap: 1rem;
 }
+/* La tarjeta es item del grid: sin min-width:0 su mínimo es el texto
+   más largo sin partir y la columna entera se ensancha (scroll gigante).
+   Con 0, la tarjeta se ciñe al viewport y los ellipsis internos trabajan. */
+.salas-grid > * {
+    min-width: 0;
+}
 .sala-card {
     display: flex;
     align-items: center;
