@@ -17,10 +17,8 @@ from .context_processors import _salas_con_datos
 def _marcar_leidos_y_avisar(sala, user):
     """Marca como leídos los mensajes ajenos + sus notificaciones de chat.
 
-    Además: (a) re-estampa la ventana anti-spam de emails (mientras lees
-    activamente no salen correos inmediatos); (b) avisa por WebSocket al
-    grupo con los ids recién leídos para que el autor vea "Leído" en vivo.
-    Retorna la lista de ids recién marcados.
+    Además avisa por WebSocket al grupo con los ids recién leídos para que
+    el autor vea "Leído" en vivo. Retorna la lista de ids recién marcados.
     """
     ajenos = sala.mensajes.exclude(autor=user).exclude(leido_por=user)
     ids = list(ajenos.values_list('pk', flat=True))
@@ -36,11 +34,6 @@ def _marcar_leidos_y_avisar(sala, user):
     ).update(leida=True)
 
     if ids:
-        try:
-            from notificaciones.signals import _marcar_ventana_chat
-            _marcar_ventana_chat(user)
-        except Exception:
-            pass
         try:
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
@@ -325,10 +318,6 @@ def mis_chats(request):
 def datos_messenger(request):
     """Endpoint JSON con los chats del usuario y sus no leídos (polling del flotante)."""
     from django.utils import timezone
-    # El tráfico constante de este endpoint sirve de motor para los resúmenes
-    # de email de chat pendientes (anti-spam), aunque el destinatario esté off.
-    from notificaciones.signals import flush_resumenes_chat
-    flush_resumenes_chat()
     chats = _salas_con_datos(request.user)
     from accounts.presence import resumen_online_para
     online_resumen, online_total = resumen_online_para(request.user)
