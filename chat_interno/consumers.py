@@ -208,6 +208,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
             motivo = mensaje.motivo_no_editable(self.user)
             if motivo is not None:
+                if motivo == 'ajeno':
+                    return None, 'No puedes editar mensajes de otros usuarios.'
                 if motivo == 'leido':
                     return None, 'Ya fue leído por el destinatario: no se puede editar.'
                 if motivo == 'ya_editado':
@@ -225,6 +227,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from chat_interno.models import MensajeChat
         try:
             mensaje = MensajeChat.objects.get(pk=mensaje_id, sala_id=self.sala_id)
+            if mensaje.autor_id != self.user.pk and not mensaje._admin_override(self.user):
+                return False, 'No puedes eliminar mensajes de otros usuarios.'
             if not mensaje.puede_eliminar(self.user):
                 return False, 'Ya fue leído por el destinatario: no se puede eliminar.'
             mensaje.eliminado = True

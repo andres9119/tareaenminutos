@@ -66,7 +66,8 @@
                     {% if es_admin and sala.tipo == 'general' and not e.mensaje.eliminado %}
                     <button class="wa-info-btn" data-msg-id="{{ e.mensaje.pk }}" title="Ver quiénes lo leyeron"><i class="fas fa-info-circle"></i></button>
                     {% endif %}
-                    {% if e.propio and not e.mensaje.eliminado %}
+                    {% if not e.mensaje.eliminado %}
+                    {% if e.propio or es_admin %}
                     <div class="wa-actions">
                         {% if e.editable %}
                         <button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button>
@@ -74,10 +75,11 @@
                         {% if e.eliminable %}
                         <button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button>
                         {% endif %}
-                        {% if not e.editable and not e.eliminable %}
+                        {% if e.propio and not e.editable and not e.eliminable %}
                         <span class="wa-locked" title="{% if e.motivo_bloqueo == 'leido' %}Ya fue leído por el destinatario: no se puede editar ni eliminar{% elif e.motivo_bloqueo == 'ya_editado' %}Ya fue editado una vez{% else %}Ya pasó el tiempo de edición (15 minutos){% endif %}"><i class="fas fa-lock"></i></span>
                         {% endif %}
                     </div>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -601,8 +603,8 @@
         const htmlTexto = (mostrarTexto && !eliminado)
             ? '<span class="wa-text">' + esc(contenido || '').replace(/\n/g, '<br>') + '</span>' : '';
         let actions = '';
-        if (propio && !eliminado) {
-            if (leido && !ADMIN_GENERAL) {
+        if ((propio || esAdmin) && !eliminado) {
+            if (leido && !esAdmin) {
                 actions = '<div class="wa-actions" style="display:inline-flex;" title="Ya fue leído por el destinatario: no se puede editar ni eliminar"><span class="wa-locked"><i class="fas fa-lock"></i></span></div>';
             } else {
                 actions = '<div class="wa-actions"><button class="wa-edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="wa-delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></div>';

@@ -119,8 +119,8 @@ def sala_chat(request, pk):
             'es_imagen': _adjunto_es_imagen(m),
             'es_pdf': _adjunto_es_pdf(m),
             'leido': leido,
-            'editable': propio and m.puede_editar(request.user),
-            'eliminable': propio and m.puede_eliminar(request.user),
+            'editable': m.puede_editar(request.user),
+            'eliminable': m.puede_eliminar(request.user),
             'motivo_bloqueo': motivo_bloqueo,
         })
         fecha_anterior = fecha
